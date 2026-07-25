@@ -7,8 +7,11 @@
 #'   A 95% CI half-width = `MOE_90 * MOE90_TO_CI95_FACTOR`. Reference these
 #'   constants rather than re-deriving `1.96 / 1.645` inline.
 #' @format numeric scalars. `MOE90_TO_CI95_FACTOR` is derived (`CI_Z95/ACS_MOE_Z90`, ~1.1915).
-#' @source U.S. Census Bureau, "Understanding and Using ACS Data" (MOE appendix);
-#'   promoted from isochrones/R/moe_propagation.R.
+#' @source Primary: U.S. Census Bureau, "Understanding and Using American
+#'   Community Survey Data: What All Data Users Need to Know" (margin-of-error
+#'   appendix; the 90% MOE multiplier is the published 1.645),
+#'   <https://www.census.gov/programs-surveys/acs/library/handbooks/general.html>.
+#'   Promoted from isochrones/R/moe_propagation.R.
 #' @export
 ACS_MOE_Z90 <- 1.645
 #' @rdname ACS_MOE_Z90

@@ -4,6 +4,13 @@
   domain, with design principles and a scope-boundary note.
 * Added `URL` and `BugReports` to `DESCRIPTION`.
 * Added this `NEWS.md` changelog.
+* Strengthened `@source` provenance with **primary sources** (authoritative
+  original references with URLs / DOIs) alongside the internal promotion paths:
+  ACS Table B01001 for the female-population denominator and variable codes;
+  U.S. Census Bureau ANSI/FIPS code lists for the state geography; USDA ERS
+  Rural-Urban Commuting Area codes for the RUCA breakpoint; the Wu 2014 DOI and
+  NHANES 2005-2010 data source for the PFD prevalence table; and the Census ACS
+  data handbook for the margin-of-error multipliers.
 
 # mufflyaccess 0.1.4
 

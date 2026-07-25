@@ -4,7 +4,11 @@
 #' claims. ACS 2016-2020 5-year, table B01001_026 (total female), contiguous US
 #' (48 states + DC).
 #' @format Integer scalar (persons).
-#' @source isochrones/R/acs_national_female_pop.R; ACS 2016-2020 5-year B01001_026.
+#' @source Primary: U.S. Census Bureau, American Community Survey 2016-2020
+#'   5-Year Estimates, Detailed Table B01001 "Sex by Age", variable B01001_026
+#'   (total female), summed over the 48 contiguous states + DC.
+#'   <https://data.census.gov/table/ACSDT5Y2020.B01001>. Promoted from
+#'   isochrones/R/acs_national_female_pop.R.
 #' @export
 ACS2020_CONUS_FEMALE_POP <- structure(
   164690617L,
