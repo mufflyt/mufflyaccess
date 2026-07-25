@@ -1,0 +1,21 @@
+Package: mufflyaccess
+Title: Canonical Access, Census-Denominator, and Geography Constants (SSOT)
+Version: 0.1.0
+Authors@R:
+    person("Tyler", "Muffly", email = "tyler.muffly@dhha.org", role = c("aut", "cre"))
+Description: Single source of truth for the constants shared across the OB/GYN
+    subspecialty geographic-access projects (isochrones, twostep, cliff): the
+    primary drive-time access band, the total-female access denominator category
+    label, the tract "reached" majority-coverage cut, the national contiguous-US
+    ACS female population, and the contiguous-US / non-contiguous state code
+    lists. Each value carries provenance and fail-loud validation so the three
+    repositories cannot silently drift. Intentionally-different, repo-specific
+    values (e.g. the Wu-2014 vs Nygaard-2008 PFD prevalence tables) are NOT
+    included here and stay per-repository by design.
+License: MIT + file LICENSE
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.1
+Suggests:
+    testthat (>= 3.0.0)
+Config/testthat/edition: 3

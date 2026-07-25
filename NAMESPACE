@@ -1,0 +1,13 @@
+# Generated/maintained by hand (matches @export tags in R/).
+export(CANONICAL_BANDS)
+export(PRIMARY_ACCESS_BAND_MIN)
+export(PRIMARY_ACCESS_BAND_SEC)
+export(get_canonical_bands)
+export(get_primary_access_band)
+export(DENOMINATOR_CATEGORY)
+export(TRACT_REACHED_COVERAGE_PCT)
+export(ACS2020_CONUS_FEMALE_POP)
+export(NON_CONTIGUOUS_CODES)
+export(NON_CONTIGUOUS_FIPS)
+export(CONUS_STATE_FIPS)
+export(CONUS_STATE_ABBR)
