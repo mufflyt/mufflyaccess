@@ -9,8 +9,11 @@
 #'   table for a population projection -- a different cohort/source that is
 #'   intentionally NOT this object and stays in the cliff repo. Do not conflate.
 #' @format `data.frame` (condition x p_65_79 / p_80plus), proportions.
-#' @source Wu JM et al. Obstet Gynecol 2014;123(1):141-148, Table 1 (PMID 24463674);
-#'   promoted from isochrones/R/pfd_prevalence.R.
+#' @source Primary: Wu JM, Vaughan CP, Goode PS, et al. "Prevalence and trends of
+#'   symptomatic pelvic floor disorders in U.S. women." Obstet Gynecol
+#'   2014;123(1):141-148, Table 1. PMID 24463674; doi:10.1097/AOG.0000000000000057
+#'   (estimates derived from NHANES 2005-2010). Promoted from
+#'   isochrones/R/pfd_prevalence.R.
 #' @export
 WU2014_PFD_PREVALENCE <- local({
   d <- data.frame(
@@ -18,7 +21,7 @@ WU2014_PFD_PREVALENCE <- local({
     p_65_79   = c(0.368,     0.272,   0.154,   0.047),   # Wu 2014 Table 1, ages 60-79
     p_80plus  = c(0.497,     0.382,   0.210,   0.040),   # Wu 2014 Table 1, ages >=80
     stringsAsFactors = FALSE)
-  attr(d, "source")   <- "Wu JM et al. Obstet Gynecol 2014;123(1):141-148, Table 1 (PMID 24463674)"
+  attr(d, "source")   <- "Wu JM et al. Obstet Gynecol 2014;123(1):141-148, Table 1 (PMID 24463674; doi:10.1097/AOG.0000000000000057; NHANES 2005-2010)"
   attr(d, "brackets") <- c("60-79 (applied to 65-79 ACS bands)", ">=80")
   attr(d, "units")    <- "proportion of women in the age bracket with the (symptomatic) disorder"
   d

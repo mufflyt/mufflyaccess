@@ -6,7 +6,11 @@
 #'   scheme's DISTINCT suburban/rural split (RUCA 7) is a SEPARATE threshold and
 #'   is intentionally NOT derived from this constant.
 #' @format Integer scalar.
-#' @source USDA ERS RUCA codes; promoted from isochrones/R/utils/ruca_levels.R.
+#' @source Primary: U.S. Department of Agriculture, Economic Research Service,
+#'   Rural-Urban Commuting Area (RUCA) Codes,
+#'   <https://www.ers.usda.gov/data-products/rural-urban-commuting-area-codes>
+#'   (primary codes 1-3 metropolitan, 4-10 non-metropolitan). Promoted from
+#'   isochrones/R/utils/ruca_levels.R.
 #' @export
 RUCA_NONMETRO_MIN <- 4L
 

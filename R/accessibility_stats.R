@@ -84,6 +84,9 @@ acs_year_of <- function(year) pmax(pmin(as.integer(year), 2022L), 2013L)
 
 #' Canonical ACS female-population variable codes (footgun: race tables use _017,
 #' full B01001 uses _026).
+#' @source Primary: U.S. Census Bureau, American Community Survey Detailed Tables
+#'   B01001 "Sex by Age" and the race-iterated B01001B-I,
+#'   <https://data.census.gov/table/ACSDT5Y2020.B01001>.
 #' @export
 TOTAL_FEMALE_VAR <- "B01001_026"
 #' @rdname TOTAL_FEMALE_VAR
