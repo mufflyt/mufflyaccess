@@ -22,6 +22,15 @@
 * Added `CONTRIBUTING.md` codifying the promotion checklist (primary source +
   fail-loud `stopifnot()` + derive-don't-duplicate + test + `NEWS.md` + usage
   map) and the consumer shim pattern.
+* Added `analysis/urps_counts/` (build-ignored, not part of the R package): a
+  standard, reproducible count of URPS and all ABOG OB/GYN subspecialties by year
+  (2013–2023), derived from the committed `isochrones` cohort
+  (`table1_physician_characteristics.csv`) via the repo's board-certification
+  active-in-year rule — never NPPES taxonomy alone. Includes the dependency-free
+  generator (`count_urps.py`), the derived CSVs (by subspecialty; by ± urology
+  pathway), provenance with source SHA-256, and heavy documentation. Anchors
+  exactly to the known figures (URPS active 2023 = 1,031 ABOG; total = 5,336).
+  The ABU (with-urology) layer is supported via `--abu`.
 
 # mufflyaccess 0.1.4
 
