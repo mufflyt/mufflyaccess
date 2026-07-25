@@ -37,3 +37,10 @@ test_that("reached cut is a percent, band is minutes (unit sanity)", {
   expect_true(TRACT_REACHED_COVERAGE_PCT > 0L && TRACT_REACHED_COVERAGE_PCT <= 100L)
   expect_true(PRIMARY_ACCESS_BAND_MIN >= 1L && PRIMARY_ACCESS_BAND_MIN <= 24L * 60L)
 })
+
+test_that("ACS female pop carries provenance attributes", {
+  a <- attributes(ACS2020_CONUS_FEMALE_POP)
+  expect_true(all(c("vintage","table","scope","units") %in% names(a)))
+  expect_match(a$table, "B01001_026")
+  expect_match(a$scope, "contiguous", ignore.case = TRUE)
+})

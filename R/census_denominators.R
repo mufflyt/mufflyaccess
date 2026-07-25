@@ -6,7 +6,13 @@
 #' @format Integer scalar (persons).
 #' @source isochrones/R/acs_national_female_pop.R; ACS 2016-2020 5-year B01001_026.
 #' @export
-ACS2020_CONUS_FEMALE_POP <- 164690617L
+ACS2020_CONUS_FEMALE_POP <- structure(
+  164690617L,
+  vintage = "ACS 2016-2020 5-year",
+  table   = "B01001_026 (total female)",
+  scope   = "contiguous U.S. (48 states + DC)",
+  units   = "persons (women)"
+)
 
 stopifnot(
   "ACS2020_CONUS_FEMALE_POP must be a single positive integer" =
