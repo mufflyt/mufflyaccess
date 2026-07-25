@@ -3,7 +3,7 @@ test_that("canonical scalar values are exactly as published", {
   expect_equal(PRIMARY_ACCESS_BAND_SEC, 3600L)
   expect_identical(DENOMINATOR_CATEGORY, "total_female")
   expect_equal(TRACT_REACHED_COVERAGE_PCT, 50L)
-  expect_equal(ACS2020_CONUS_FEMALE_POP, 164690617L)
+  expect_equal(as.vector(ACS2020_CONUS_FEMALE_POP), 164690617L)  # as.vector strips provenance attrs
 })
 
 test_that("derived values are consistent with their sources", {
