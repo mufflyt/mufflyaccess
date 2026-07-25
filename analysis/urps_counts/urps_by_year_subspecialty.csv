@@ -1,0 +1,78 @@
+year,subspecialty,abbrev,n_active,n_ever_certified_by_year,n_retired_by_year
+2013,Complex Family Planning,CFP,86,86,0
+2013,Female Pelvic Medicine & Reconstructive Surgery,URPS,843,843,0
+2013,Gynecologic Oncology,GO,815,815,0
+2013,Maternal-Fetal Medicine,MFM,1813,1813,0
+2013,Minimally Invasive Gynecologic Surgery,MIGS,354,354,0
+2013,Pediatric & Adolescent Gynecology,PAG,127,127,0
+2013,Reproductive Endocrinology and Infertility,REI,1001,1001,0
+2014,Complex Family Planning,CFP,100,100,0
+2014,Female Pelvic Medicine & Reconstructive Surgery,URPS,905,905,0
+2014,Gynecologic Oncology,GO,882,882,0
+2014,Maternal-Fetal Medicine,MFM,1922,1922,0
+2014,Minimally Invasive Gynecologic Surgery,MIGS,395,395,0
+2014,Pediatric & Adolescent Gynecology,PAG,139,139,0
+2014,Reproductive Endocrinology and Infertility,REI,1054,1054,0
+2015,Complex Family Planning,CFP,120,120,0
+2015,Female Pelvic Medicine & Reconstructive Surgery,URPS,954,954,0
+2015,Gynecologic Oncology,GO,938,938,0
+2015,Maternal-Fetal Medicine,MFM,2032,2032,0
+2015,Minimally Invasive Gynecologic Surgery,MIGS,430,430,0
+2015,Pediatric & Adolescent Gynecology,PAG,152,152,0
+2015,Reproductive Endocrinology and Infertility,REI,1101,1101,0
+2016,Complex Family Planning,CFP,136,136,0
+2016,Female Pelvic Medicine & Reconstructive Surgery,URPS,987,990,3
+2016,Gynecologic Oncology,GO,973,974,1
+2016,Maternal-Fetal Medicine,MFM,2098,2117,20
+2016,Minimally Invasive Gynecologic Surgery,MIGS,481,481,0
+2016,Pediatric & Adolescent Gynecology,PAG,166,166,0
+2016,Reproductive Endocrinology and Infertility,REI,1132,1154,22
+2017,Complex Family Planning,CFP,147,148,1
+2017,Female Pelvic Medicine & Reconstructive Surgery,URPS,1036,1041,5
+2017,Gynecologic Oncology,GO,1028,1032,4
+2017,Maternal-Fetal Medicine,MFM,2173,2222,50
+2017,Minimally Invasive Gynecologic Surgery,MIGS,511,511,0
+2017,Pediatric & Adolescent Gynecology,PAG,177,177,0
+2017,Reproductive Endocrinology and Infertility,REI,1150,1201,52
+2018,Complex Family Planning,CFP,162,164,3
+2018,Female Pelvic Medicine & Reconstructive Surgery,URPS,1060,1066,6
+2018,Gynecologic Oncology,GO,1058,1063,5
+2018,Maternal-Fetal Medicine,MFM,2217,2293,76
+2018,Minimally Invasive Gynecologic Surgery,MIGS,547,547,0
+2018,Pediatric & Adolescent Gynecology,PAG,189,189,0
+2018,Reproductive Endocrinology and Infertility,REI,1158,1241,84
+2019,Complex Family Planning,CFP,178,182,5
+2019,Female Pelvic Medicine & Reconstructive Surgery,URPS,1089,1110,21
+2019,Gynecologic Oncology,GO,1093,1116,23
+2019,Maternal-Fetal Medicine,MFM,2218,2385,171
+2019,Minimally Invasive Gynecologic Surgery,MIGS,583,589,8
+2019,Pediatric & Adolescent Gynecology,PAG,194,199,5
+2019,Reproductive Endocrinology and Infertility,REI,1096,1278,188
+2020,Complex Family Planning,CFP,184,194,11
+2020,Female Pelvic Medicine & Reconstructive Surgery,URPS,1092,1118,26
+2020,Gynecologic Oncology,GO,1091,1129,39
+2020,Maternal-Fetal Medicine,MFM,2171,2419,250
+2020,Minimally Invasive Gynecologic Surgery,MIGS,594,606,15
+2020,Pediatric & Adolescent Gynecology,PAG,191,200,9
+2020,Reproductive Endocrinology and Infertility,REI,1074,1295,224
+2021,Complex Family Planning,CFP,215,235,20
+2021,Female Pelvic Medicine & Reconstructive Surgery,URPS,1092,1133,41
+2021,Gynecologic Oncology,GO,1118,1174,56
+2021,Maternal-Fetal Medicine,MFM,2089,2447,358
+2021,Minimally Invasive Gynecologic Surgery,MIGS,628,647,19
+2021,Pediatric & Adolescent Gynecology,PAG,200,214,14
+2021,Reproductive Endocrinology and Infertility,REI,1043,1313,271
+2022,Complex Family Planning,CFP,216,243,27
+2022,Female Pelvic Medicine & Reconstructive Surgery,URPS,1079,1135,56
+2022,Gynecologic Oncology,GO,1104,1190,86
+2022,Maternal-Fetal Medicine,MFM,1959,2448,489
+2022,Minimally Invasive Gynecologic Surgery,MIGS,631,659,28
+2022,Pediatric & Adolescent Gynecology,PAG,194,217,23
+2022,Reproductive Endocrinology and Infertility,REI,984,1315,331
+2023,Complex Family Planning,CFP,185,243,58
+2023,Female Pelvic Medicine & Reconstructive Surgery,URPS,1031,1135,104
+2023,Gynecologic Oncology,GO,1052,1190,138
+2023,Maternal-Fetal Medicine,MFM,1529,2448,919
+2023,Minimally Invasive Gynecologic Surgery,MIGS,605,660,55
+2023,Pediatric & Adolescent Gynecology,PAG,175,217,42
+2023,Reproductive Endocrinology and Infertility,REI,759,1315,556

@@ -1,0 +1,25 @@
+{
+  "generated_by": "count_urps.py",
+  "abog_source": "/workspace/isochrones/manuscript/tables/table1_physician_characteristics.csv",
+  "abog_sha256": "5f1b6167fad81ba896c0b1bc1ceda8eb966e681f51b176105b389a27399e0c0f",
+  "abog_rows": 7208,
+  "abu": {
+    "provided": false
+  },
+  "conus_only": false,
+  "cohort": "ABOG-certified OB/GYN subspecialists, NPI-matched, 2023 active-workforce snapshot (table1)",
+  "subspecialty_column_used": "subspecialty_label",
+  "active_rule": "certification_year <= Y AND (retirement_year empty OR retirement_year > Y)",
+  "years": [
+    2013,
+    2023
+  ],
+  "urps_without_urology": "ABOG pathway",
+  "urps_with_urology": "ABOG + ABU (net-new urology-pathway roster)",
+  "abu_snapshot_note": "if the ABU roster has no year columns, ABU is added as a constant level shift across years (abu.temporal=false)",
+  "retirement_detection_caveat": "retirement_year populated from ~2016; the 2023-anchored cohort under-represents pre-2016 exits, so 2013-2015 are approximate",
+  "outputs": [
+    "analysis/urps_counts/urps_by_year_subspecialty.csv",
+    "analysis/urps_counts/urps_by_year_pathway.csv"
+  ]
+}
