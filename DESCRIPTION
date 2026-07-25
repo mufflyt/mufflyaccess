@@ -18,6 +18,11 @@ Description: Single source of truth for the constants shared across the OB/GYN
 License: MIT + file LICENSE
 URL: https://github.com/mufflyt/mufflyaccess
 BugReports: https://github.com/mufflyt/mufflyaccess/issues
+Depends:
+    R (>= 3.6)
+Imports:
+    datasets,
+    stats
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.1

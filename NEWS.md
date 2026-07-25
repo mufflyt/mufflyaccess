@@ -11,6 +11,17 @@
   Rural-Urban Commuting Area codes for the RUCA breakpoint; the Wu 2014 DOI and
   NHANES 2005-2010 data source for the PFD prevalence table; and the Census ACS
   data handbook for the margin-of-error multipliers.
+* Added a **cross-repo usage map** (`docs/CROSS_REPO_USAGE.md`) — the SSOT
+  contract map of which repo consumes which export — plus a regenerator,
+  `tools/usage_matrix.sh`. Documents the origin (`isochrones`) vs consumer
+  (`twostep`, `cliff`) shim architecture and flags exports no consumer references
+  yet (the MOE multipliers, `CONUS_STATE_ABBR`, and the Wu-2014 PFD family).
+* Switched `NAMESPACE` to **roxygen-generated** (removing the hand-maintenance
+  drift risk) and declared the base-package dependencies in `DESCRIPTION`
+  (`Imports: datasets, stats`; `Depends: R (>= 3.6)`).
+* Added `CONTRIBUTING.md` codifying the promotion checklist (primary source +
+  fail-loud `stopifnot()` + derive-don't-duplicate + test + `NEWS.md` + usage
+  map) and the consumer shim pattern.
 
 # mufflyaccess 0.1.4
 

@@ -1,3 +1,6 @@
 ^LICENSE$
 ^\.git$
 ^README\.md$
+^CONTRIBUTING\.md$
+^docs$
+^tools$
