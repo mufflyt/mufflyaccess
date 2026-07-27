@@ -17,6 +17,15 @@
 #' @source cliff `data/abu_pathway_sensitivity.csv` (scenarios A/B), from the
 #'   `abu_pathway_sensitivity.R` workforce analysis; ABOG rosters
 #'   `abog_all_urps_2026-07-22.csv`, ABU rosters `abu_all_urps_2026-07-22.csv`.
+#' @family URPS workforce
+#' @seealso The reproducible by-year / by-subspecialty pipeline in
+#'   `analysis/urps_counts/`, which lands on the same ABOG active figure (1031).
+#' @examples
+#' URPS_COUNT_ABOG_ONLY_2025                     # 1031  (without urology)
+#' URPS_COUNT_ABOG_PLUS_ABU_2025                 # 1295  (with urology)
+#' # reconciliation and provenance travel with the values as attributes:
+#' attr(URPS_COUNT_ABOG_PLUS_ABU_2025, "note")   # "= ... + 264 ABU net-new active"
+#' URPS_COUNT_ABOG_PLUS_ABU_2025 - URPS_COUNT_ABOG_ONLY_2025  # 264
 #' @name urps_workforce_2025
 NULL
 

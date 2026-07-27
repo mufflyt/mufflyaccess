@@ -11,6 +11,11 @@
   `URPS_COUNT_ABOG_PLUS_ABU_2025`, added in 0.1.5) in the README, alongside the
   by-year `analysis/urps_counts/` pipeline they reconcile with (both land on the
   1,031 ABOG active figure).
+* Added a **package-level help page** (`?mufflyaccess`) via a `"_PACKAGE"` doc
+  with a domain-grouped index of every export.
+* Added `@examples`/`@family`/`@seealso` to the frozen URPS workforce constants
+  (`R/urps_workforce.R`), and folded `WU2014_PFD_PREVALENCE` into the
+  `pfd-prevalence` `@family` so the table and its accessors share one index page.
 
 * Expanded `README.md` to a full reference of all 34 exported objects, grouped by
   domain, with design principles and a scope-boundary note.
