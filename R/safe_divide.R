@@ -223,7 +223,7 @@ safe_rate <- function(events, exposure, multiplier = 1, digits = 1, default = NA
 #' @family safe-arithmetic
 #' @seealso [safe_divide()], [safe_percent()], [safe_rate()]
 #' @examples
-#' safe_ratio(1295, 1031)  # 1.26  (with-urology : without-urology URPS)
+#' safe_ratio(1339, 1031)  # 1.30  (with-urology : without-urology URPS)
 #' safe_ratio(1, 0)        # NA_real_
 #' @export
 safe_ratio <- function(numerator, denominator, digits = 2, default = NA_real_) {

@@ -124,7 +124,7 @@ one of two modes:
 
 > **Frozen headline counterpart.** The `mufflyaccess` package also *exports*
 > frozen headline constants for this — `URPS_COUNT_ABOG_ONLY_2025` (1031, without
-> urology) and `URPS_COUNT_ABOG_PLUS_ABU_2025` (1295, with urology; +264 ABU
+> urology) and `URPS_COUNT_ABOG_PLUS_ABU_2025` (1339, with urology; +308 ABU
 > net-new) in `R/urps_workforce.R`. Those are the stable single numbers for
 > downstream code; this folder is the reproducible by-year/by-subspecialty
 > pipeline behind them. They agree on the ABOG active figure (1031).

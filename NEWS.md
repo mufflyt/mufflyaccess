@@ -1,3 +1,15 @@
+# mufflyaccess 0.1.9
+
+* **Corrected the frozen with-urology URPS baseline** to the reconciled
+  value: `URPS_COUNT_ABOG_PLUS_ABU_2025` is now **1339** (= 1031 ABOG + 308
+  ABU net-new), superseding the stale 1295 (= 1031 + 264, pre-reinstatement),
+  per cliff's `SSOT_URPS_BASELINE_RECONCILIATION.md` (2026-07-24). Fail-loud
+  validation (264->308), provenance attributes, roxygen examples, README, and
+  the analysis-doc pointer all updated to match. NOTE: this fixes the constant
+  in THIS package only; the manuscript's own baseline SSOT (cliff
+  `workforce_projections_consolidated.csv` + its frozen sensitivity suite)
+  still needs the scoped re-run described in that doc.
+
 # mufflyaccess 0.1.8
 
 * Maintenance release: formally tags the consolidated 0.1.7 documentation,

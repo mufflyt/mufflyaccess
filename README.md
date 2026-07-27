@@ -3,7 +3,7 @@
 <!-- badges: start -->
 [![Lifecycle: stable](https://img.shields.io/badge/lifecycle-stable-brightgreen.svg)](https://lifecycle.r-lib.org/articles/stages.html#stable)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-0.1.8-informational.svg)](DESCRIPTION)
+[![Version](https://img.shields.io/badge/version-0.1.9-informational.svg)](DESCRIPTION)
 <!-- badges: end -->
 
 **Single source of truth (SSOT) for the constants and pure statistics shared
@@ -18,7 +18,7 @@ project **one** definition of each shared value, each carrying its provenance an
 silently disagree about the numbers behind a published statistic.
 
 ```r
-renv::install("mufflyt/mufflyaccess@v0.1.8")
+renv::install("mufflyt/mufflyaccess@v0.1.9")
 library(mufflyaccess)
 
 # select the headline access rows in a Step-4 access table
@@ -74,11 +74,11 @@ no third-party runtime dependencies):
 
 ```r
 # pin an exact release for reproducibility (recommended):
-renv::install("mufflyt/mufflyaccess@v0.1.8")
+renv::install("mufflyt/mufflyaccess@v0.1.9")
 
 # or with remotes / pak:
-remotes::install_github("mufflyt/mufflyaccess@v0.1.8")
-pak::pak("mufflyt/mufflyaccess@v0.1.8")
+remotes::install_github("mufflyt/mufflyaccess@v0.1.9")
+pak::pak("mufflyt/mufflyaccess@v0.1.9")
 ```
 
 Pin a tagged version rather than tracking the branch: a shared SSOT should change
@@ -235,7 +235,7 @@ validation.
 | Object | Value | Meaning |
 |---|---|---|
 | `URPS_COUNT_ABOG_ONLY_2025` | 1031 | Active URPS, ABOG (OB/GYN) pathway only — **without** urology. |
-| `URPS_COUNT_ABOG_PLUS_ABU_2025` | 1295 | Both-pathway — **with** urology (`= 1031 + 264` ABU net-new). |
+| `URPS_COUNT_ABOG_PLUS_ABU_2025` | 1339 | Both-pathway — **with** urology (`= 1031 + 308` ABU net-new). |
 
 > These frozen constants are the headline counterpart to the reproducible
 > by-year pipeline in [`analysis/urps_counts/`](analysis/urps_counts/); the two
