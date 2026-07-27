@@ -12,9 +12,11 @@ An object of class \code{integer} of length 1.
 An object of class \code{integer} of length 1.
 }
 \source{
-cliff \code{data/abu_pathway_sensitivity.csv} (scenarios A/B), from the
-\code{abu_pathway_sensitivity.R} workforce analysis; ABOG rosters
-\verb{abog_all_urps_2026-07-22.csv}, ABU rosters \verb{abu_all_urps_2026-07-22.csv}.
+Reconciled to 1,339 per cliff \code{docs/SSOT_URPS_BASELINE_RECONCILIATION.md}
+(2026-07-24): 1,031 ABOG-active + 308 ABU net-new (2026-07-22 roster: 270
+identified + 38 reinstated, all aged). Supersedes the stale 1,295 (1,031 + 264,
+pre-reinstatement 2026-07-14 roster). ABOG rosters \verb{abog_all_urps_2026-07-22.csv},
+ABU rosters \verb{abu_all_urps_2026-07-22.csv}.
 }
 \usage{
 URPS_COUNT_ABOG_ONLY_2025
@@ -32,7 +34,9 @@ through the American Board of Obstetrics and Gynecology (OB/GYN) pathway only.
 cohort, adding American Board of Urology (ABU) net-new active urogynecologists.
 }
 
-They reconcile exactly: 1,031 ABOG + 264 ABU net-new = 1,295 both-pathway.
+They reconcile exactly: 1,031 ABOG + 308 ABU net-new = 1,339 both-pathway. The
+earlier 1,295 (= 1,031 + 264) was the pre-reinstatement 2026-07-14 value; 1,339
+supersedes it (the +44 gap = 38 reinstated ABU + 6 no-longer-dropped, all aged).
 
 The "2025" is the workforce-model baseline year; the underlying rosters are the
 2026-07 cliff extracts. These are ACTIVE-workforce headcounts, NOT the year-forward
@@ -40,10 +44,10 @@ projections (e.g. the 2026 projected both-pathway supply is a distinct quantity)
 }
 \examples{
 URPS_COUNT_ABOG_ONLY_2025                     # 1031  (without urology)
-URPS_COUNT_ABOG_PLUS_ABU_2025                 # 1295  (with urology)
+URPS_COUNT_ABOG_PLUS_ABU_2025                 # 1339  (with urology)
 # reconciliation and provenance travel with the values as attributes:
-attr(URPS_COUNT_ABOG_PLUS_ABU_2025, "note")   # "= ... + 264 ABU net-new active"
-URPS_COUNT_ABOG_PLUS_ABU_2025 - URPS_COUNT_ABOG_ONLY_2025  # 264
+attr(URPS_COUNT_ABOG_PLUS_ABU_2025, "note")   # "= ... + 308 ABU net-new active"
+URPS_COUNT_ABOG_PLUS_ABU_2025 - URPS_COUNT_ABOG_ONLY_2025  # 308
 }
 \seealso{
 The reproducible by-year / by-subspecialty pipeline in
