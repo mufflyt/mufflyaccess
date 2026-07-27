@@ -39,6 +39,15 @@ stopifnot(
 #' Two-bracket Wu-2014 PFD prevalence for one condition
 #' @param condition one of `WU2014_PFD_PREVALENCE$condition` (default "any_PFD").
 #' @return named numeric `c(`65_79`=, `80plus`=)`.
+#' @family pfd-prevalence
+#' @seealso [WU2014_PFD_PREVALENCE] (the underlying table),
+#'   [pfd_prevalence_acs_bands()] (the same rates spread over ACS age-band columns).
+#' @examples
+#' pfd_prevalence()          # any_PFD: c(`65_79` = 0.368, `80plus` = 0.497)
+#' pfd_prevalence("UI")      # urinary incontinence: c(`65_79` = 0.272, `80plus` = 0.382)
+#' \dontrun{
+#' pfd_prevalence("nope")    # errors: unknown condition
+#' }
 #' @export
 pfd_prevalence <- function(condition = "any_PFD") {
   r <- WU2014_PFD_PREVALENCE[WU2014_PFD_PREVALENCE$condition == condition, , drop = FALSE]
@@ -51,6 +60,14 @@ pfd_prevalence <- function(condition = "any_PFD") {
 #' Wu-2014 PFD prevalence as a named vector over the ACS 65+ age-band columns
 #' @param condition one of `WU2014_PFD_PREVALENCE$condition` (default "any_PFD").
 #' @return named numeric over c(a65_66E, a67_69E, a70_74E, a75_79E, a80_84E, a85pE).
+#' @family pfd-prevalence
+#' @seealso [pfd_prevalence()] (the two-bracket form these bands expand).
+#' @examples
+#' b <- pfd_prevalence_acs_bands()   # any_PFD spread across the 6 ACS 65+ bands
+#' b[["a65_66E"]]                    # 0.368  (65-79 bracket rate)
+#' b[["a85pE"]]                      # 0.497  (>=80 bracket rate)
+#' # the four 65-79 bands all carry the 65-79 rate; the two 80+ bands the 80+ rate:
+#' unname(b)                         # c(0.368, 0.368, 0.368, 0.368, 0.497, 0.497)
 #' @export
 pfd_prevalence_acs_bands <- function(condition = "any_PFD") {
   v <- pfd_prevalence(condition)

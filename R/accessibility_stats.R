@@ -13,6 +13,10 @@ NULL
 #' @param a numeric values. @param w numeric weights (same length as `a`).
 #' @return weighted mean, or NA if the weights sum to 0 / non-finite.
 #' @family accessibility-disparity statistics
+#' @seealso [zero_access_share()], [mc_weighted_ci()]
+#' @examples
+#' weighted_mean_all(c(1, 3), c(1, 3))   # 2.5  (population-weighted toward 3)
+#' weighted_mean_all(1:3, c(0, 0, 0))    # NA_real_  (zero total weight)
 #' @export
 weighted_mean_all <- function(a, w) {
   stopifnot(length(a) == length(w))
@@ -25,6 +29,11 @@ weighted_mean_all <- function(a, w) {
 #' @param access numeric accessibility values. @param w numeric weights.
 #' @return percent in [0,100] under non-negative weights, or NA.
 #' @family accessibility-disparity statistics
+#' @seealso [weighted_mean_all()], [mc_weighted_ci()]
+#' @examples
+#' # 40 of 50 weighted population lives where access == 0  -> 80%
+#' zero_access_share(c(0, 5, 0), c(10, 10, 30))   # 80
+#' zero_access_share(c(1, 2, 3), c(1, 1, 1))      # 0  (nobody at exactly 0)
 #' @export
 zero_access_share <- function(access, w) {
   stopifnot(length(access) == length(w))
@@ -39,6 +48,9 @@ zero_access_share <- function(access, w) {
 #' @return character "Metropolitan"/"Rural" (NA for NA/invalid codes).
 #' @seealso [RUCA_NONMETRO_MIN]
 #' @family accessibility-disparity statistics
+#' @examples
+#' rurality_from_ruca(c(1, 4, 10, NA))
+#' # "Metropolitan" (1-3), "Rural" (>=4), "Rural" (10), NA
 #' @export
 rurality_from_ruca <- function(code) {
   code  <- suppressWarnings(as.integer(code))
@@ -52,7 +64,11 @@ rurality_from_ruca <- function(code) {
 
 #' Census tract boundary vintage for a study year (2010 tracts <=2019, 2020 >=2020).
 #' @param year integer-coercible study year(s).
+#' @return integer 2010 or 2020, the tract-boundary vintage in force that year.
 #' @family accessibility-disparity statistics
+#' @seealso [acs_year_of()]
+#' @examples
+#' tract_vintage_of(c(2019, 2020))   # 2010, 2020  (boundary break at 2020)
 #' @export
 tract_vintage_of <- function(year) ifelse(as.integer(year) >= 2020L, 2020L, 2010L)
 
@@ -60,6 +76,9 @@ tract_vintage_of <- function(year) ifelse(as.integer(year) >= 2020L, 2020L, 2010
 #' @param year integer-coercible study year(s).
 #' @return integer ACS data end-year(s), clamped to [2013, 2022].
 #' @family accessibility-disparity statistics
+#' @seealso [tract_vintage_of()]
+#' @examples
+#' acs_year_of(c(2011, 2018, 2025))   # 2013, 2018, 2022  (clamped to the window)
 #' @export
 acs_year_of <- function(year) pmax(pmin(as.integer(year), 2022L), 2013L)
 
@@ -80,6 +99,15 @@ RACE_FEMALE_VARS <- c(white_nh = "B01001H_017", hispanic = "B01001I_017",
 #' @param B draws. @param probs interval quantiles. @param seed RNG seed.
 #' @return named numeric c(point, lo, hi).
 #' @family accessibility-disparity statistics
+#' @seealso [weighted_mean_all()], [zero_access_share()]
+#' @examples
+#' # with zero standard errors the interval collapses to the point estimate
+#' mc_weighted_ci(c(1, 3), est = c(1, 3), se = c(0, 0), B = 100)
+#' # -> c(point = 2.5, lo = 2.5, hi = 2.5)
+#' \dontrun{
+#' # real use: ACS estimates with their MOE-derived standard errors
+#' mc_weighted_ci(access, est = pop_est, se = pop_moe / ACS_MOE_Z90)
+#' }
 #' @export
 mc_weighted_ci <- function(access, est, se, stat = c("mean", "zero"),
                            B = 2000L, probs = c(0.025, 0.975), seed = 1L) {
@@ -97,8 +125,13 @@ mc_weighted_ci <- function(access, est, se, stat = c("mean", "zero"),
 
 #' OLS temporal trend of an annual series (95% t-interval on the slope).
 #' @param year integer years. @param value numeric annual estimates.
-#' @return named numeric c(slope, lo, hi, p).
+#' @return named numeric c(slope, lo, hi, p). All NA when fewer than 3
+#'   complete year/value pairs are supplied.
 #' @family accessibility-disparity statistics
+#' @examples
+#' # rising ~1.4 percentage points per year
+#' annual_trend(2013:2016, c(10, 11, 13, 14))["slope"]   # ~1.4
+#' annual_trend(2013:2014, c(10, 12))                    # all NA (need >=3 points)
 #' @export
 annual_trend <- function(year, value) {
   d <- data.frame(year = as.numeric(year), value = as.numeric(value))
