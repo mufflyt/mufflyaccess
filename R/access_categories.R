@@ -6,6 +6,11 @@
 #' `"total_female_<race>"` prefixed family and are intentionally NOT this value.
 #' @format Character scalar.
 #' @source isochrones/R/access_categories.R
+#' @seealso [TOTAL_FEMALE_VAR] (the ACS variable behind this denominator)
+#' @examples
+#' DENOMINATOR_CATEGORY                      # "total_female"
+#' # select the denominator rows of a Step-4 access table:
+#' # subset(access_tbl, category == DENOMINATOR_CATEGORY)
 #' @export
 DENOMINATOR_CATEGORY <- "total_female"
 

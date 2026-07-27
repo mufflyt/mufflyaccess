@@ -1,0 +1,110 @@
+# mufflyaccess 0.1.7
+
+* Extended the roxygen pass (docs-only; no code changed): fixed the malformed
+  multi-`@param`-on-one-line blocks in `accessibility_stats.R` that 0.1.6 left in
+  place (`w`/`est`/`se`/`stat`/`probs`/`seed`/`value` were undocumented), and
+  added `@examples`/`@family`/`@seealso` to the remaining constant and accessor
+  files 0.1.6 did not cover (access bands, geography, MOE, RUCA, census
+  denominators, thresholds, categories) so the whole reference index is
+  navigable. Run `devtools::document()` to regenerate `man/`.
+* Documented the frozen URPS workforce constants (`URPS_COUNT_ABOG_ONLY_2025`,
+  `URPS_COUNT_ABOG_PLUS_ABU_2025`, added in 0.1.5) in the README, alongside the
+  by-year `analysis/urps_counts/` pipeline they reconcile with (both land on the
+  1,031 ABOG active figure).
+* Added a **package-level help page** (`?mufflyaccess`) via a `"_PACKAGE"` doc
+  with a domain-grouped index of every export.
+* Added `@examples`/`@family`/`@seealso` to the frozen URPS workforce constants
+  (`R/urps_workforce.R`), and folded `WU2014_PFD_PREVALENCE` into the
+  `pfd-prevalence` `@family` so the table and its accessors share one index page.
+
+* Expanded `README.md` to a full reference of all 34 exported objects, grouped by
+  domain, with design principles and a scope-boundary note.
+* Added `URL` and `BugReports` to `DESCRIPTION`.
+* Added this `NEWS.md` changelog.
+* Strengthened `@source` provenance with **primary sources** (authoritative
+  original references with URLs / DOIs) alongside the internal promotion paths:
+  ACS Table B01001 for the female-population denominator and variable codes;
+  U.S. Census Bureau ANSI/FIPS code lists for the state geography; USDA ERS
+  Rural-Urban Commuting Area codes for the RUCA breakpoint; the Wu 2014 DOI and
+  NHANES 2005-2010 data source for the PFD prevalence table; and the Census ACS
+  data handbook for the margin-of-error multipliers.
+* Added a **cross-repo usage map** (`docs/CROSS_REPO_USAGE.md`) — the SSOT
+  contract map of which repo consumes which export — plus a regenerator,
+  `tools/usage_matrix.sh`. Documents the origin (`isochrones`) vs consumer
+  (`twostep`, `cliff`) shim architecture and flags exports no consumer references
+  yet (the MOE multipliers, `CONUS_STATE_ABBR`, and the Wu-2014 PFD family).
+* Switched `NAMESPACE` to **roxygen-generated** (removing the hand-maintenance
+  drift risk) and declared the base-package dependencies in `DESCRIPTION`
+  (`Imports: datasets, stats`; `Depends: R (>= 3.6)`).
+* Added `CONTRIBUTING.md` codifying the promotion checklist (primary source +
+  fail-loud `stopifnot()` + derive-don't-duplicate + test + `NEWS.md` + usage
+  map) and the consumer shim pattern.
+* Added `analysis/urps_counts/` (build-ignored, not part of the R package): a
+  standard, reproducible count of URPS and all ABOG OB/GYN subspecialties by year
+  (2013–2023), derived from the committed `isochrones` cohort
+  (`table1_physician_characteristics.csv`) via the repo's board-certification
+  active-in-year rule — never NPPES taxonomy alone. Includes the dependency-free
+  generator (`count_urps.py`), the derived CSVs (by subspecialty; by ± urology
+  pathway), provenance with source SHA-256, and heavy documentation. Anchors
+  exactly to the known figures (URPS active 2023 = 1,031 ABOG; total = 5,336).
+  The ABU (with-urology) layer is supported via `--abu`.
+* Added `analysis/urps_counts/subspecialist_counts.R` — a base-R, fail-loud
+  accessor over the committed CSV returning **active vs ever-certified** counts
+  per subspecialty × year (plus `n_retired`, `pct_active`), with scalar helpers
+  `n_active()` / `n_ever_certified()` and a CLI. Never hardcodes an integer;
+  a returned number always traces to the committed source.
+* Added `analysis/urps_counts/freshness_check.py` — SHA-256 freshness gate:
+  compares the current isochrones `table1` hash against the one recorded in
+  `provenance.json` (FRESH / STALE), with `--regenerate` to rebuild the CSVs
+  when the source moved. Checks the derived counts, not the upstream pipeline.
+
+# mufflyaccess 0.1.6
+
+* Added `@examples`/`@family`/`@seealso` roxygen across the pure-function files
+  (`accessibility_stats.R`, `pfd_prevalence.R`, `safe_divide.R`).
+
+# mufflyaccess 0.1.5
+
+* Froze the 2025 active URPS (urogynecology and reconstructive pelvic surgery)
+  workforce headcounts as exported constants so downstream code gets the same
+  number every time: `URPS_COUNT_ABOG_ONLY_2025` (1031 — ABOG/OB-GYN pathway,
+  without urology) and `URPS_COUNT_ABOG_PLUS_ABU_2025` (1295 = 1031 + 264 ABU
+  net-new, with urology), each with provenance attributes and fail-loud
+  validation (`R/urps_workforce.R`).
+
+# mufflyaccess 0.1.4
+
+* Promoted the accessibility-disparity **pure statistics** shared by `isochrones`
+  and `twostep` into `R/accessibility_stats.R`: `weighted_mean_all()`,
+  `zero_access_share()`, `mc_weighted_ci()`, `annual_trend()`,
+  `rurality_from_ruca()`, `tract_vintage_of()`, `acs_year_of()`, plus the ACS
+  variable codes `TOTAL_FEMALE_VAR` and `RACE_FEMALE_VARS`. Base R + `stats` only.
+* Promoted the **safe-division family** into `R/safe_divide.R`: `safe_divide()`,
+  `safe_divide_manu()`, `safe_percent()`, `safe_pct_manu()`, `safe_rate()`, and
+  `safe_ratio()` — one zero-denominator guarantee across all pipelines.
+
+# mufflyaccess 0.1.3
+
+* Promoted from `isochrones`: `RUCA_NONMETRO_MIN` (2-level metro/rural
+  breakpoint), the ACS margin-of-error z multipliers (`ACS_MOE_Z90`, `CI_Z95`,
+  `MOE90_TO_CI95_FACTOR`), and the Wu-2014 age-specific PFD prevalence table
+  (`WU2014_PFD_PREVALENCE`, `pfd_prevalence()`, `pfd_prevalence_acs_bands()`).
+
+# mufflyaccess 0.1.2
+
+* Fixed the package test to strip provenance attributes before comparison
+  (`expect_equal` attribute mismatch on `ACS2020_CONUS_FEMALE_POP`).
+
+# mufflyaccess 0.1.1
+
+* Attached `vintage`/`table`/`scope`/`units` provenance attributes to
+  `ACS2020_CONUS_FEMALE_POP` to match consumer contracts.
+
+# mufflyaccess 0.1.0
+
+* Initial release: single-source-of-truth constants shared across the OB/GYN
+  subspecialty geographic-access repositories (`isochrones`, `twostep`, `cliff`)
+  — primary access band, canonical bands, total-female denominator category,
+  tract "reached" coverage cut, national CONUS ACS female population, and the
+  contiguous / non-contiguous state code lists. Every value carries provenance
+  and fail-loud load-time validation.
