@@ -40,6 +40,11 @@
   pathway), provenance with source SHA-256, and heavy documentation. Anchors
   exactly to the known figures (URPS active 2023 = 1,031 ABOG; total = 5,336).
   The ABU (with-urology) layer is supported via `--abu`.
+* Added `analysis/urps_counts/subspecialist_counts.R` — a base-R, fail-loud
+  accessor over the committed CSV returning **active vs ever-certified** counts
+  per subspecialty × year (plus `n_retired`, `pct_active`), with scalar helpers
+  `n_active()` / `n_ever_certified()` and a CLI. Never hardcodes an integer;
+  a returned number always traces to the committed source.
 
 # mufflyaccess 0.1.4
 

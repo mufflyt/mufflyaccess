@@ -73,6 +73,36 @@ Long form: `year, pathway {ABOG | ABU | ABOG+ABU}, urology {without | urology_pa
 Without an ABU roster the file holds only the ABOG (`without`) rows — the fully
 reproducible layer. Supply `--abu` to add the ABU and combined rows.
 
+### Query: active vs ever-certified — `subspecialist_counts.R`
+
+A repo-local deriving accessor (base R, fail-loud, no hardcoded integers) that
+reads `urps_by_year_subspecialty.csv` and returns both measures per subspecialty
+× year:
+
+- **`n_active`** — physicians in the workforce that year (certified by *Y* and
+  not retired by *Y*).
+- **`n_ever_certified`** — cumulative ABOG certifications with cert year ≤ *Y*.
+  At the final snapshot year this equals the all-time cohort size.
+- plus `n_retired` and `pct_active = 100 * active / ever_certified`.
+
+```r
+source("subspecialist_counts.R")
+
+subspecialist_counts("GO", 2023)
+#>   year        subspecialty abbrev n_active n_ever_certified n_retired pct_active
+#> 1 2023 Gynecologic Oncology     GO     1052             1190       138       88.4
+
+n_active("GO", 2023)          # 1052   (active workforce)
+n_ever_certified("GO", 2023)  # 1190   (all ever certified)
+
+subspecialist_counts("URPS")  # every year for URPS
+subspecialist_counts(year = 2023)  # all 7 subspecialties, 2023
+```
+
+CLI: `Rscript subspecialist_counts.R GO 2023`. The accessor fails loudly if the
+CSV is missing, so a returned number always traces to the current committed
+source (`provenance.json`).
+
 ## 4. "With vs without urology" — the ABU pathway
 
 URPS is certified by two boards; `table1` is **ABOG only**. The **ABU** roster is
