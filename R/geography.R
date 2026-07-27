@@ -1,18 +1,35 @@
 #' Non-contiguous state/territory USPS codes (excluded from CONUS analyses)
 #' @format Character vector of USPS codes.
-#' @source isochrones/R/geographic_classification.R
+#' @source Primary: U.S. Census Bureau ANSI (formerly FIPS 5-2) state/territory
+#'   codes, <https://www.census.gov/library/reference/code-lists/ansi.html>.
+#'   Promoted from isochrones/R/geographic_classification.R.
+#' @seealso [NON_CONTIGUOUS_FIPS] (the FIPS form), [CONUS_STATE_ABBR] (the complement)
+#' @family geography constants
+#' @examples
+#' NON_CONTIGUOUS_CODES  # "HI" "AK" "PR" "GU" "VI" "AS" "MP"
 #' @export
 NON_CONTIGUOUS_CODES <- c("HI", "AK", "PR", "GU", "VI", "AS", "MP")
 
 #' Non-contiguous state/territory FIPS codes (excluded from CONUS analyses)
 #' @format Character vector of 2-digit FIPS codes.
-#' @source isochrones/R/geographic_classification.R
+#' @source Primary: U.S. Census Bureau ANSI (formerly FIPS 5-2) state/territory
+#'   codes, <https://www.census.gov/library/reference/code-lists/ansi.html>.
+#'   Promoted from isochrones/R/geographic_classification.R.
+#' @seealso [NON_CONTIGUOUS_CODES] (the USPS form), [CONUS_STATE_FIPS] (the complement)
+#' @family geography constants
 #' @export
 NON_CONTIGUOUS_FIPS <- c("02", "15", "60", "66", "69", "72", "78")
 
 #' Contiguous-US state FIPS codes (48 states + DC)
 #' @format Character vector of 49 two-digit FIPS codes.
-#' @source isochrones/R/geographic_classification.R
+#' @source Primary: U.S. Census Bureau ANSI (formerly FIPS 5-2) state codes,
+#'   <https://www.census.gov/library/reference/code-lists/ansi.html>.
+#'   Promoted from isochrones/R/geographic_classification.R.
+#' @seealso [CONUS_STATE_ABBR] (the derived USPS form), [NON_CONTIGUOUS_FIPS]
+#' @family geography constants
+#' @examples
+#' length(CONUS_STATE_FIPS)          # 49 (48 states + DC)
+#' "02" %in% CONUS_STATE_FIPS        # FALSE (Alaska is non-contiguous)
 #' @export
 CONUS_STATE_FIPS <- c(
   "01", "04", "05", "06", "08", "09", "10", "11", "12", "13",
@@ -23,6 +40,8 @@ CONUS_STATE_FIPS <- c(
 )
 
 # Internal 50-states-plus-DC FIPS -> USPS crosswalk (the canonical Census map).
+# Source: U.S. Census Bureau ANSI/FIPS state codes
+# <https://www.census.gov/library/reference/code-lists/ansi.html>.
 .STATE_FIPS_TO_ABBR <- c(
   "01"="AL","02"="AK","04"="AZ","05"="AR","06"="CA","08"="CO","09"="CT",
   "10"="DE","11"="DC","12"="FL","13"="GA","15"="HI","16"="ID","17"="IL",
@@ -43,6 +62,14 @@ CONUS_STATE_FIPS <- c(
 #' `c(state.abb, "DC")` (all 50 + DC, includes AK/HI) is a different set -- a
 #' state-validation vocabulary, NOT CONUS.
 #' @format Character vector of 49 USPS codes.
+#' @source Derived from [CONUS_STATE_FIPS] via the U.S. Census Bureau ANSI/FIPS
+#'   crosswalk, <https://www.census.gov/library/reference/code-lists/ansi.html>.
+#' @seealso [CONUS_STATE_FIPS] (the FIPS form it is derived from),
+#'   [NON_CONTIGUOUS_CODES]
+#' @family geography constants
+#' @examples
+#' length(CONUS_STATE_ABBR)              # 49
+#' any(c("AK", "HI") %in% CONUS_STATE_ABBR)   # FALSE (excluded by construction)
 #' @export
 CONUS_STATE_ABBR <- unname(.STATE_FIPS_TO_ABBR[CONUS_STATE_FIPS])
 

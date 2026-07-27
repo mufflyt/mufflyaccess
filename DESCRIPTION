@@ -1,6 +1,6 @@
 Package: mufflyaccess
 Title: Canonical Access, Census-Denominator, and Geography Constants (SSOT)
-Version: 0.1.6
+Version: 0.1.7
 Authors@R:
     person("Tyler", "Muffly", email = "tyler.muffly@dhha.org", role = c("aut", "cre"))
 Description: Single source of truth for the constants shared across the OB/GYN
@@ -16,6 +16,13 @@ Description: Single source of truth for the constants shared across the OB/GYN
     uses a full-age Nygaard-2008 population-projection curve (a different
     cohort/source) that is intentionally NOT included here.
 License: MIT + file LICENSE
+URL: https://github.com/mufflyt/mufflyaccess
+BugReports: https://github.com/mufflyt/mufflyaccess/issues
+Depends:
+    R (>= 3.6)
+Imports:
+    datasets,
+    stats
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.1

@@ -10,7 +10,8 @@
 NULL
 
 #' Population-weighted mean over all elements (sparse-group safe).
-#' @param a numeric values. @param w numeric weights (same length as `a`).
+#' @param a numeric values.
+#' @param w numeric weights (same length as `a`).
 #' @return weighted mean, or NA if the weights sum to 0 / non-finite.
 #' @family accessibility-disparity statistics
 #' @seealso [zero_access_share()], [mc_weighted_ci()]
@@ -26,7 +27,8 @@ weighted_mean_all <- function(a, w) {
 }
 
 #' Zero-access share (percent of weighted population with access EXACTLY 0).
-#' @param access numeric accessibility values. @param w numeric weights.
+#' @param access numeric accessibility values.
+#' @param w numeric weights.
 #' @return percent in [0,100] under non-negative weights, or NA.
 #' @family accessibility-disparity statistics
 #' @seealso [weighted_mean_all()], [mc_weighted_ci()]
@@ -84,6 +86,9 @@ acs_year_of <- function(year) pmax(pmin(as.integer(year), 2022L), 2013L)
 
 #' Canonical ACS female-population variable codes (footgun: race tables use _017,
 #' full B01001 uses _026).
+#' @source Primary: U.S. Census Bureau, American Community Survey Detailed Tables
+#'   B01001 "Sex by Age" and the race-iterated B01001B-I,
+#'   <https://data.census.gov/table/ACSDT5Y2020.B01001>.
 #' @export
 TOTAL_FEMALE_VAR <- "B01001_026"
 #' @rdname TOTAL_FEMALE_VAR
@@ -94,9 +99,13 @@ RACE_FEMALE_VARS <- c(white_nh = "B01001H_017", hispanic = "B01001I_017",
 
 #' Monte-Carlo CI for a population-weighted accessibility statistic.
 #' Redraws weights ~ Normal(est, se) B times (unbiased: point estimate lies inside its interval).
-#' @param access numeric accessibility values. @param est numeric weight estimates.
-#' @param se numeric weight standard errors (ACS MOE / z90). @param stat "mean"/"zero".
-#' @param B draws. @param probs interval quantiles. @param seed RNG seed.
+#' @param access numeric accessibility values.
+#' @param est numeric weight estimates.
+#' @param se numeric weight standard errors (ACS MOE / z90).
+#' @param stat "mean"/"zero".
+#' @param B draws.
+#' @param probs interval quantiles.
+#' @param seed RNG seed.
 #' @return named numeric c(point, lo, hi).
 #' @family accessibility-disparity statistics
 #' @seealso [weighted_mean_all()], [zero_access_share()]
@@ -124,7 +133,8 @@ mc_weighted_ci <- function(access, est, se, stat = c("mean", "zero"),
 }
 
 #' OLS temporal trend of an annual series (95% t-interval on the slope).
-#' @param year integer years. @param value numeric annual estimates.
+#' @param year integer years.
+#' @param value numeric annual estimates.
 #' @return named numeric c(slope, lo, hi, p). All NA when fewer than 3
 #'   complete year/value pairs are supplied.
 #' @family accessibility-disparity statistics
