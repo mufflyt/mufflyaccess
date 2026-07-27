@@ -45,6 +45,10 @@
   per subspecialty × year (plus `n_retired`, `pct_active`), with scalar helpers
   `n_active()` / `n_ever_certified()` and a CLI. Never hardcodes an integer;
   a returned number always traces to the committed source.
+* Added `analysis/urps_counts/freshness_check.py` — SHA-256 freshness gate:
+  compares the current isochrones `table1` hash against the one recorded in
+  `provenance.json` (FRESH / STALE), with `--regenerate` to rebuild the CSVs
+  when the source moved. Checks the derived counts, not the upstream pipeline.
 
 # mufflyaccess 0.1.4
 
