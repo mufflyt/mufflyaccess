@@ -7,3 +7,4 @@
 ^analysis$
 ^\.Renviron\.example$
 ^\.gitignore$
+^ARCHITECTURE\.md$
