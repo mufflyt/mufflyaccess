@@ -1,6 +1,6 @@
 Package: mufflyaccess
 Title: Canonical Access, Census-Denominator, and Geography Constants (SSOT)
-Version: 0.1.6
+Version: 0.1.7
 Authors@R:
     person("Tyler", "Muffly", email = "tyler.muffly@dhha.org", role = c("aut", "cre"))
 Description: Single source of truth for the constants shared across the OB/GYN

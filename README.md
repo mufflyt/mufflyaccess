@@ -3,7 +3,7 @@
 <!-- badges: start -->
 [![Lifecycle: stable](https://img.shields.io/badge/lifecycle-stable-brightgreen.svg)](https://lifecycle.r-lib.org/articles/stages.html#stable)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-0.1.4-informational.svg)](DESCRIPTION)
+[![Version](https://img.shields.io/badge/version-0.1.7-informational.svg)](DESCRIPTION)
 <!-- badges: end -->
 
 **Single source of truth (SSOT) for the constants and pure statistics shared
@@ -18,7 +18,7 @@ project **one** definition of each shared value, each carrying its provenance an
 silently disagree about the numbers behind a published statistic.
 
 ```r
-renv::install("mufflyt/mufflyaccess@v0.1.4")
+renv::install("mufflyt/mufflyaccess@v0.1.7")
 library(mufflyaccess)
 
 # select the headline access rows in a Step-4 access table
@@ -74,11 +74,11 @@ no third-party runtime dependencies):
 
 ```r
 # pin an exact release for reproducibility (recommended):
-renv::install("mufflyt/mufflyaccess@v0.1.4")
+renv::install("mufflyt/mufflyaccess@v0.1.7")
 
 # or with remotes / pak:
-remotes::install_github("mufflyt/mufflyaccess@v0.1.4")
-pak::pak("mufflyt/mufflyaccess@v0.1.4")
+remotes::install_github("mufflyt/mufflyaccess@v0.1.7")
+pak::pak("mufflyt/mufflyaccess@v0.1.7")
 ```
 
 Pin a tagged version rather than tracking the branch: a shared SSOT should change
@@ -113,7 +113,7 @@ safe_rate(events = subspecialists, exposure = female_pop, multiplier = 1e5)
 
 ## Reference
 
-All 34 exported objects, grouped by domain.
+All 36 exported objects, grouped by domain.
 
 ### Access bands & thresholds
 
@@ -202,6 +202,23 @@ Six functions with one guarantee: a zero or `NA` denominator never produces
 | `safe_pct_manu(num, den, digits)` | `NA_real_` | Manuscript percentages where a missing denominator must **not** read as 0%. |
 | `safe_rate(events, exposure, multiplier, ...)` | `NA_real_` | Epidemiological rates (e.g. subspecialists per 100K women). |
 | `safe_ratio(num, den, ...)` | `NA_real_` | Unitless ratios (MOE-to-estimate, physician-to-population). |
+
+### URPS workforce (frozen headline counts)
+
+Frozen active-workforce headcounts for urogynecology and reconstructive pelvic
+surgery (URPS), so downstream code gets the **same headline number every time**
+instead of re-deriving it. Each carries provenance attributes and fail-loud
+validation.
+
+| Object | Value | Meaning |
+|---|---|---|
+| `URPS_COUNT_ABOG_ONLY_2025` | 1031 | Active URPS, ABOG (OB/GYN) pathway only — **without** urology. |
+| `URPS_COUNT_ABOG_PLUS_ABU_2025` | 1295 | Both-pathway — **with** urology (`= 1031 + 264` ABU net-new). |
+
+> These frozen constants are the headline counterpart to the reproducible
+> by-year pipeline in [`analysis/urps_counts/`](analysis/urps_counts/); the two
+> agree on the ABOG active figure (1031). See that folder for counts by year and
+> subspecialty and the active-vs-ever-certified accessor.
 
 ## Design principles
 

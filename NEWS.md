@@ -1,13 +1,16 @@
-# mufflyaccess (development version)
+# mufflyaccess 0.1.7
 
-* Substantially expanded the roxygen documentation (docs-only; no code changed):
-  fixed malformed multi-`@param`-on-one-line blocks in `accessibility_stats.R`
-  that left `w`/`est`/`se`/etc. undocumented; added complete `@param`/`@return`
-  and runnable `@examples` to every exported function (including the previously
-  title-only safe-division aliases); and added `@family` groupings and `@seealso`
-  cross-links across the constants (access bands, geography, MOE, RUCA, PFD,
-  census) so the reference index is navigable. Run `devtools::document()` to
-  regenerate `man/`.
+* Extended the roxygen pass (docs-only; no code changed): fixed the malformed
+  multi-`@param`-on-one-line blocks in `accessibility_stats.R` that 0.1.6 left in
+  place (`w`/`est`/`se`/`stat`/`probs`/`seed`/`value` were undocumented), and
+  added `@examples`/`@family`/`@seealso` to the remaining constant and accessor
+  files 0.1.6 did not cover (access bands, geography, MOE, RUCA, census
+  denominators, thresholds, categories) so the whole reference index is
+  navigable. Run `devtools::document()` to regenerate `man/`.
+* Documented the frozen URPS workforce constants (`URPS_COUNT_ABOG_ONLY_2025`,
+  `URPS_COUNT_ABOG_PLUS_ABU_2025`, added in 0.1.5) in the README, alongside the
+  by-year `analysis/urps_counts/` pipeline they reconcile with (both land on the
+  1,031 ABOG active figure).
 
 * Expanded `README.md` to a full reference of all 34 exported objects, grouped by
   domain, with design principles and a scope-boundary note.
@@ -49,6 +52,20 @@
   compares the current isochrones `table1` hash against the one recorded in
   `provenance.json` (FRESH / STALE), with `--regenerate` to rebuild the CSVs
   when the source moved. Checks the derived counts, not the upstream pipeline.
+
+# mufflyaccess 0.1.6
+
+* Added `@examples`/`@family`/`@seealso` roxygen across the pure-function files
+  (`accessibility_stats.R`, `pfd_prevalence.R`, `safe_divide.R`).
+
+# mufflyaccess 0.1.5
+
+* Froze the 2025 active URPS (urogynecology and reconstructive pelvic surgery)
+  workforce headcounts as exported constants so downstream code gets the same
+  number every time: `URPS_COUNT_ABOG_ONLY_2025` (1031 — ABOG/OB-GYN pathway,
+  without urology) and `URPS_COUNT_ABOG_PLUS_ABU_2025` (1295 = 1031 + 264 ABU
+  net-new, with urology), each with provenance attributes and fail-loud
+  validation (`R/urps_workforce.R`).
 
 # mufflyaccess 0.1.4
 
