@@ -3,6 +3,10 @@
 #' @source Primary: U.S. Census Bureau ANSI (formerly FIPS 5-2) state/territory
 #'   codes, <https://www.census.gov/library/reference/code-lists/ansi.html>.
 #'   Promoted from isochrones/R/geographic_classification.R.
+#' @seealso [NON_CONTIGUOUS_FIPS] (the FIPS form), [CONUS_STATE_ABBR] (the complement)
+#' @family geography constants
+#' @examples
+#' NON_CONTIGUOUS_CODES  # "HI" "AK" "PR" "GU" "VI" "AS" "MP"
 #' @export
 NON_CONTIGUOUS_CODES <- c("HI", "AK", "PR", "GU", "VI", "AS", "MP")
 
@@ -11,6 +15,8 @@ NON_CONTIGUOUS_CODES <- c("HI", "AK", "PR", "GU", "VI", "AS", "MP")
 #' @source Primary: U.S. Census Bureau ANSI (formerly FIPS 5-2) state/territory
 #'   codes, <https://www.census.gov/library/reference/code-lists/ansi.html>.
 #'   Promoted from isochrones/R/geographic_classification.R.
+#' @seealso [NON_CONTIGUOUS_CODES] (the USPS form), [CONUS_STATE_FIPS] (the complement)
+#' @family geography constants
 #' @export
 NON_CONTIGUOUS_FIPS <- c("02", "15", "60", "66", "69", "72", "78")
 
@@ -19,6 +25,11 @@ NON_CONTIGUOUS_FIPS <- c("02", "15", "60", "66", "69", "72", "78")
 #' @source Primary: U.S. Census Bureau ANSI (formerly FIPS 5-2) state codes,
 #'   <https://www.census.gov/library/reference/code-lists/ansi.html>.
 #'   Promoted from isochrones/R/geographic_classification.R.
+#' @seealso [CONUS_STATE_ABBR] (the derived USPS form), [NON_CONTIGUOUS_FIPS]
+#' @family geography constants
+#' @examples
+#' length(CONUS_STATE_FIPS)          # 49 (48 states + DC)
+#' "02" %in% CONUS_STATE_FIPS        # FALSE (Alaska is non-contiguous)
 #' @export
 CONUS_STATE_FIPS <- c(
   "01", "04", "05", "06", "08", "09", "10", "11", "12", "13",
@@ -51,6 +62,14 @@ CONUS_STATE_FIPS <- c(
 #' `c(state.abb, "DC")` (all 50 + DC, includes AK/HI) is a different set -- a
 #' state-validation vocabulary, NOT CONUS.
 #' @format Character vector of 49 USPS codes.
+#' @source Derived from [CONUS_STATE_FIPS] via the U.S. Census Bureau ANSI/FIPS
+#'   crosswalk, <https://www.census.gov/library/reference/code-lists/ansi.html>.
+#' @seealso [CONUS_STATE_FIPS] (the FIPS form it is derived from),
+#'   [NON_CONTIGUOUS_CODES]
+#' @family geography constants
+#' @examples
+#' length(CONUS_STATE_ABBR)              # 49
+#' any(c("AK", "HI") %in% CONUS_STATE_ABBR)   # FALSE (excluded by construction)
 #' @export
 CONUS_STATE_ABBR <- unname(.STATE_FIPS_TO_ABBR[CONUS_STATE_FIPS])
 

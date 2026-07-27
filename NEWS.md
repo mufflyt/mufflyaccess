@@ -1,5 +1,14 @@
 # mufflyaccess (development version)
 
+* Substantially expanded the roxygen documentation (docs-only; no code changed):
+  fixed malformed multi-`@param`-on-one-line blocks in `accessibility_stats.R`
+  that left `w`/`est`/`se`/etc. undocumented; added complete `@param`/`@return`
+  and runnable `@examples` to every exported function (including the previously
+  title-only safe-division aliases); and added `@family` groupings and `@seealso`
+  cross-links across the constants (access bands, geography, MOE, RUCA, PFD,
+  census) so the reference index is navigable. Run `devtools::document()` to
+  regenerate `man/`.
+
 * Expanded `README.md` to a full reference of all 34 exported objects, grouped by
   domain, with design principles and a scope-boundary note.
 * Added `URL` and `BugReports` to `DESCRIPTION`.

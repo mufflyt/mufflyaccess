@@ -9,6 +9,10 @@
 #'   (total female), summed over the 48 contiguous states + DC.
 #'   <https://data.census.gov/table/ACSDT5Y2020.B01001>. Promoted from
 #'   isochrones/R/acs_national_female_pop.R.
+#' @seealso [TOTAL_FEMALE_VAR] (the ACS variable code), [CONUS_STATE_FIPS] (the scope)
+#' @examples
+#' as.integer(ACS2020_CONUS_FEMALE_POP)     # 164690617
+#' attr(ACS2020_CONUS_FEMALE_POP, "vintage")  # "ACS 2016-2020 5-year"
 #' @export
 ACS2020_CONUS_FEMALE_POP <- structure(
   164690617L,
