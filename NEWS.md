@@ -1,3 +1,14 @@
+# mufflyaccess 0.1.10
+
+* Added `urps_count()` -- the stable SSOT interface consumers call for the
+  national URPS workforce count (`"abog_plus_abu"` = 1339 with urology,
+  `"abog"` = 1031 without). Returns the count with metadata + provenance and
+  optionally validates a supplied isochrones snapshot by SHA-256 (`digest`,
+  Suggests). Formalizes the `ARCHITECTURE.md` contract: cliff / twostep /
+  manuscripts / apps call `urps_count()` instead of reading the raw constant
+  or hardcoding a number. Contains no provider cleaning -- it returns the
+  reconciled value and the fingerprint of the snapshot it came from.
+
 # mufflyaccess 0.1.9
 
 * **Corrected the frozen with-urology URPS baseline** to the reconciled

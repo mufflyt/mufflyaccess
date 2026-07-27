@@ -52,6 +52,9 @@ URPS_COUNT_ABOG_PLUS_ABU_2025 - URPS_COUNT_ABOG_ONLY_2025  # 308
 \seealso{
 The reproducible by-year / by-subspecialty pipeline in
 \verb{analysis/urps_counts/}, which lands on the same ABOG active figure (1031).
+
+Other URPS workforce: 
+\code{\link{urps_count}()}
 }
 \concept{URPS workforce}
 \keyword{datasets}

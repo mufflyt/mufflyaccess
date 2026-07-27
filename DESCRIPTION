@@ -1,6 +1,6 @@
 Package: mufflyaccess
 Title: Canonical Access, Census-Denominator, and Geography Constants (SSOT)
-Version: 0.1.9
+Version: 0.1.10
 Authors@R:
     person("Tyler", "Muffly", email = "tyler.muffly@dhha.org", role = c("aut", "cre"))
 Description: Single source of truth for the constants shared across the OB/GYN
@@ -27,5 +27,6 @@ Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.1
 Suggests:
-    testthat (>= 3.0.0)
+    testthat (>= 3.0.0),
+    digest
 Config/testthat/edition: 3

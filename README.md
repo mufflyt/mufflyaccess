@@ -3,7 +3,7 @@
 <!-- badges: start -->
 [![Lifecycle: stable](https://img.shields.io/badge/lifecycle-stable-brightgreen.svg)](https://lifecycle.r-lib.org/articles/stages.html#stable)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-0.1.9-informational.svg)](DESCRIPTION)
+[![Version](https://img.shields.io/badge/version-0.1.10-informational.svg)](DESCRIPTION)
 <!-- badges: end -->
 
 **Single source of truth (SSOT) for the constants and pure statistics shared
@@ -138,7 +138,7 @@ safe_rate(events = subspecialists, exposure = female_pop, multiplier = 1e5)
 
 ## Reference
 
-All 36 exported objects, grouped by domain.
+All 37 exported objects, grouped by domain.
 
 ### Access bands & thresholds
 
@@ -228,22 +228,30 @@ Six functions with one guarantee: a zero or `NA` denominator never produces
 | `safe_rate(events, exposure, multiplier, ...)` | `NA_real_` | Epidemiological rates (e.g. subspecialists per 100K women). |
 | `safe_ratio(num, den, ...)` | `NA_real_` | Unitless ratios (MOE-to-estimate, physician-to-population). |
 
-### URPS workforce (frozen headline counts)
+### URPS workforce
 
-Frozen active-workforce headcounts for urogynecology and reconstructive pelvic
-surgery (URPS), so downstream code gets the **same headline number every time**
-instead of re-deriving it. Each carries provenance attributes and fail-loud
-validation.
+Active-workforce headcounts for urogynecology and reconstructive pelvic surgery
+(URPS). **Consumers (`cliff` / `twostep` / manuscripts / apps) should call
+`urps_count()` — never hardcode or independently derive a national URPS count**
+(see [`ARCHITECTURE.md`](ARCHITECTURE.md)).
 
 | Object | Value | Meaning |
 |---|---|---|
+| `urps_count(definition, snapshot)` | fn | **The SSOT interface.** Returns the count with metadata + provenance; optionally validates a supplied isochrones snapshot by SHA-256. `"abog_plus_abu"` → 1339, `"abog"` → 1031. |
 | `URPS_COUNT_ABOG_ONLY_2025` | 1031 | Active URPS, ABOG (OB/GYN) pathway only — **without** urology. |
 | `URPS_COUNT_ABOG_PLUS_ABU_2025` | 1339 | Both-pathway — **with** urology (`= 1031 + 308` ABU net-new). |
 
-> These frozen constants are the headline counterpart to the reproducible
-> by-year pipeline in [`analysis/urps_counts/`](analysis/urps_counts/); the two
-> agree on the ABOG active figure (1031). See that folder for counts by year and
-> subspecialty and the active-vs-ever-certified accessor.
+```r
+urps_count()                    # 1339  (with urology; the default headline)
+urps_count("abog")              # 1031  (without urology)
+attr(urps_count(), "source")    # provenance rides along in the attributes
+```
+
+> The frozen constants are the cached values `urps_count()` returns; the
+> reproducible by-year derivation lives in
+> [`analysis/urps_counts/`](analysis/urps_counts/) (both agree on the ABOG active
+> figure, 1031). Per the architecture, `isochrones` owns provider cleaning and
+> the hashed snapshot; `mufflyaccess` validates it and returns counts.
 
 ## Design principles
 
