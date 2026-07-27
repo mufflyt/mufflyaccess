@@ -18,7 +18,7 @@ project **one** definition of each shared value, each carrying its provenance an
 silently disagree about the numbers behind a published statistic.
 
 ```r
-renv::install("mufflyt/mufflyaccess@v0.1.9")
+renv::install("mufflyt/mufflyaccess")
 library(mufflyaccess)
 
 # select the headline access rows in a Step-4 access table
@@ -73,17 +73,20 @@ The package is `renv`-pinned and hermetic (base R + `stats` + `datasets` only â€
 no third-party runtime dependencies):
 
 ```r
-# pin an exact release for reproducibility (recommended):
-renv::install("mufflyt/mufflyaccess@v0.1.9")
+# latest from the default branch:
+renv::install("mufflyt/mufflyaccess")
 
 # or with remotes / pak:
-remotes::install_github("mufflyt/mufflyaccess@v0.1.9")
-pak::pak("mufflyt/mufflyaccess@v0.1.9")
+remotes::install_github("mufflyt/mufflyaccess")
+pak::pak("mufflyt/mufflyaccess")
+
+# for an analysis you need to reproduce, pin an exact commit SHA:
+renv::install("mufflyt/mufflyaccess@<commit-sha>")
 ```
 
-Pin a tagged version rather than tracking the branch: a shared SSOT should change
-only on a deliberate, reviewed bump, and pinning is what makes an analysis
-reproducible.
+Pin a specific commit for an analysis you need to reproduce: a shared SSOT should
+change only on a deliberate, reviewed bump, and a commit SHA (recorded in
+`renv.lock`) is what makes that pin reproducible.
 
 ### Access â€” this is a private repository
 
