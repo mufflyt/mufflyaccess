@@ -3,7 +3,7 @@
 <!-- badges: start -->
 [![Lifecycle: stable](https://img.shields.io/badge/lifecycle-stable-brightgreen.svg)](https://lifecycle.r-lib.org/articles/stages.html#stable)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-0.1.7-informational.svg)](DESCRIPTION)
+[![Version](https://img.shields.io/badge/version-0.1.8-informational.svg)](DESCRIPTION)
 <!-- badges: end -->
 
 **Single source of truth (SSOT) for the constants and pure statistics shared
@@ -18,7 +18,7 @@ project **one** definition of each shared value, each carrying its provenance an
 silently disagree about the numbers behind a published statistic.
 
 ```r
-renv::install("mufflyt/mufflyaccess@v0.1.7")
+renv::install("mufflyt/mufflyaccess@v0.1.8")
 library(mufflyaccess)
 
 # select the headline access rows in a Step-4 access table
@@ -74,11 +74,11 @@ no third-party runtime dependencies):
 
 ```r
 # pin an exact release for reproducibility (recommended):
-renv::install("mufflyt/mufflyaccess@v0.1.7")
+renv::install("mufflyt/mufflyaccess@v0.1.8")
 
 # or with remotes / pak:
-remotes::install_github("mufflyt/mufflyaccess@v0.1.7")
-pak::pak("mufflyt/mufflyaccess@v0.1.7")
+remotes::install_github("mufflyt/mufflyaccess@v0.1.8")
+pak::pak("mufflyt/mufflyaccess@v0.1.8")
 ```
 
 Pin a tagged version rather than tracking the branch: a shared SSOT should change

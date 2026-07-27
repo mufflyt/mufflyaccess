@@ -1,3 +1,10 @@
+# mufflyaccess 0.1.8
+
+* Maintenance release: formally tags the consolidated 0.1.7 documentation,
+  primary-source citations, cross-repo usage map, roxygen (package help page
+  + examples/family/seealso), and the `analysis/urps_counts/` pipeline. No
+  functional change to exported constants or functions since 0.1.7.
+
 # mufflyaccess 0.1.7
 
 * Extended the roxygen pass (docs-only; no code changed): fixed the malformed
