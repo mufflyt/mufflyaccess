@@ -11,6 +11,10 @@
 #'   <https://www.ers.usda.gov/data-products/rural-urban-commuting-area-codes>
 #'   (primary codes 1-3 metropolitan, 4-10 non-metropolitan). Promoted from
 #'   isochrones/R/utils/ruca_levels.R.
+#' @seealso [rurality_from_ruca()], which uses this breakpoint to classify codes.
+#' @examples
+#' RUCA_NONMETRO_MIN                   # 4L (codes 1-3 metro, 4-10 rural)
+#' rurality_from_ruca(c(3, 4))         # "Metropolitan" "Rural"
 #' @export
 RUCA_NONMETRO_MIN <- 4L
 

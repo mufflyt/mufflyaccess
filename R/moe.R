@@ -12,6 +12,13 @@
 #'   appendix; the 90% MOE multiplier is the published 1.645),
 #'   <https://www.census.gov/programs-surveys/acs/library/handbooks/general.html>.
 #'   Promoted from isochrones/R/moe_propagation.R.
+#' @seealso [mc_weighted_ci()], which divides an ACS margin of error by
+#'   `ACS_MOE_Z90` to recover the standard error it resamples.
+#' @examples
+#' ACS_MOE_Z90                         # 1.645
+#' moe_90 <- 500
+#' se <- moe_90 / ACS_MOE_Z90          # ACS MOE -> standard error
+#' ci95_halfwidth <- moe_90 * MOE90_TO_CI95_FACTOR
 #' @export
 ACS_MOE_Z90 <- 1.645
 #' @rdname ACS_MOE_Z90

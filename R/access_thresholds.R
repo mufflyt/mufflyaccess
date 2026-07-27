@@ -7,6 +7,11 @@
 #' the exclusive-access contrast, and the logistic "reached" outcome.
 #' @format Integer scalar, percent in (0, 100].
 #' @source isochrones/R/access_thresholds.R; Ryerson 2022 two-vector desert def.
+#' @seealso [PRIMARY_ACCESS_BAND_MIN] (the band a tract is "reached" within)
+#' @examples
+#' TRACT_REACHED_COVERAGE_PCT               # 50
+#' # a tract counts as reached when >= this percent of its women are in-band:
+#' # tract$reached <- tract$pct_female_in_band >= TRACT_REACHED_COVERAGE_PCT
 #' @export
 TRACT_REACHED_COVERAGE_PCT <- 50L
 
