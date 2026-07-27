@@ -14,6 +14,11 @@
 #'   2014;123(1):141-148, Table 1. PMID 24463674; doi:10.1097/AOG.0000000000000057
 #'   (estimates derived from NHANES 2005-2010). Promoted from
 #'   isochrones/R/pfd_prevalence.R.
+#' @family pfd-prevalence
+#' @seealso [pfd_prevalence()] and [pfd_prevalence_acs_bands()], the accessors.
+#' @examples
+#' WU2014_PFD_PREVALENCE
+#' attr(WU2014_PFD_PREVALENCE, "source")
 #' @export
 WU2014_PFD_PREVALENCE <- local({
   d <- data.frame(
