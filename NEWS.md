@@ -4,6 +4,11 @@
   primary-source citations, cross-repo usage map, roxygen (package help page
   + examples/family/seealso), and the `analysis/urps_counts/` pipeline. No
   functional change to exported constants or functions since 0.1.7.
+* Documented private-repo installation: consumers need a `GITHUB_PAT` (read
+  access to `mufflyt/mufflyaccess`) for `renv::install()` / `renv::restore()`;
+  added an install/auth section to the README, a `.Renviron.example` template,
+  and a `.gitignore` that keeps a real `.Renviron` out of the repo. Generated
+  `man/*.Rd` via roxygen2.
 
 # mufflyaccess 0.1.7
 

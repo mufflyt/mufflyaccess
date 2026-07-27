@@ -85,6 +85,28 @@ Pin a tagged version rather than tracking the branch: a shared SSOT should chang
 only on a deliberate, reviewed bump, and pinning is what makes an analysis
 reproducible.
 
+### Access — this is a private repository
+
+Installing (and `renv::restore()` from a consumer's lockfile) needs a GitHub
+token with read access to `mufflyt/mufflyaccess`. `renv`, `remotes`, and `pak`
+all read `GITHUB_PAT` automatically:
+
+```r
+# one-time, on each dev machine:
+usethis::create_github_token()   # opens GitHub with the right scopes (repo read)
+gitcreds::gitcreds_set()         # stores it (writes GITHUB_PAT to ~/.Renviron, chmod 600)
+Sys.getenv("GITHUB_PAT") != ""   # verify it is set
+```
+
+A fine-grained token scoped to just this repo (Contents: read) is enough; a
+classic PAT needs the `repo` scope. Keep the token in `~/.Renviron` (never the
+project), ensure `.Renviron` is git-ignored, and in CI inject `GITHUB_PAT` as a
+secret env var rather than a file. See [`.Renviron.example`](.Renviron.example).
+
+No token, no network, no GitHub: install from a **local checkout** instead —
+`renv::install("../mufflyaccess")` or `devtools::install_local("../mufflyaccess")`
+— handy when the consumer repos are cloned side by side.
+
 ## Quick start
 
 ```r

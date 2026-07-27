@@ -1,0 +1,9 @@
+# Secrets / local environment -- never commit a real token
+.Renviron
+!.Renviron.example
+
+# R / RStudio local cruft
+.Rproj.user/
+.Rhistory
+.RData
+.Ruserdata
