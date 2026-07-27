@@ -1,0 +1,18 @@
+# .Renviron.example -- GitHub auth for installing this PRIVATE package.
+#
+# mufflyt/mufflyaccess is a private repo, so renv/remotes/pak need a GitHub
+# token with read access to it. Copy the relevant line into your USER file at
+# ~/.Renviron (NOT into the project), then restart R.
+#
+#   file.edit("~/.Renviron")      # or: usethis::edit_r_environ()
+#   # add the line below, save, then in a fresh R session:
+#   Sys.getenv("GITHUB_PAT") != ""   # should be TRUE
+#
+# Preferred: let gitcreds manage it instead of hand-editing:
+#   usethis::create_github_token()   # make a token (repo read / fine-grained Contents: read)
+#   gitcreds::gitcreds_set()         # stores it securely
+#
+# NEVER commit a real token. Keep ~/.Renviron chmod 600. In CI, set GITHUB_PAT
+# as a secret environment variable rather than shipping a file.
+
+GITHUB_PAT=ghp_replace_with_your_token
