@@ -122,6 +122,13 @@ one of two modes:
 | ABU (urology-pathway) active | +308 | ABU roster — reported; recomputed here once the roster is supplied |
 | **With urology** (ABOG + ABU) | **1,339** | sum of the two rows |
 
+> **Frozen headline counterpart.** The `mufflyaccess` package also *exports*
+> frozen headline constants for this — `URPS_COUNT_ABOG_ONLY_2025` (1031, without
+> urology) and `URPS_COUNT_ABOG_PLUS_ABU_2025` (1295, with urology; +264 ABU
+> net-new) in `R/urps_workforce.R`. Those are the stable single numbers for
+> downstream code; this folder is the reproducible by-year/by-subspecialty
+> pipeline behind them. They agree on the ABOG active figure (1031).
+
 **Do not conflate cohorts.** Three legitimate URPS numbers, each for a different
 question:
 
