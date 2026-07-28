@@ -51,10 +51,19 @@ Call `mufflyaccess` for every national URPS count. **Never** hardcode a count an
 | Definitions live in `mufflyaccess` | ✅ | `R/urps_workforce.R` (cohorts, ± urology); `analysis/urps_counts/` (active-in-year rule, by-year interface) |
 | Snapshot is validated by hash | ✅ | `analysis/urps_counts/freshness_check.py` checks the isochrones `table1` SHA-256 against the recorded fingerprint (`provenance.json`) |
 | No provider cleaning here | ✅ | nothing in `mufflyaccess` re-derives certification / retirement / NPI match / dedup — those stay in isochrones |
-| Counts come from validating + counting the snapshot | ⚠️ **gap** | the headline numbers are **frozen literals** (`URPS_COUNT_ABOG_PLUS_ABU_2025 = 1339L`), hand-set rather than *returned* by reading the validated snapshot — so the same number is derived in two places (the literal **and** the pipeline), the exact drift risk this model removes |
-| A single stable interface consumers call | ⚠️ **gap** | the counting interface is Python in `analysis/` (build-ignored), not an exported R function; consumers can't yet `mufflyaccess::urps_count(...)` |
+| Counts come from validating + serving the snapshot | ✅ | `urps_count()` / `urps_counts()` read the shipped canonical table; `validate_urps_ssot()` fail-loud checks it against its manifest and asserts the deprecated `*_2025` constants still agree, so there is one enforced number |
+| A single stable interface consumers call | ✅ | exported R API: `urps_count(year, include_urology)`, `urps_counts()`, `urps_provenance()`, `validate_urps_ssot()` |
 
-### Target to close the gaps
-1. An exported R interface — e.g. `urps_count(snapshot, definition = c("abog", "abog_plus_abu"))` — that **validates** the isochrones snapshot's hash, **counts** from it, and **returns** `list(count, metadata, provenance)`.
-2. The frozen `URPS_COUNT_*` constants become the *last-validated cached* value that interface returns (or are dropped), so there is exactly one derivation.
-3. isochrones publishes its snapshot with a hash/manifest that `mufflyaccess` validates against (today `mufflyaccess` records the hash itself; ideally isochrones ships it).
+### Remaining (upstream)
+The mufflyaccess side of the contract is in place (exported API, shipped canonical
+table + manifest, fail-loud validation, deprecated constants). What remains is
+upstream and in other repos:
+1. **isochrones** publishes the versioned artifacts
+   (`artifacts/workforce/urps_provider_snapshot.parquet`, `urps_counts_by_year.csv`,
+   `urps_manifest.json`) with its own hashes + git SHA; mufflyaccess then reads that
+   release instead of the current BOOTSTRAP table, and validates the parquet by hash.
+2. A single both-pathway snapshot: ABU (+308) is presently a 2023-only layer from
+   the cliff reconciliation, not a hashed isochrones artifact — fold it in so the
+   with-urology series is by-year too.
+3. **cliff / twostep** switch their baseline to `mufflyaccess::urps_count(2023L, ...)`
+   and add a test that fails if a hardcoded 1031/1339/1295/264/308 reappears.

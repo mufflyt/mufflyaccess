@@ -1,6 +1,13 @@
 #' Active URPS workforce headcount, 2025 baseline (with and without the urology pathway)
 #'
-#' @description Frozen active-workforce headcounts for urogynecology and reconstructive
+#' @description **Deprecated** -- use [urps_count()], the published SSOT interface.
+#'   The `_2025` suffix is ambiguous: it labels the model-baseline year but the
+#'   numbers are the **2023 measure year** active workforce (a distinction
+#'   [urps_count()] carries explicitly). These constants are retained only as the
+#'   frozen cross-check that [validate_urps_ssot()] asserts against the canonical
+#'   table, and will be removed in a future release.
+#'
+#'   Frozen active-workforce headcounts for urogynecology and reconstructive
 #'   pelvic surgery (URPS), so downstream code gets the SAME number every time instead
 #'   of re-deriving it from a pipeline run. Two cohort definitions:
 #'
@@ -22,8 +29,8 @@
 #'   pre-reinstatement 2026-07-14 roster). ABOG rosters `abog_all_urps_2026-07-22.csv`,
 #'   ABU rosters `abu_all_urps_2026-07-22.csv`.
 #' @family URPS workforce
-#' @seealso The reproducible by-year / by-subspecialty pipeline in
-#'   `analysis/urps_counts/`, which lands on the same ABOG active figure (1031).
+#' @seealso [urps_count()] (the superseding interface); the reproducible by-year /
+#'   by-subspecialty pipeline in `analysis/urps_counts/` (same ABOG figure, 1031).
 #' @examples
 #' URPS_COUNT_ABOG_ONLY_2025                     # 1031  (without urology)
 #' URPS_COUNT_ABOG_PLUS_ABU_2025                 # 1339  (with urology)

@@ -3,7 +3,7 @@
 <!-- badges: start -->
 [![Lifecycle: stable](https://img.shields.io/badge/lifecycle-stable-brightgreen.svg)](https://lifecycle.r-lib.org/articles/stages.html#stable)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-0.1.10-informational.svg)](DESCRIPTION)
+[![Version](https://img.shields.io/badge/version-0.2.0-informational.svg)](DESCRIPTION)
 <!-- badges: end -->
 
 **Single source of truth (SSOT) for the constants and pure statistics shared
@@ -69,8 +69,8 @@ it. When a decision lives in three places it becomes three decisions.
 
 ## Installation
 
-The package is `renv`-pinned and hermetic (base R + `stats` + `datasets` only —
-no third-party runtime dependencies):
+The package is `renv`-pinned and light (base R + `stats` + `datasets`, plus
+`jsonlite` for reading the workforce manifest):
 
 ```r
 # latest from the default branch:
@@ -138,7 +138,7 @@ safe_rate(events = subspecialists, exposure = female_pop, multiplier = 1e5)
 
 ## Reference
 
-All 37 exported objects, grouped by domain.
+All 40 exported objects, grouped by domain.
 
 ### Access bands & thresholds
 
@@ -228,30 +228,37 @@ Six functions with one guarantee: a zero or `NA` denominator never produces
 | `safe_rate(events, exposure, multiplier, ...)` | `NA_real_` | Epidemiological rates (e.g. subspecialists per 100K women). |
 | `safe_ratio(num, den, ...)` | `NA_real_` | Unitless ratios (MOE-to-estimate, physician-to-population). |
 
-### URPS workforce
+### URPS workforce — the published SSOT
 
-Active-workforce headcounts for urogynecology and reconstructive pelvic surgery
-(URPS). **Consumers (`cliff` / `twostep` / manuscripts / apps) should call
-`urps_count()` — never hardcode or independently derive a national URPS count**
+The national active URPS (urogynecology and reconstructive pelvic surgery) count.
+**Consumers (`cliff` / `twostep` / manuscripts / apps) obtain it only through
+these functions — never hardcode or independently derive a national URPS count**
 (see [`ARCHITECTURE.md`](ARCHITECTURE.md)).
 
-| Object | Value | Meaning |
-|---|---|---|
-| `urps_count(definition, snapshot)` | fn | **The SSOT interface.** Returns the count with metadata + provenance; optionally validates a supplied isochrones snapshot by SHA-256. `"abog_plus_abu"` → 1339, `"abog"` → 1031. |
-| `URPS_COUNT_ABOG_ONLY_2025` | 1031 | Active URPS, ABOG (OB/GYN) pathway only — **without** urology. |
-| `URPS_COUNT_ABOG_PLUS_ABU_2025` | 1339 | Both-pathway — **with** urology (`= 1031 + 308` ABU net-new). |
+| Function | Returns |
+|---|---|
+| `urps_count(year = 2023L, include_urology = FALSE)` | The `n_active` count for one measure year × pathway, with provenance in its attributes. `include_urology = FALSE` → 1031 (2023), `TRUE` → 1339 (2023). |
+| `urps_counts()` | The full canonical table (year × pathway × counts + snapshot date + source hash + method version). |
+| `urps_provenance()` | The manifest: source files, SHA-256s, definitions, dedup rule, scope, limitations, git SHAs. |
+| `validate_urps_ssot()` | Fail-loud check of the table against its manifest and the frozen contract (headline values, reconciliation identity, deprecated-constant agreement). |
 
 ```r
-urps_count()                    # 1339  (with urology; the default headline)
-urps_count("abog")              # 1031  (without urology)
-attr(urps_count(), "source")    # provenance rides along in the attributes
+urps_count(2023L, include_urology = FALSE)   # 1031  (without urology)
+urps_count(2023L, include_urology = TRUE)    # 1339  (with urology)
+attr(urps_count(2023L), "snapshot_date")     # "2026-07-22"
+validate_urps_ssot()                         # errors if the SSOT ever drifts
 ```
 
-> The frozen constants are the cached values `urps_count()` returns; the
-> reproducible by-year derivation lives in
-> [`analysis/urps_counts/`](analysis/urps_counts/) (both agree on the ABOG active
-> figure, 1031). Per the architecture, `isochrones` owns provider cleaning and
-> the hashed snapshot; `mufflyaccess` validates it and returns counts.
+**Three years, never conflated.** Every returned number carries `measure_year`
+(2023), `snapshot_date` (2026-07-22), and `model_baseline_year` (2025) as
+separate attributes.
+
+The old `URPS_COUNT_ABOG_ONLY_2025` / `URPS_COUNT_ABOG_PLUS_ABU_2025` constants
+are **deprecated** (the `_2025` suffix conflated the model-baseline year with the
+2023 measure year) — call `urps_count()` instead. Per the architecture,
+`isochrones` owns provider cleaning and the hashed snapshot; `mufflyaccess`
+validates it and serves the number; the by-year derivation reference lives in
+[`analysis/urps_counts/`](analysis/urps_counts/).
 
 ## Design principles
 

@@ -2,53 +2,48 @@
 % Please edit documentation in R/urps_count.R
 \name{urps_count}
 \alias{urps_count}
-\title{National URPS workforce count -- the stable SSOT interface}
+\title{National URPS workforce count -- the published SSOT interface}
 \usage{
-urps_count(definition = c("abog_plus_abu", "abog"), snapshot = NULL)
+urps_count(year = 2023L, include_urology = FALSE)
 }
 \arguments{
-\item{definition}{Which cohort: \code{"abog_plus_abu"} (default; WITH the urology
-pathway) or \code{"abog"} (WITHOUT urology, OB/GYN pathway only).}
+\item{year}{Integer measure year (default \code{2023L}). ABOG-only is available
+2013-2023; the with-urology (ABU) cohort is a 2023 snapshot only.}
 
-\item{snapshot}{Optional path to the isochrones ABOG workforce snapshot
-(\code{table1_physician_characteristics.csv}). If supplied, its SHA-256 is checked
-against the fingerprint this baseline was computed from and the call \strong{errors
-loudly on a mismatch} (needs the \code{digest} package). If \code{NULL} (default) the
-cached reconciled value is returned with \code{validated = FALSE}.}
+\item{include_urology}{Logical. \code{FALSE} (default) = ABOG / OB-GYN pathway
+only (WITHOUT urology); \code{TRUE} = both-pathway ABOG + ABU (WITH urology).}
 }
 \value{
-An integer count carrying attributes \code{definition}, \code{year}, \code{urology},
-\code{cohort}, \code{source}, \code{abog_snapshot_sha256}, and \code{validated}. It is a plain
-integer, so it can be used directly in arithmetic while the provenance rides
-along in its attributes.
+An integer \code{n_active} count carrying attributes \code{measure_year},
+\code{board_pathway}, \code{include_urology}, \code{n_ever_certified}, \code{n_retired},
+\code{snapshot_date}, \code{model_baseline_year}, \code{source_sha256}, \code{method_version},
+and a one-line \code{provenance} string. It is a plain integer, usable directly
+in arithmetic, with provenance riding along in its attributes.
 }
 \description{
-Returns the single-source-of-truth active URPS (urogynecology and
-reconstructive pelvic surgery) national workforce count, with its metadata
-and provenance. This is the interface \code{cliff} / \code{twostep} / manuscripts /
-apps should call: \strong{never hardcode or independently derive a national URPS
-count} -- call \code{urps_count()}.
+The single-source-of-truth accessor for the national active URPS
+(urogynecology and reconstructive pelvic surgery) workforce count. This is
+what \code{cliff} / \code{twostep} / manuscripts / apps call -- \strong{never hardcode or
+independently derive a national URPS count} (see \code{ARCHITECTURE.md}).
 
-Per the repository architecture (see \code{ARCHITECTURE.md}), provider cleaning
-(rosters, certification, retirement, NPI matching, dedup) and the immutable
-hashed workforce snapshot are owned by \code{isochrones}. \code{mufflyaccess} owns the
-definitions and this interface and contains \strong{no alternative
-provider-cleaning pipeline} -- this function does not re-derive rosters. It
-returns the reconciled count plus the fingerprint of the snapshot it was
-computed from, and (optionally) validates a supplied snapshot against that
-fingerprint.
+Three distinct years travel with every number and must not be conflated:
+the \strong{measure year} (\code{year}, what the count refers to), the \strong{snapshot
+date} (when the underlying roster was extracted, e.g. 2026-07-22), and the
+\strong{model baseline year} (the workforce-model label, e.g. 2025). They are
+returned as separate attributes.
 }
 \examples{
-urps_count()             # 1339  (with urology)
-urps_count("abog")       # 1031  (without urology)
-as.integer(urps_count()) # 1339, bare
-attr(urps_count(), "source")
+urps_count(2023L, include_urology = FALSE)  # 1031  (without urology)
+urps_count(2023L, include_urology = TRUE)   # 1339  (with urology)
+attr(urps_count(2023L), "snapshot_date")
 }
 \seealso{
-\link{URPS_COUNT_ABOG_ONLY_2025}, \link{URPS_COUNT_ABOG_PLUS_ABU_2025}; the
-by-year reference derivation in \verb{analysis/urps_counts/}.
+\code{\link[=urps_counts]{urps_counts()}}, \code{\link[=urps_provenance]{urps_provenance()}}, \code{\link[=validate_urps_ssot]{validate_urps_ssot()}}
 
 Other URPS workforce: 
-\code{\link{urps_workforce_2025}}
+\code{\link{urps_counts}()},
+\code{\link{urps_provenance}()},
+\code{\link{urps_workforce_2025}},
+\code{\link{validate_urps_ssot}()}
 }
 \concept{URPS workforce}

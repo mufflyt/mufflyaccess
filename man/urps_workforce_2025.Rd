@@ -24,6 +24,13 @@ URPS_COUNT_ABOG_ONLY_2025
 URPS_COUNT_ABOG_PLUS_ABU_2025
 }
 \description{
+\strong{Deprecated} -- use \code{\link[=urps_count]{urps_count()}}, the published SSOT interface.
+The \verb{_2025} suffix is ambiguous: it labels the model-baseline year but the
+numbers are the \strong{2023 measure year} active workforce (a distinction
+\code{\link[=urps_count]{urps_count()}} carries explicitly). These constants are retained only as the
+frozen cross-check that \code{\link[=validate_urps_ssot]{validate_urps_ssot()}} asserts against the canonical
+table, and will be removed in a future release.
+
 Frozen active-workforce headcounts for urogynecology and reconstructive
 pelvic surgery (URPS), so downstream code gets the SAME number every time instead
 of re-deriving it from a pipeline run. Two cohort definitions:
@@ -50,11 +57,14 @@ attr(URPS_COUNT_ABOG_PLUS_ABU_2025, "note")   # "= ... + 308 ABU net-new active"
 URPS_COUNT_ABOG_PLUS_ABU_2025 - URPS_COUNT_ABOG_ONLY_2025  # 308
 }
 \seealso{
-The reproducible by-year / by-subspecialty pipeline in
-\verb{analysis/urps_counts/}, which lands on the same ABOG active figure (1031).
+\code{\link[=urps_count]{urps_count()}} (the superseding interface); the reproducible by-year /
+by-subspecialty pipeline in \verb{analysis/urps_counts/} (same ABOG figure, 1031).
 
 Other URPS workforce: 
-\code{\link{urps_count}()}
+\code{\link{urps_count}()},
+\code{\link{urps_counts}()},
+\code{\link{urps_provenance}()},
+\code{\link{validate_urps_ssot}()}
 }
 \concept{URPS workforce}
 \keyword{datasets}
