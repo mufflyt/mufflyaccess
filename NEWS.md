@@ -1,3 +1,25 @@
+# mufflyaccess 0.2.0
+
+* **Published URPS workforce SSOT interface** (implements the isochrones ->
+  mufflyaccess -> consumers charter in `ARCHITECTURE.md`). Ships a compact
+  canonical table (`inst/extdata/urps_counts_by_year.csv`) + manifest
+  (`inst/extdata/urps_manifest.json`) and a stable R API:
+    - `urps_count(year = 2023L, include_urology = FALSE)` -- the accessor
+      consumers call (2023 without urology = 1031, with urology = 1339);
+    - `urps_counts()` -- the full year x pathway table;
+    - `urps_provenance()` -- source files, hashes, definitions, scope, limits;
+    - `validate_urps_ssot()` -- fail-loud check of table vs manifest + contract.
+  Every count carries `measure_year` (2023), `snapshot_date` (2026-07-22), and
+  `model_baseline_year` (2025) as SEPARATE attributes -- never one ambiguous year.
+* **Deprecated** `URPS_COUNT_ABOG_ONLY_2025` / `URPS_COUNT_ABOG_PLUS_ABU_2025`
+  (ambiguous `_2025` suffix); retained only as the cross-check
+  `validate_urps_ssot()` asserts. Call `urps_count()` instead.
+* `jsonlite` added to Imports (reads the workforce manifest).
+* NOTE: the canonical table is a BOOTSTRAP of what isochrones will publish as
+  `artifacts/workforce/{urps_provider_snapshot.parquet, urps_counts_by_year.csv,
+  urps_manifest.json}`; the readers swap to that versioned release when it lands.
+  ABU is a 2023 snapshot only (no by-year series yet).
+
 # mufflyaccess 0.1.10
 
 * Added `urps_count()` -- the stable SSOT interface consumers call for the
