@@ -6,48 +6,58 @@
 \usage{
 urps_count(
   year = 2023L,
+  measure = "board_certified_active",
+  geography = "national",
   include_urology = FALSE,
   incomplete = c("error", "na"),
-  geography = NULL
+  details = FALSE
 )
 }
 \arguments{
-\item{year}{Integer measure year in 2013:2023 (default \code{2023L}). ABOG-only is
-available 2013-2023; the with-urology (ABU) cohort is a 2023 snapshot only.}
+\item{year}{Integer measure year. \code{board_certified_active} covers 2013-2023;
+\code{roster_snapshot} is the 2025 snapshot.}
+
+\item{measure}{\code{"board_certified_active"} (default; the active-in-year cohort)
+or \code{"roster_snapshot"} (the 2025 roster). Case-insensitive.}
+
+\item{geography}{\code{"national"} (default) or \code{"conus"}. Case-insensitive.}
 
 \item{include_urology}{Single non-\code{NA} logical. \code{FALSE} (default) = ABOG only;
-\code{TRUE} = both-pathway ABOG + ABU.}
+\code{TRUE} = both-pathway ABOG + ABU (\code{ABOG_PLUS_ABU}).}
 
-\item{incomplete}{How to handle a year/cohort combination the artifact does not
-carry (e.g. with-urology before 2023): \code{"error"} (default) stops with an
-explanatory message; \code{"na"} returns \code{NA_integer_}. Never returns a silent 0.}
+\item{incomplete}{How to handle a published cell that is absent/\code{NA}:
+\code{"error"} (default) stops; \code{"na"} returns \code{NA_integer_}. (A year outside a
+measure's declared window is always a hard error, never a silent \code{NA}.)}
 
-\item{geography}{Optional single string asserting the geography the caller
-expects (e.g. \code{"CONUS"} or \code{"national"}). \code{NULL} (default) accepts whatever
-the served artifact declares. A mismatch is an \strong{error} -- mufflyaccess does
-not re-project counts onto a geography the artifact was not built for.}
+\item{details}{If \code{TRUE}, return a labelled list (count plus measure,
+geography, year, pathway, value status, snapshot date, contract/artifact
+version, source commit, and canonical flag) so a downstream caller never
+receives a context-free integer. Default \code{FALSE} returns a bare integer.}
 }
 \value{
-A length-1 integer \code{n_active} (or \code{NA_integer_} when \code{incomplete = "na"}
-and the value is unavailable).
+A length-1 integer (or, with \code{details = TRUE}, a named list).
 }
 \description{
 The single-source-of-truth accessor for the national active URPS
 count. Consumers call this and \strong{never hardcode or independently derive a
-national URPS count} (see \code{ARCHITECTURE.md}). Returns a bare integer.
+national URPS count} (see \code{ARCHITECTURE.md}).
 }
 \examples{
-urps_count(2023L, include_urology = FALSE)  # 1031
-urps_count(2023L, include_urology = TRUE)   # 1339
-urps_count(2013L, include_urology = TRUE, incomplete = "na")  # NA (ABU is 2023 only)
+urps_count(2023, "board_certified_active", "national", FALSE)  # 1031
+urps_count(2023, "board_certified_active", "national", TRUE)   # 1332
+urps_count(2023, "board_certified_active", "conus",    TRUE)   # 1329
+urps_count(2025, "roster_snapshot",        "national", TRUE)   # 1339
 }
 \seealso{
 \code{\link[=urps_counts]{urps_counts()}}, \code{\link[=urps_provenance]{urps_provenance()}}, \code{\link[=validate_urps_ssot]{validate_urps_ssot()}}, \code{\link[=use_urps_artifact]{use_urps_artifact()}}
 
 Other URPS workforce: 
+\code{\link{compare_urps_artifacts}()},
 \code{\link{urps_counts}()},
+\code{\link{urps_counts_long}()},
 \code{\link{urps_provenance}()},
 \code{\link{use_urps_artifact}()},
+\code{\link{validate_urps_artifact}()},
 \code{\link{validate_urps_ssot}()}
 }
 \concept{URPS workforce}

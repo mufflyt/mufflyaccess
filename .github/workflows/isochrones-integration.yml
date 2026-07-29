@@ -1,0 +1,73 @@
+name: isochrones-integration
+
+# Clean-room producer/consumer integration: check out the IMMUTABLE isochrones
+# release (pinned by full SHA, never a moving branch), point mufflyaccess at its
+# artifacts/workforce/ directory, and run the real-artifact tests in strict mode.
+# A miniature checked-in fixture cannot detect upstream drift; this job can.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    - cron: "0 12 * * 1"   # weekly drift check
+  workflow_dispatch:
+
+jobs:
+  isochrones-integration:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out mufflyaccess
+        uses: actions/checkout@v4
+
+      - name: Check out the pinned isochrones release
+        uses: actions/checkout@v4
+        with:
+          repository: mufflyt/isochrones
+          # Immutable commit carrying artifacts/workforce/ (contract v2.1.0).
+          ref: 91104c777905c00ac7ac6be87a838b8b40de6d93
+          path: isochrones
+
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          use-public-rspm: true
+
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          extra-packages: |
+            any::testthat
+            any::digest
+            any::arrow
+            any::jsonlite
+
+      - name: Install mufflyaccess
+        run: R CMD INSTALL --with-keep.source .
+
+      - name: Point at the released artifact
+        run: echo "MUFFLYACCESS_URPS_ARTIFACT_DIR=$GITHUB_WORKSPACE/isochrones/artifacts/workforce" >> "$GITHUB_ENV"
+
+      - name: Run real-artifact integration tests (strict, fail-closed)
+        run: |
+          Rscript -e '
+            options(mufflyaccess.urps_artifact_strict = TRUE)
+            library(mufflyaccess)
+            path <- Sys.getenv("MUFFLYACCESS_URPS_ARTIFACT_DIR")
+            stopifnot(nzchar(path), file.exists(file.path(path, "urps_counts_by_year.csv")))
+
+            # release gate + headline invariants against the real, immutable release
+            stopifnot(isTRUE(validate_urps_ssot(
+              require_external = TRUE, require_canonical = TRUE,
+              require_contract_version = "2.1.0")))
+            use_urps_artifact(path)
+            stopifnot(urps_count(2023, "board_certified_active", "national", TRUE)  == 1332L)
+            stopifnot(urps_count(2023, "board_certified_active", "conus",    TRUE)  == 1329L)
+            stopifnot(urps_count(2025, "roster_snapshot",        "national", TRUE)  == 1339L)
+            stopifnot(urps_count(2025, "roster_snapshot",        "conus",    TRUE)  == 1336L)
+            stopifnot(urps_count(2023, "board_certified_active", "national", TRUE) -
+                      urps_count(2023, "board_certified_active", "national", FALSE) == 301L)
+
+            # the full isochrones-* suite (reconstruction + mutation matrix run for
+            # real here because arrow is installed)
+            testthat::test_dir("tests/testthat", filter = "isochrones", stop_on_failure = TRUE)
+            cat("isochrones integration: OK\n")
+          '

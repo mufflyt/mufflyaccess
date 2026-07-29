@@ -235,40 +235,45 @@ The national active URPS (urogynecology and reconstructive pelvic surgery) count
 these functions — never hardcode or independently derive a national URPS count**
 (see [`ARCHITECTURE.md`](ARCHITECTURE.md)).
 
+The workforce artifact follows the isochrones **contract v2.1.0** `measure × geography`
+schema. The canonical 2023 estimand is **board_certified_active / national = 1332**
+(ABOG 1031 + ABU net-new **301**); **1339 is the 2025 `roster_snapshot`, not the
+2023 active count**, and the two are never interchangeable.
+
 | Function | Returns |
 |---|---|
-| `urps_count(year = 2023L, include_urology = FALSE, incomplete = "error", geography = NULL)` | A **bare integer** `n_active` for one measure year × pathway. `include_urology = FALSE` → 1031 (2023), `TRUE` → 1339 (2023). `incomplete = "na"` returns `NA` (never a silent 0) for an unavailable year/cohort; `geography` asserts the served scope. Strict validation on all arguments. |
-| `urps_counts()` | The **wide** canonical table: `year, abog_active, abu_net_new, combined_active, measure_year, snapshot_date` (Date), `method_version, source_sha256`, plus explicit `abog_active_status / abu_net_new_status / combined_active_status`. |
-| `urps_provenance()` | Manifest as a list: `artifact_source`, `canonical_release`, `suitable_for_release`, `contract_version`, `external_artifact_error`, `measure_years`, `snapshot_date` (Date), `boards`, `geographic_scope`, definitions, `source_sha256` / `source_git_commit`, `method_version`, `package_version`. |
-| `validate_urps_ssot(counts = NULL, require_external = FALSE)` | Fail-loud check of a wide counts table (schema, unique + complete 2013:2023 years, 64-hex hashes, `combined = abog + abu`) — the active artifact by default. `require_external = TRUE` also fails unless a real external release is active. |
-| `use_urps_artifact(dir)` | Point the readers at a released isochrones `artifacts/workforce/` directory. **Fails closed**: an invalid artifact errors and leaves the active source unchanged. `NULL` = bundled bootstrap. |
+| `urps_count(year, measure = "board_certified_active", geography = "national", include_urology = FALSE, incomplete = "error", details = FALSE)` | A **bare integer** `n_active`. `measure` ∈ `board_certified_active` (2013–2023) / `roster_snapshot` (2025); `geography` ∈ `national` / `conus` (case-insensitive). 2023 national: 1031 / **1332** (± urology); conus: 1030 / 1329. `incomplete = "na"` yields `NA` (never a silent 0); `details = TRUE` returns a labelled record. |
+| `urps_counts(measure, geography)` / `urps_counts_long()` | A **wide** slice (default `board_certified_active` / `national`, years 2013–2023, with `*_status` columns) / the complete **long** table across all cells. |
+| `urps_provenance()` | Manifest as a list: `artifact_source`, `canonical_release`, `suitable_for_release`, `contract_version`, `canonical_2023_estimand`, `measures`, `geographies`, `snapshot_date` (Date), `source_sha256` / `source_git_commit`, `git_commit_semantics`, `package_version`, … |
+| `validate_urps_artifact(path)` | Fail-loud **semantic** validation of an artifact directory: contract version, schema, year windows, both-geography completeness, reconciliation, hashes, canonical-cell agreement, and (with a parquet reader) provider reconstruction. |
+| `validate_urps_ssot(counts = NULL, require_external, require_canonical, require_contract_version, require_source_git_commit)` | The active-artifact / wide-table check plus release gates. |
+| `use_urps_artifact(dir)` | Point the readers at a released isochrones `artifacts/workforce/` directory. **Fails closed** via `validate_urps_artifact()`. `NULL` = bundled bootstrap. |
+| `compare_urps_artifacts(old, candidate)` | Release-to-release drift report. |
 
 ```r
-urps_count(2023L, include_urology = FALSE)   # 1031L  (without urology)
-urps_count(2023L, include_urology = TRUE)    # 1339L  (with urology)
-urps_count(2013L, include_urology = TRUE, incomplete = "na")  # NA (ABU is 2023 only)
-urps_provenance()$snapshot_date              # Date "2026-07-22"
-urps_provenance()$canonical_release          # FALSE — the shipped artifact is a bootstrap
-validate_urps_ssot()                         # TRUE; errors if the SSOT drifts
+urps_count(2023, "board_certified_active", "national", FALSE)  # 1031L
+urps_count(2023, "board_certified_active", "national", TRUE)   # 1332L  (not 1339)
+urps_count(2023, "board_certified_active", "conus",    TRUE)   # 1329L
+urps_count(2025, "roster_snapshot",        "national", TRUE)   # 1339L  (2025 snapshot)
+urps_provenance()$canonical_2023_estimand    # "board_certified_active / national = 1332"
 
-# serve a released isochrones artifact instead of the bundled bootstrap:
-use_urps_artifact("path/to/isochrones/artifacts/workforce")  # validated; fails closed
+# serve the released isochrones artifact instead of the bundled bootstrap:
+use_urps_artifact("path/to/isochrones/artifacts/workforce")    # validated; fails closed
+validate_urps_ssot(require_external = TRUE, require_contract_version = "2.1.0")
 ```
 
-The shipped artifact is a **bootstrap, not a canonical release** — `urps_provenance()`
-says so (`artifact_source = "bundled_bootstrap"`, `canonical_release = FALSE`,
-`suitable_for_release = FALSE`). Selecting an external source via the
+The shipped artifact carries the **v2.1.0 numbers** but is labeled a **bootstrap, not
+the canonical release** — `urps_provenance()$canonical_release` is `FALSE` until you
+point at the external immutable release. Selecting an external source via the
 `mufflyaccess.urps_artifact_dir` option / `MUFFLYACCESS_URPS_ARTIFACT_DIR` env var
 warns and falls back to the bootstrap if unusable (revealed by
-`urps_provenance()$external_artifact_error`); set
-`options(mufflyaccess.urps_artifact_strict = TRUE)` to make that an error instead.
-
-**Three years, never conflated.** `urps_counts()` / `urps_provenance()` keep the
-**measure year** (2023), the **snapshot date** (2026-07-22, a `Date`), and the
-**model baseline year** (2025) as separate fields.
+`urps_provenance()$external_artifact_error`); `options(mufflyaccess.urps_artifact_strict
+= TRUE)` makes that an error. The `isochrones-integration` workflow re-runs the
+`test-isochrones-*` suite against a fresh isochrones checkout pinned by SHA.
 
 The old `URPS_COUNT_ABOG_ONLY_2025` / `URPS_COUNT_ABOG_PLUS_ABU_2025` constants
-are **deprecated** — they now **warn on access** (still returning 1031 / 1339);
+are **deprecated** — they now **warn on access** (still returning 1031 / 1339, the
+2025 roster snapshot values);
 call `urps_count()` instead. Per the architecture, `isochrones` owns provider
 cleaning and the hashed snapshot; `mufflyaccess` validates it and serves the
 number; the by-year derivation reference lives in

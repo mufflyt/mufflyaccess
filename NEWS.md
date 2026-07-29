@@ -1,3 +1,40 @@
+# mufflyaccess 0.6.0
+
+* **Adopted the isochrones contract v2.1.0 release.** The bundled artifact and the
+  API now use the `measure x geography` schema. `urps_count()` gains `measure`
+  (`board_certified_active` / `roster_snapshot`) and `geography` (`national` /
+  `conus`, case-insensitive) arguments:
+  `urps_count(year, measure, geography, include_urology, incomplete, details)`.
+* **Central scientific correction.** The canonical 2023 national active count is
+  **1332** (ABOG 1031 + ABU net-new **301**), and **conus** is **1329**. The old
+  **1339 / +308** is the **2025 `roster_snapshot`**, *not* the 2023 active count --
+  the two are no longer conflatable, and requesting `roster_snapshot` for 2023 (or
+  `board_certified_active` for 2025) is a hard error.
+* **`validate_urps_artifact(path)`** -- a path-based, *semantic* validator (not just
+  a checksum): supported contract major, v2.1.0 schema, per-measure year windows,
+  both-geography completeness, `ABOG_PLUS_ABU == ABOG + ABU_NET_NEW` reconciliation,
+  duplicate-key / missing-pathway / snapshot-date checks, release-contract canonical
+  cell agreement, CSV SHA-256 vs manifest, and -- when a parquet reader is present --
+  provider-snapshot reconstruction of the served counts. `use_urps_artifact()` runs
+  it and fails closed.
+* **Release gates.** `validate_urps_ssot()` adds `require_canonical`,
+  `require_contract_version`, and `require_source_git_commit`.
+* **Richer provenance / details.** `urps_provenance()` exposes `measures`,
+  `geographies`, `contract_version`, `canonical_2023_estimand`,
+  `git_commit_semantics`, and `roster_reflects_certifications_through`;
+  `urps_count(..., details = TRUE)` returns a labelled record so no downstream
+  caller receives a context-free integer. `urps_counts_long()` returns the full
+  long table; `urps_counts(measure, geography)` slices it wide.
+* **`compare_urps_artifacts(old, candidate)`** reports release-to-release drift
+  (provider add/remove, cert-year / geography / pathway / count changes).
+* **Producer/consumer boundary test suite** (`test-isochrones-*`) runs against the
+  **real** immutable release bytes (checked in under
+  `tests/testthat/fixtures/isochrones-v2.1.0/`, SHA-verified); the
+  `isochrones-integration` GitHub workflow re-runs them against a fresh isochrones
+  checkout pinned by SHA to catch upstream drift.
+* Deprecated `URPS_COUNT_*_2025` constants keep their 2025 roster values
+  (1031 / 1339) but now point migrations at the matching `roster_snapshot` cell.
+
 # mufflyaccess 0.5.0
 
 * **Release-readiness gates + honest bootstrap labeling.** The bundled artifact is

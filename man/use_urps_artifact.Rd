@@ -7,41 +7,34 @@
 use_urps_artifact(dir = NULL)
 }
 \arguments{
-\item{dir}{Path to an isochrones \verb{artifacts/workforce/} directory, or \code{NULL}
-to use the bundled artifact.}
+\item{dir}{Path to an isochrones \verb{artifacts/workforce/} directory, or \code{NULL}.}
 }
 \value{
 Invisibly the resolved directory (or \code{"bundled"}).
 }
 \description{
 Point the SSOT readers at a released isochrones artifact directory
-(one containing \code{urps_counts_by_year.csv} + \code{urps_manifest.json}). This
-explicit call \strong{fails closed}: the directory is fully validated
-(\code{\link[=validate_urps_ssot]{validate_urps_ssot()}}) before it is adopted, and an invalid artifact is
-\strong{rejected with an error while the previously active source is left
-unchanged} -- it never silently continues as if the switch succeeded.
-\code{dir = NULL} resets to the bundled bootstrap. The choice is stored in the
-\code{mufflyaccess.urps_artifact_dir} option (also honored via the
-\code{MUFFLYACCESS_URPS_ARTIFACT_DIR} environment variable). When the source is set
-through the option/env instead of this function, an unusable directory does
-\strong{not} error at read time: it warns and falls back to the bundled bootstrap,
-and the fallback is revealed by \code{urps_provenance()$artifact_source} /
-\verb{$external_artifact_error} (set \code{options(mufflyaccess.urps_artifact_strict = TRUE)} to make that fallback an error).
-}
-\examples{
-\dontrun{
-use_urps_artifact("/path/to/isochrones/artifacts/workforce")
-urps_provenance()$source_git_commit   # now the released commit
-use_urps_artifact(NULL)               # back to bundled
-}
+(\verb{artifacts/workforce/}). This explicit call \strong{fails closed}: the directory
+is fully validated (\code{\link[=validate_urps_artifact]{validate_urps_artifact()}}) \emph{before} it is adopted, and
+an invalid artifact is rejected with an error while the previously active
+source is left completely unchanged. \code{dir = NULL} resets to the bundled
+bootstrap. Setting the source through the \code{mufflyaccess.urps_artifact_dir}
+option / \code{MUFFLYACCESS_URPS_ARTIFACT_DIR} environment variable instead does
+not error at read time: an unusable directory warns and falls back to the
+bundled bootstrap, revealed by \code{urps_provenance()$artifact_source} /
+\verb{$external_artifact_error} (\code{options(mufflyaccess.urps_artifact_strict = TRUE)}
+makes that fallback an error).
 }
 \seealso{
-\code{\link[=urps_count]{urps_count()}}, \code{\link[=urps_provenance]{urps_provenance()}}, \code{\link[=validate_urps_ssot]{validate_urps_ssot()}}
+\code{\link[=urps_count]{urps_count()}}, \code{\link[=urps_provenance]{urps_provenance()}}, \code{\link[=validate_urps_artifact]{validate_urps_artifact()}}
 
 Other URPS workforce: 
+\code{\link{compare_urps_artifacts}()},
 \code{\link{urps_count}()},
 \code{\link{urps_counts}()},
+\code{\link{urps_counts_long}()},
 \code{\link{urps_provenance}()},
+\code{\link{validate_urps_artifact}()},
 \code{\link{validate_urps_ssot}()}
 }
 \concept{URPS workforce}
