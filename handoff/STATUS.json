@@ -12,6 +12,15 @@
   "cliff": {
     "status": "pending",
     "receiving_commit": null,
-    "notes": "R/urps_baseline.R shim + no-hardcoded-baseline guard tests staged in handoff/cliff/. Switch cliff's baseline to mufflyaccess::urps_count(2023, 'board_certified_active', <geography>, include_urology). NOTE: the canonical 2023 active count is now 1332 (national) / 1329 (conus); 1339 is the 2025 roster_snapshot, not the 2023 active count."
+    "notes": "R/urps_baseline.R shim (v2.1.0 measure+geography API) + shared unqualified-baseline guard staged in handoff/cliff/. Switch cliff's baseline to mufflyaccess::urps_count(2023, 'board_certified_active', <geography>, include_urology). Canonical 2023 active = 1332 (national) / 1329 (conus); 1339 is the 2025 roster_snapshot, not the 2023 active count."
+  },
+  "twostep": {
+    "status": "pending",
+    "receiving_commit": null,
+    "notes": "R/urps_workforce.R (urps_workforce_n(geography, ...)) + shared unqualified-baseline guard staged in handoff/twostep/. twostep is geography-aware: the workforce total must match the geography of its denominators and isochrone bands (conus 1329 / national 1332 for 2023 active)."
+  },
+  "shared_guard": {
+    "path": "handoff/_shared/test-no-unqualified-urps-baseline.R",
+    "notes": "Copy into each consumer's tests/testthat/. Flags 1332/1329/1339/1336 used as an unqualified baseline in production code; allows them in tests/docs/historical tables and exempts urps_count() / '# ssot-ok' lines."
   }
 }
