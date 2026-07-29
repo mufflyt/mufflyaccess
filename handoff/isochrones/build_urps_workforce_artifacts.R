@@ -54,7 +54,7 @@ build <- function(cfg) {
   abog     <- abog_all[abog_all[[subcol]] == cfg$urps_label, , drop = FALSE]
   abog_sha <- sha256(cfg$abog_snapshot)
 
-  rows <- cbind(count_by_year(abog, cfg$years), board_pathway = "abog",
+  rows <- cbind(count_by_year(abog, cfg$years), board_pathway = "ABOG",
                 snapshot_date = cfg$snapshot_date, source_sha256 = abog_sha,
                 method_version = cfg$method_version)
 
@@ -63,23 +63,23 @@ build <- function(cfg) {
     abu     <- utils::read.csv(cfg$abu_roster, stringsAsFactors = FALSE, check.names = FALSE)
     abu_sha <- sha256(cfg$abu_roster)
     if ("certification_year" %in% names(abu)) {          # true by-year ABU
-      ac <- cbind(count_by_year(abu, cfg$years), board_pathway = "abu",
+      ac <- cbind(count_by_year(abu, cfg$years), board_pathway = "ABU_NET_NEW",
                   snapshot_date = cfg$snapshot_date, source_sha256 = abu_sha,
                   method_version = cfg$method_version)
     } else {                                             # 2023 net-new snapshot only
       ac <- data.frame(year = 2023L, n_active = nrow(abu), n_ever_certified = NA_integer_,
-                       n_retired = NA_integer_, board_pathway = "abu",
+                       n_retired = NA_integer_, board_pathway = "ABU_NET_NEW",
                        snapshot_date = cfg$snapshot_date, source_sha256 = abu_sha,
                        method_version = cfg$method_version)
     }
     rows <- rbind(rows, ac)
     # combined = abog + abu per shared year
-    shared <- intersect(rows$year[rows$board_pathway == "abog"], ac$year)
+    shared <- intersect(rows$year[rows$board_pathway == "ABOG"], ac$year)
     comb <- do.call(rbind, lapply(shared, function(y) {
-      a <- rows$n_active[rows$board_pathway == "abog" & rows$year == y]
+      a <- rows$n_active[rows$board_pathway == "ABOG" & rows$year == y]
       b <- ac$n_active[ac$year == y]
       data.frame(year = y, n_active = a + b, n_ever_certified = NA_integer_,
-                 n_retired = NA_integer_, board_pathway = "abog_plus_abu",
+                 n_retired = NA_integer_, board_pathway = "ABOG_PLUS_ABU",
                  snapshot_date = cfg$snapshot_date, source_sha256 = abog_sha,
                  method_version = cfg$method_version) }))
     rows <- rbind(rows, comb)
@@ -89,7 +89,7 @@ build <- function(cfg) {
 
   cols <- c("year","board_pathway","n_active","n_ever_certified","n_retired",
             "snapshot_date","source_sha256","method_version")
-  rows <- rows[order(match(rows$board_pathway, c("abog","abu","abog_plus_abu")), rows$year), cols]
+  rows <- rows[order(match(rows$board_pathway, c("ABOG","ABU_NET_NEW","ABOG_PLUS_ABU")), rows$year), cols]
 
   dir.create(cfg$out_dir, showWarnings = FALSE, recursive = TRUE)
   csv_path <- file.path(cfg$out_dir, "urps_counts_by_year.csv")
@@ -99,27 +99,32 @@ build <- function(cfg) {
   if (has_arrow) arrow::write_parquet(abog, pq_path) else
     message("[build] arrow not installed -- skipping parquet (install arrow in isochrones).")
 
-  git_sha <- tryCatch(system2("git", c("rev-parse","HEAD"), stdout = TRUE), error = function(e) "unknown")
+  git_sha <- tryCatch(system2("git", c("rev-parse","HEAD"), stdout = TRUE), error = function(e) "unknown")[1]
+  # Unified manifest schema: satisfies the isochrones artifact test AND
+  # mufflyaccess::urps_provenance() / validate_urps_ssot().
+  sf <- list(list(path = cfg$abog_snapshot, sha256 = abog_sha))
+  if (file.exists(cfg$abu_roster)) sf <- c(sf, list(list(path = cfg$abu_roster, sha256 = abu_sha)))
   manifest <- list(
-    artifact = "urps_counts_by_year.csv",
-    artifact_sha256 = sha256(csv_path),
-    provider_snapshot = "urps_provider_snapshot.parquet",
-    provider_snapshot_sha256 = if (has_arrow) sha256(pq_path) else NA_character_,
-    method_version = cfg$method_version,
-    years = list(measure_year_range = range(cfg$years), headline_measure_year = 2023L,
-                 snapshot_date = cfg$snapshot_date, model_baseline_year = 2025L),
-    source_files = list(
-      list(path = cfg$abog_snapshot, role = "ABOG active-workforce snapshot", sha256 = abog_sha),
-      list(path = cfg$abu_roster,    role = "ABU net-new roster",             sha256 = abu_sha)),
+    artifact_version = "1.0.0",
+    created_at = as.character(Sys.Date()),
+    measure_years = cfg$years,
+    snapshot_date = cfg$snapshot_date,
+    model_baseline_year = 2025L,
+    boards = c("ABOG", "ABU"),
+    geographic_scope = "contiguous United States",
     active_in_year_definition =
-      "active in Y iff certification_year <= Y AND (retirement_year empty OR retirement_year > Y); retirement = 7-source consensus",
-    abog_abu_dedup_rule =
-      "ABU is NET-NEW to ABOG: ABU NPIs already in the ABOG cohort are removed; combined = ABOG + ABU (no double count)",
-    geographic_scope = "National (United States)",
+      "active in Y iff certification_year <= Y AND (retirement_year is empty OR retirement_year > Y); retirement = isochrones 7-source consensus",
+    deduplication_rule =
+      "ABU_NET_NEW excludes NPIs already present in the ABOG cohort; ABOG_PLUS_ABU = ABOG + ABU_NET_NEW with no double count",
+    source_files = sf,
+    git_commit = git_sha,
+    method_version = cfg$method_version,
+    artifact_sha256 = sha256(csv_path),
+    provider_snapshot_sha256 = if (has_arrow) sha256(pq_path) else NA_character_,
+    output_files = list(urps_counts_by_year_csv = list(sha256 = sha256(csv_path))),
     known_limitations = c(
       "ABU by-year requires certification_year in the ABU roster; otherwise ABU is a 2023 snapshot.",
-      "2013-2015 predate the ~2016 retirement-detection window and are approximate."),
-    provenance_git_sha = list(isochrones = git_sha[1]))
+      "2013-2015 predate the ~2016 retirement-detection window and are approximate."))
   writeLines(toJSON(manifest, auto_unbox = TRUE, pretty = TRUE, null = "null"),
              file.path(cfg$out_dir, "urps_manifest.json"))
   message(sprintf("[build] wrote %d rows -> %s", nrow(rows), cfg$out_dir))

@@ -1,3 +1,21 @@
+# mufflyaccess 0.4.0
+
+* **Wired in released isochrones artifacts.** `use_urps_artifact(dir)` points the
+  SSOT readers at an isochrones `artifacts/workforce/` directory -- validating it
+  first and reverting on failure; `NULL` resets to the bundled bootstrap. Also
+  honored via the `mufflyaccess.urps_artifact_dir` option /
+  `MUFFLYACCESS_URPS_ARTIFACT_DIR` env var. Verified end-to-end: a real artifact
+  generated from the isochrones snapshot is read through
+  `urps_count()` / `urps_provenance()` / `validate_urps_ssot()`, with provenance
+  reporting the isochrones git commit.
+* Unified the manifest schema across the isochrones producer and mufflyaccess
+  reader (`artifact_version`, `created_at`, `measure_years`, `snapshot_date`,
+  `boards`, `geographic_scope`, `active_in_year_definition`, `deduplication_rule`,
+  `source_files` [path+sha256], `git_commit`, `method_version`, `artifact_sha256`,
+  `output_files`).
+* Hardened the reader to reject a malformed artifact (wrong `board_pathway`
+  casing) with a clear error instead of a cryptic failure.
+
 # mufflyaccess 0.3.0
 
 * Reshaped the URPS SSOT interface to the cross-repo contract (the red-first

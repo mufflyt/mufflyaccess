@@ -3,7 +3,7 @@
 <!-- badges: start -->
 [![Lifecycle: stable](https://img.shields.io/badge/lifecycle-stable-brightgreen.svg)](https://lifecycle.r-lib.org/articles/stages.html#stable)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-0.3.0-informational.svg)](DESCRIPTION)
+[![Version](https://img.shields.io/badge/version-0.4.0-informational.svg)](DESCRIPTION)
 <!-- badges: end -->
 
 **Single source of truth (SSOT) for the constants and pure statistics shared
@@ -138,7 +138,7 @@ safe_rate(events = subspecialists, exposure = female_pop, multiplier = 1e5)
 
 ## Reference
 
-All 40 exported objects, grouped by domain.
+All 41 exported objects, grouped by domain.
 
 ### Access bands & thresholds
 
@@ -240,13 +240,17 @@ these functions — never hardcode or independently derive a national URPS count
 | `urps_count(year = 2023L, include_urology = FALSE)` | A **bare integer** `n_active` for one measure year × pathway. `include_urology = FALSE` → 1031 (2023), `TRUE` → 1339 (2023). Strict validation on both arguments. |
 | `urps_counts()` | The **wide** canonical table: `year, abog_active, abu_net_new, combined_active, measure_year, snapshot_date` (Date), `method_version, source_sha256`. |
 | `urps_provenance()` | Manifest as a list: `measure_years`, `snapshot_date` (Date), `boards`, `geographic_scope`, definitions, `source_sha256` / `source_git_commit`, `method_version`, `package_version`. |
-| `validate_urps_ssot(counts = NULL)` | Fail-loud check of a wide counts table (schema, unique + complete 2013:2023 years, 64-hex hashes, `combined = abog + abu`) — the bundled table by default. |
+| `validate_urps_ssot(counts = NULL)` | Fail-loud check of a wide counts table (schema, unique + complete 2013:2023 years, 64-hex hashes, `combined = abog + abu`) — the active artifact by default. |
+| `use_urps_artifact(dir)` | Point the readers at a released isochrones `artifacts/workforce/` directory (validated before use; reverts on failure). `NULL` = bundled bootstrap. |
 
 ```r
 urps_count(2023L, include_urology = FALSE)   # 1031L  (without urology)
 urps_count(2023L, include_urology = TRUE)    # 1339L  (with urology)
 urps_provenance()$snapshot_date              # Date "2026-07-22"
 validate_urps_ssot()                         # TRUE; errors if the SSOT drifts
+
+# serve a released isochrones artifact instead of the bundled bootstrap:
+use_urps_artifact("path/to/isochrones/artifacts/workforce")  # validated on adoption
 ```
 
 **Three years, never conflated.** `urps_counts()` / `urps_provenance()` keep the

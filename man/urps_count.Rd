@@ -10,29 +10,28 @@ urps_count(year = 2023L, include_urology = FALSE)
 \item{year}{Integer measure year in 2013:2023 (default \code{2023L}). ABOG-only is
 available 2013-2023; the with-urology (ABU) cohort is a 2023 snapshot only.}
 
-\item{include_urology}{Single non-\code{NA} logical. \code{FALSE} (default) = ABOG /
-OB-GYN pathway only; \code{TRUE} = both-pathway ABOG + ABU.}
+\item{include_urology}{Single non-\code{NA} logical. \code{FALSE} (default) = ABOG only;
+\code{TRUE} = both-pathway ABOG + ABU.}
 }
 \value{
 A length-1 integer \code{n_active}.
 }
 \description{
 The single-source-of-truth accessor for the national active URPS
-count. Consumers (\code{cliff} / \code{twostep} / manuscripts / apps) call this and
-\strong{never hardcode or independently derive a national URPS count} (see
-\code{ARCHITECTURE.md}). Returns a bare integer; provenance lives in
-\code{\link[=urps_counts]{urps_counts()}} / \code{\link[=urps_provenance]{urps_provenance()}}.
+count. Consumers call this and \strong{never hardcode or independently derive a
+national URPS count} (see \code{ARCHITECTURE.md}). Returns a bare integer.
 }
 \examples{
 urps_count(2023L, include_urology = FALSE)  # 1031
 urps_count(2023L, include_urology = TRUE)   # 1339
 }
 \seealso{
-\code{\link[=urps_counts]{urps_counts()}}, \code{\link[=urps_provenance]{urps_provenance()}}, \code{\link[=validate_urps_ssot]{validate_urps_ssot()}}
+\code{\link[=urps_counts]{urps_counts()}}, \code{\link[=urps_provenance]{urps_provenance()}}, \code{\link[=validate_urps_ssot]{validate_urps_ssot()}}, \code{\link[=use_urps_artifact]{use_urps_artifact()}}
 
 Other URPS workforce: 
 \code{\link{urps_counts}()},
 \code{\link{urps_provenance}()},
+\code{\link{use_urps_artifact}()},
 \code{\link{validate_urps_ssot}()}
 }
 \concept{URPS workforce}
