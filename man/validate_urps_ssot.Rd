@@ -4,11 +4,15 @@
 \alias{validate_urps_ssot}
 \title{Validate the URPS workforce SSOT (fail loud)}
 \usage{
-validate_urps_ssot(counts = NULL)
+validate_urps_ssot(counts = NULL, require_external = FALSE)
 }
 \arguments{
 \item{counts}{Optional wide counts \code{data.frame} (as from \code{\link[=urps_counts]{urps_counts()}});
 \code{NULL} (default) validates the active artifact.}
+
+\item{require_external}{If \code{TRUE}, additionally require that the active artifact
+is an external released directory (not the bundled bootstrap); errors
+otherwise. Use in release/integration gates.}
 }
 \value{
 Invisibly \code{TRUE} on success; otherwise stops with the failed check.

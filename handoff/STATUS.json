@@ -1,0 +1,15 @@
+{
+  "_comment": "Temporary hand-off tracker. handoff/ holds ready-to-apply patches for upstream repos while they are still files here rather than merged PRs. When an upstream repo applies its patch, record the receiving commit SHA below, note it in handoff/README.md, and archive/remove the applied copy. handoff/ is retired once every entry below is 'applied'.",
+  "contract_version": "1.0.0",
+  "isochrones": {
+    "status": "pending",
+    "receiving_commit": null,
+    "artifacts_released": false,
+    "notes": "build_urps_workforce_artifacts.R (producer) + tests staged in handoff/isochrones/. Awaiting a versioned artifacts/workforce/ release with its own hashes + git SHA. Until then mufflyaccess serves the bundled bootstrap (canonical_release=false)."
+  },
+  "cliff": {
+    "status": "pending",
+    "receiving_commit": null,
+    "notes": "R/urps_baseline.R shim + no-hardcoded-baseline guard tests staged in handoff/cliff/. Switches cliff's baseline to mufflyaccess::urps_count(2023L, ...)."
+  }
+}

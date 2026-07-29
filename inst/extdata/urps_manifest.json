@@ -16,6 +16,9 @@
   ],
   "snapshot_date": "2026-07-22",
   "model_baseline_year": 2025,
+  "contract_version": "1.0.0",
+  "canonical_release": false,
+  "suitable_for_release": false,
   "boards": [
     "ABOG",
     "ABU"

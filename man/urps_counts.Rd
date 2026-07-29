@@ -9,12 +9,14 @@ urps_counts()
 \value{
 A \code{data.frame} with columns \code{year}, \code{abog_active}, \code{abu_net_new},
 \code{combined_active}, \code{measure_year}, \code{snapshot_date} (Date), \code{method_version},
-\code{source_sha256}.
+\code{source_sha256}, \code{abog_active_status}, \code{abu_net_new_status},
+\code{combined_active_status}.
 }
 \description{
 The compact wide table \code{mufflyaccess} serves: one row per measure
-year (2013-2023) with \code{abog_active}, \code{abu_net_new}, \code{combined_active}, and
-provenance columns. \code{abu_net_new} / \code{combined_active} are \code{NA} before 2023.
+year (2013-2023) with \code{abog_active}, \code{abu_net_new}, \code{combined_active},
+explicit \verb{*_status} columns, and provenance columns. \code{abu_net_new} /
+\code{combined_active} are \code{NA} before 2023 (status \code{"unavailable"}).
 }
 \examples{
 urps_counts()

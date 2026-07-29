@@ -12,10 +12,15 @@ A named list; \code{measure_years} is integer, \code{snapshot_date} is a \code{D
 \description{
 Metadata for the active artifact: version, measure years,
 snapshot date, boards, geographic scope, definitions, source hash / git
-commit, method version, and the installed package version.
+commit, method version, the installed package version, and release-readiness
+flags. \code{artifact_source} is \code{"external"} when a released artifact is served
+and \code{"bundled_bootstrap"} otherwise (including after a silent option/env
+fallback, whose reason is in \code{external_artifact_error}). \code{canonical_release}
+and \code{suitable_for_release} are \code{FALSE} for the bootstrap.
 }
 \examples{
 urps_provenance()$geographic_scope
+urps_provenance()$canonical_release   # FALSE for the bundled bootstrap
 }
 \seealso{
 \code{\link[=urps_count]{urps_count()}}, \code{\link[=validate_urps_ssot]{validate_urps_ssot()}}, \code{\link[=use_urps_artifact]{use_urps_artifact()}}

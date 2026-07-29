@@ -1,3 +1,30 @@
+# mufflyaccess 0.5.0
+
+* **Release-readiness gates + honest bootstrap labeling.** The bundled artifact is
+  now explicitly marked a non-canonical bootstrap: `urps_provenance()` exposes
+  `artifact_source` (`"bundled_bootstrap"` / `"external"`), `canonical_release`,
+  `suitable_for_release` (both `FALSE` for the bootstrap), `contract_version`, and
+  `external_artifact_error`.
+* **Fail-closed vs. revealed-fallback split.** `use_urps_artifact("<dir>")` (the
+  explicit call) now fails closed -- an invalid artifact errors and the previously
+  active source is left unchanged, never silently continuing. Selecting a source
+  through the `mufflyaccess.urps_artifact_dir` option / `MUFFLYACCESS_URPS_ARTIFACT_DIR`
+  env var instead warns and falls back to the bundled bootstrap, revealing the
+  fallback via `urps_provenance()$artifact_source` / `$external_artifact_error`.
+* **Strict mode.** `options(mufflyaccess.urps_artifact_strict = TRUE)` turns that
+  silent fallback into an error; `validate_urps_ssot(require_external = TRUE)`
+  fails unless a real external release is active (for release/integration gates).
+* **Explicit missingness.** `urps_count(year, include_urology, incomplete =
+  c("error", "na"))` never returns a silent `0` for an unavailable year/cohort;
+  `urps_counts()` adds `abog_active_status` / `abu_net_new_status` /
+  `combined_active_status` columns (`snapshot` / `derived` / `unavailable`).
+* **Geography assertion.** `urps_count(..., geography = "CONUS")` errors on a
+  mismatch with the served artifact's declared scope; mufflyaccess never
+  re-projects counts onto a geography the artifact was not built for.
+* **Hand-off tracker.** `handoff/STATUS.json` records the temporary status of the
+  isochrones/cliff patches; the producer now stamps `contract_version`,
+  `canonical_release`, and `suitable_for_release` into the manifest.
+
 # mufflyaccess 0.4.0
 
 * **Wired in released isochrones artifacts.** `use_urps_artifact(dir)` points the
