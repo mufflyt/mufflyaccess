@@ -1,3 +1,31 @@
+# mufflyaccess 0.7.0
+
+* **Adopted isochrones contract v3.0.0** (source commit `74085a9e6`,
+  artifact `cf7222df`). Regenerated entirely from the real artifact — no value
+  was hand-edited.
+* **The canonical 2023 count changed: national 1,306 / CONUS 1,303** (ABOG
+  **1,027** + ABU net-new **279**). v3.0.0 keys `board_certified_active` on the
+  **URPS subspecialty** certification year (training-accurate, post-fellowship)
+  instead of the primary board-cert year; 33 providers whose subspecialty cert
+  postdates 2023 are correctly excluded.
+* **1,332 / 1,329 are now RETIRED** (the v2.1.0 primary-cert cells). They are
+  *not* competing estimates and must never be presented as current. New accessors
+  expose the lineage: `urps_lineage()` (current vs retired, with basis) and
+  `urps_retired_values()`; `urps_provenance()` gains `retired_cells`,
+  `source_description`, and `source_systems`.
+* **1,339 (2025 roster snapshot) is unchanged** and independently re-validated
+  (equals the 1,339-row provider snapshot).
+* The contract validator now requires **major version 3** (v2.x is retired and
+  fails closed) and reconstructs the active count on the subspecialty-cert basis.
+* **`share/acs_sheps/` regenerated as v3.0.0** with a **self-invalidating guard**:
+  generation aborts unless the artifact is contract 3.0.0 @ `74085a9e6` with
+  national 1,306 / CONUS 1,303, and fails if any output presents 1,332/1,329 as
+  current. Outputs renamed `v2.1.0` → `v3.0.0`; a join spec replaces the empty
+  population/access columns; source wording matches isochrones verbatim.
+* Cross-repository integration workflow pins the isochrones artifact by SHA,
+  runs the canonical invariants, checks the ACS/Sheps package for drift, and runs
+  the cliff + twostep consumer tests against the same mufflyaccess build.
+
 # mufflyaccess 0.6.0
 
 * **Adopted the isochrones contract v2.1.0 release.** The bundled artifact and the

@@ -1,24 +1,22 @@
-URPS workforce SSOT -- provenance
-=================================
-package_version         : mufflyaccess 0.6.0
+URPS workforce SSOT -- provenance (contract v3.0.0)
+===================================================
+package_version         : mufflyaccess 0.7.0
 artifact_source         : external
-contract_version        : 2.1.0
-artifact_version        : 2.1.0
-canonical_release       : TRUE
-suitable_for_release    : TRUE
-canonical_2023_estimand : board_certified_active / national = 1332
+contract_version        : 3.0.0
+artifact_version        : 3.0.0
+canonical_2023_estimand : board_certified_active / national = 1306
 measures                : board_certified_active, roster_snapshot
 geographies             : national, conus
 measure_years           : 2013-2023
 snapshot_date           : 2026-07-22
-roster reflects certs   : through 2025
-geographic_scope        : national roster (50 states, DC, and territories; includes Hawaii and Puerto Rico); a conus subset is provided via the geography dimension
-source_sha256           : 016474e7ee481a6ad233debe1193dfb14fd1ac2406d1b47ea1f065b24ee47c23
-source_git_commit       : 565755b2a9e2295855edae541db47516c973b27b
+source_git_commit       : 74085a9e695eec5350275a29d8655512ad57422b
 git_commit_semantics    : source-parent (convention 2): the source-only commit these artifacts were regenerated from; the artifact bytes live in a separate child commit
-active-in-year rule     : board_certified_active: certification_year <= Y and not retired by Y, within the geography. Certification years are SOURCE VALUES ONLY, never clamped: 7 ABU net-new providers first URPS-certified in 2024-2025 (portal.abu.org) are excluded from the 2023 active count. The canonical 2023 national board-certified active count is 1,332 (1,339 is the roster_snapshot).
+active-in-year rule     : board_certified_active: urps_subspecialty_cert_year <= Y and not retired by Y, within the geography. Keyed on the URPS SUBSPECIALTY certification year (training-accurate, post-fellowship), NOT the primary cert_year. ABOG uses the real sub1startdate (2013+); ABU and unmatched ABOG use a fellowship proxy (primary + 2 urology / + 3 OB-GYN). 33 providers whose URPS cert/proxy postdates 2023 are excluded from the 2023 active count. The canonical 2023 national board-certified active count is 1,306 (1,339 is the roster_snapshot headcount).
 deduplication rule      : ABOG = OB/GYN board-certification (FPMRS/URPS) pathway. ABU enters only as NET-NEW to the ABOG NPI set; dual-boarded general-urology-primary providers held out; reinstated dual-boarded (n=38) kept; retired/unmatched dropped. Active ABOG and ABU NPI sets are provably disjoint (asserted).
+retired cells           : v2.1.0 national 1332 / CONUS 1329 (primary-cert basis; NOT current)
 
-Note: git_commit_semantics is reproduced verbatim from the isochrones
-manifest; the release does not expose a separate artifact-storage commit,
-so none is asserted here.
+Source description (verbatim from isochrones):
+  Publicly accessible ABOG physician-certification information, integrated
+  with other public physician-practice sources and independently reconciled
+  for workforce research. ABOG did not supply, license, or endorse this
+  derived dataset.

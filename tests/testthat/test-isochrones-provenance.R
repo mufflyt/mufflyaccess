@@ -13,8 +13,8 @@ test_that("real artifact hashes and source commit are exposed unchanged", {
   expect_equal(p$artifact_source, "external")
   expect_true(p$canonical_release)
   expect_true(p$suitable_for_release)
-  expect_equal(p$contract_version, "2.1.0")
-  expect_equal(p$artifact_version, "2.1.0")
+  expect_equal(p$contract_version, "3.0.0")
+  expect_equal(p$artifact_version, "3.0.0")
   expect_equal(p$source_git_commit, manifest$git_commit)
   expect_match(p$source_git_commit, "^[0-9a-f]{40}$")
   expect_null(p$external_artifact_error)
@@ -46,7 +46,7 @@ test_that("the release gate passes for the real release and fails for the bootst
   suppressMessages(use_urps_artifact(path))
   expect_true(validate_urps_ssot(require_external = TRUE))
   expect_true(validate_urps_ssot(require_external = TRUE, require_canonical = TRUE,
-                                 require_contract_version = "2.1.0"))
+                                 require_contract_version = "3.0.0"))
   manifest <- read_isochrones_manifest(path)
   expect_true(validate_urps_ssot(require_external = TRUE,
                                  require_source_git_commit = manifest$git_commit))

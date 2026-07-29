@@ -12,7 +12,7 @@ test_that("use_urps_artifact reads + validates an external artifact directory", 
   on.exit(use_urps_artifact(NULL), add = TRUE)
   suppressMessages(use_urps_artifact(ext))
   expect_identical(urps_provenance()$source_git_commit, fake_commit)   # external manifest served
-  expect_equal(urps_count(2023L, include_urology = TRUE), 1332L)
+  expect_equal(urps_count(2023L, include_urology = TRUE), 1306L)
   expect_equal(urps_provenance()$artifact_source, "external")
   suppressMessages(use_urps_artifact(NULL))
   expect_false(identical(urps_provenance()$source_git_commit, fake_commit))  # back to bundled

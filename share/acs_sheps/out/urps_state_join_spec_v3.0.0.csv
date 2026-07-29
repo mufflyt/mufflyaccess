@@ -1,0 +1,5 @@
+"join_field","owner","join_key","required_year","unit"
+"total_population","twostep","state",2023,"persons"
+"female_population","twostep","state",2023,"persons"
+"access_30min","isochrones","state",2023,"share_reached"
+"e2sfca_score","twostep","state",2023,"supply_per_pop"

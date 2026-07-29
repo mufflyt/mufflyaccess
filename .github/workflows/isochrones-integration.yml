@@ -1,9 +1,10 @@
 name: isochrones-integration
 
-# Clean-room producer/consumer integration: check out the IMMUTABLE isochrones
-# release (pinned by full SHA, never a moving branch), point mufflyaccess at its
-# artifacts/workforce/ directory, and run the real-artifact tests in strict mode.
-# A miniature checked-in fixture cannot detect upstream drift; this job can.
+# Cross-repository integration for the URPS workforce contract (v3.0.0).
+# Checks out isochrones at the IMMUTABLE artifact commit, serves + validates the
+# v3.0.0 artifact through mufflyaccess, runs the canonical API calls, and then
+# runs the cliff + twostep consumer tests against the SAME pinned mufflyaccess.
+# A miniature fixture cannot detect upstream drift; this job can.
 
 on:
   push:
@@ -13,25 +14,24 @@ on:
     - cron: "0 12 * * 1"   # weekly drift check
   workflow_dispatch:
 
+env:
+  ISO_ARTIFACT_COMMIT: cf7222df2dba8a75831b372b7787af379a9b799d   # carries artifacts/workforce/ (v3.0.0)
+  ISO_SOURCE_COMMIT:   74085a9e695eec5350275a29d8655512ad57422b   # producing source commit
+
 jobs:
-  isochrones-integration:
+  mufflyaccess:
     runs-on: ubuntu-latest
     steps:
       - name: Check out mufflyaccess
         uses: actions/checkout@v4
-
-      - name: Check out the pinned isochrones release
+      - name: Check out the pinned isochrones artifact commit
         uses: actions/checkout@v4
         with:
           repository: mufflyt/isochrones
-          # Immutable commit carrying artifacts/workforce/ (contract v2.1.0).
-          ref: 91104c777905c00ac7ac6be87a838b8b40de6d93
+          ref: ${{ env.ISO_ARTIFACT_COMMIT }}
           path: isochrones
-
       - uses: r-lib/actions/setup-r@v2
-        with:
-          use-public-rspm: true
-
+        with: { use-public-rspm: true }
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
           extra-packages: |
@@ -39,35 +39,68 @@ jobs:
             any::digest
             any::arrow
             any::jsonlite
-
       - name: Install mufflyaccess
         run: R CMD INSTALL --with-keep.source .
-
       - name: Point at the released artifact
         run: echo "MUFFLYACCESS_URPS_ARTIFACT_DIR=$GITHUB_WORKSPACE/isochrones/artifacts/workforce" >> "$GITHUB_ENV"
-
-      - name: Run real-artifact integration tests (strict, fail-closed)
+      - name: Validate + canonical invariants (strict, fail-closed)
         run: |
           Rscript -e '
             options(mufflyaccess.urps_artifact_strict = TRUE)
             library(mufflyaccess)
             path <- Sys.getenv("MUFFLYACCESS_URPS_ARTIFACT_DIR")
             stopifnot(nzchar(path), file.exists(file.path(path, "urps_counts_by_year.csv")))
-
-            # release gate + headline invariants against the real, immutable release
             stopifnot(isTRUE(validate_urps_ssot(
               require_external = TRUE, require_canonical = TRUE,
-              require_contract_version = "2.1.0")))
+              require_contract_version = "3.0.0",
+              require_source_git_commit = Sys.getenv("ISO_SOURCE_COMMIT"))))
             use_urps_artifact(path)
-            stopifnot(urps_count(2023, "board_certified_active", "national", TRUE)  == 1332L)
-            stopifnot(urps_count(2023, "board_certified_active", "conus",    TRUE)  == 1329L)
+            stopifnot(urps_count(2023, "board_certified_active", "national", TRUE)  == 1306L)
+            stopifnot(urps_count(2023, "board_certified_active", "conus",    TRUE)  == 1303L)
             stopifnot(urps_count(2025, "roster_snapshot",        "national", TRUE)  == 1339L)
             stopifnot(urps_count(2025, "roster_snapshot",        "conus",    TRUE)  == 1336L)
-            stopifnot(urps_count(2023, "board_certified_active", "national", TRUE) -
-                      urps_count(2023, "board_certified_active", "national", FALSE) == 301L)
+            # retired cells never present as current
+            stopifnot(!(urps_count(2023,"board_certified_active","national",TRUE) %in% c(1332L,1329L)))
+            stopifnot(setequal(urps_retired_values(), c(1332L,1329L)))
+            testthat::test_dir("tests/testthat", filter = "isochrones|contract-lineage", stop_on_failure = TRUE)
+            cat("mufflyaccess integration: OK\n")
+          '
+      - name: Regenerate the ACS/Sheps package (self-invalidating) and check no drift
+        run: |
+          pip install pyarrow
+          python3 share/acs_sheps/build_state_extract.py isochrones/artifacts/workforce/urps_provider_snapshot.parquet share/acs_sheps/out/urps_state_extract_2023_v3.0.0.csv
+          MUFFLYACCESS_URPS_ARTIFACT_DIR=isochrones/artifacts/workforce Rscript share/acs_sheps/build_share_package.R
+          git diff --exit-code -- share/acs_sheps/out || (echo "::error::share/acs_sheps outputs are stale; re-run the generators and commit"; exit 1)
 
-            # the full isochrones-* suite (reconstruction + mutation matrix run for
-            # real here because arrow is installed)
-            testthat::test_dir("tests/testthat", filter = "isochrones", stop_on_failure = TRUE)
-            cat("isochrones integration: OK\n")
+  consumers:
+    runs-on: ubuntu-latest
+    needs: mufflyaccess
+    strategy:
+      matrix:
+        repo: [cliff, twostep]
+    steps:
+      - name: Check out mufflyaccess
+        uses: actions/checkout@v4
+        with: { path: mufflyaccess }
+      - name: Check out ${{ matrix.repo }}
+        uses: actions/checkout@v4
+        with:
+          repository: mufflyt/${{ matrix.repo }}
+          path: ${{ matrix.repo }}
+      - uses: r-lib/actions/setup-r@v2
+        with: { use-public-rspm: true }
+      - name: Install this exact mufflyaccess into the consumer
+        run: R CMD INSTALL --with-keep.source mufflyaccess
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          working-directory: ${{ matrix.repo }}
+          extra-packages: any::testthat
+      - name: Run the consumer's URPS contract + guard tests
+        working-directory: ${{ matrix.repo }}
+        run: |
+          Rscript -e '
+            library(testthat)
+            testthat::test_dir("tests/testthat",
+              filter = "urps|baseline|unqualified|geography", stop_on_failure = TRUE)
+            cat("${{ matrix.repo }} consumer contract: OK\n")
           '

@@ -6,17 +6,17 @@ library(mufflyaccess)
 # and prove adoption fails closed. This shows validation is more than a checksum.
 
 semantic_mutations <- list(
-  list(name = "2023 national combined changed to 1339 (roster value)",
+  list(name = "2023 national combined regressed to the retired 1332",
        mutate = function(p) mutate_count_cell(p, 2023, "board_certified_active",
-                                              "national", "ABOG_PLUS_ABU", 1339L),
+                                              "national", "ABOG_PLUS_ABU", 1332L),
        error = "reconcil|semantic|provider"),
-  list(name = "2023 ABU net-new changed 301 -> 308",
+  list(name = "2023 ABU net-new changed 279 -> 308",
        mutate = function(p) mutate_count_cell(p, 2023, "board_certified_active",
                                               "national", "ABU_NET_NEW", 308L),
        error = "reconcil|semantic|provider"),
-  list(name = "conus 2023 combined 1329 -> national's 1332",
+  list(name = "conus 2023 combined regressed to the retired 1329",
        mutate = function(p) mutate_count_cell(p, 2023, "board_certified_active",
-                                              "conus", "ABOG_PLUS_ABU", 1332L),
+                                              "conus", "ABOG_PLUS_ABU", 1329L),
        error = "reconcil|semantic|provider"),
   list(name = "conus board_certified_active rows removed",
        mutate = function(p) remove_count_cells(p, "board_certified_active", "conus"),

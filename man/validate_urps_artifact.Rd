@@ -16,7 +16,7 @@ Invisibly \code{TRUE}; otherwise stops with the failed check.
 \description{
 Path-based contract check used before adopting an isochrones
 release. Verifies far more than a checksum: the contract version is
-supported, the counts table carries the v2.1.0 \code{measure}/\code{geography} schema,
+supported, the counts table carries the \code{measure}/\code{geography} schema,
 each measure stays inside its declared year window, every measure/year/
 pathway is published for \strong{both} geographies, \code{ABOG_PLUS_ABU} reconciles as
 \code{ABOG + ABU_NET_NEW}, hashes are well formed, the release-contract canonical
@@ -32,7 +32,9 @@ Other URPS workforce:
 \code{\link{urps_count}()},
 \code{\link{urps_counts}()},
 \code{\link{urps_counts_long}()},
+\code{\link{urps_lineage}()},
 \code{\link{urps_provenance}()},
+\code{\link{urps_retired_values}()},
 \code{\link{use_urps_artifact}()},
 \code{\link{validate_urps_ssot}()}
 }
