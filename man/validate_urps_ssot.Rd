@@ -4,37 +4,47 @@
 \alias{validate_urps_ssot}
 \title{Validate the URPS workforce SSOT (fail loud)}
 \usage{
-validate_urps_ssot(counts = NULL, require_external = FALSE)
+validate_urps_ssot(
+  counts = NULL,
+  require_external = FALSE,
+  require_canonical = FALSE,
+  require_contract_version = NULL,
+  require_source_git_commit = NULL
+)
 }
 \arguments{
-\item{counts}{Optional wide counts \code{data.frame} (as from \code{\link[=urps_counts]{urps_counts()}});
-\code{NULL} (default) validates the active artifact.}
+\item{counts}{Optional wide counts \code{data.frame}; \code{NULL} (default) validates the
+active artifact.}
 
-\item{require_external}{If \code{TRUE}, additionally require that the active artifact
-is an external released directory (not the bundled bootstrap); errors
-otherwise. Use in release/integration gates.}
+\item{require_external}{If \code{TRUE}, require an external released artifact (not
+the bundled bootstrap).}
+
+\item{require_canonical}{If \code{TRUE}, require \code{canonical_release}.}
+
+\item{require_contract_version}{Optional exact contract version string to require.}
+
+\item{require_source_git_commit}{Optional exact source git commit to require.}
 }
 \value{
-Invisibly \code{TRUE} on success; otherwise stops with the failed check.
+Invisibly \code{TRUE}; otherwise stops with the failed check.
 }
 \description{
-Checks a wide counts table against the frozen contract: required
-columns, unique measure years covering 2013-2023, well-formed 64-hex
-\code{source_sha256}, and the reconciliation identity
-\code{combined_active == abog_active + abu_net_new}. With no argument it validates
-the active artifact (bundled or the one selected by \code{\link[=use_urps_artifact]{use_urps_artifact()}}),
-including its SHA-256 against the manifest when \code{digest} is available.
-}
-\examples{
-validate_urps_ssot()
+With no \code{counts}, validates the active artifact end to end via
+\code{\link[=validate_urps_artifact]{validate_urps_artifact()}} and enforces the requested release gates. With a
+wide \code{counts} \code{data.frame} (as from \code{\link[=urps_counts]{urps_counts()}}), checks that table's
+schema, unique + complete 2013-2023 years, 64-hex hashes, and the
+\code{combined_active == abog_active + abu_net_new} identity.
 }
 \seealso{
-\code{\link[=urps_count]{urps_count()}}, \code{\link[=urps_counts]{urps_counts()}}, \code{\link[=urps_provenance]{urps_provenance()}}, \code{\link[=use_urps_artifact]{use_urps_artifact()}}
+\code{\link[=validate_urps_artifact]{validate_urps_artifact()}}, \code{\link[=urps_provenance]{urps_provenance()}}
 
 Other URPS workforce: 
+\code{\link{compare_urps_artifacts}()},
 \code{\link{urps_count}()},
 \code{\link{urps_counts}()},
+\code{\link{urps_counts_long}()},
 \code{\link{urps_provenance}()},
-\code{\link{use_urps_artifact}()}
+\code{\link{use_urps_artifact}()},
+\code{\link{validate_urps_artifact}()}
 }
 \concept{URPS workforce}

@@ -2,32 +2,35 @@
 % Please edit documentation in R/urps_count.R
 \name{urps_counts}
 \alias{urps_counts}
-\title{The complete canonical URPS workforce table}
+\title{A wide URPS workforce slice for one measure x geography}
 \usage{
-urps_counts()
+urps_counts(measure = "board_certified_active", geography = "national")
+}
+\arguments{
+\item{measure}{\code{"board_certified_active"} (default) or \code{"roster_snapshot"}.}
+
+\item{geography}{\code{"national"} (default) or \code{"conus"}.}
 }
 \value{
-A \code{data.frame} with columns \code{year}, \code{abog_active}, \code{abu_net_new},
-\code{combined_active}, \code{measure_year}, \code{snapshot_date} (Date), \code{method_version},
-\code{source_sha256}, \code{abog_active_status}, \code{abu_net_new_status},
-\code{combined_active_status}.
+A \code{data.frame}.
 }
 \description{
-The compact wide table \code{mufflyaccess} serves: one row per measure
-year (2013-2023) with \code{abog_active}, \code{abu_net_new}, \code{combined_active},
-explicit \verb{*_status} columns, and provenance columns. \code{abu_net_new} /
-\code{combined_active} are \code{NA} before 2023 (status \code{"unavailable"}).
-}
-\examples{
-urps_counts()
+One row per year for the chosen \code{measure}/\code{geography}, with
+\code{abog_active}, \code{abu_net_new}, \code{combined_active}, provenance columns, and
+explicit \verb{*_status} columns. Defaults to the canonical
+\code{board_certified_active} / \code{national} slice (years 2013-2023). Use
+\code{\link[=urps_counts_long]{urps_counts_long()}} for the complete long table across all cells.
 }
 \seealso{
-\code{\link[=urps_count]{urps_count()}}, \code{\link[=urps_provenance]{urps_provenance()}}, \code{\link[=validate_urps_ssot]{validate_urps_ssot()}}
+\code{\link[=urps_count]{urps_count()}}, \code{\link[=urps_counts_long]{urps_counts_long()}}, \code{\link[=urps_provenance]{urps_provenance()}}
 
 Other URPS workforce: 
+\code{\link{compare_urps_artifacts}()},
 \code{\link{urps_count}()},
+\code{\link{urps_counts_long}()},
 \code{\link{urps_provenance}()},
 \code{\link{use_urps_artifact}()},
+\code{\link{validate_urps_artifact}()},
 \code{\link{validate_urps_ssot}()}
 }
 \concept{URPS workforce}

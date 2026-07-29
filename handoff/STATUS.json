@@ -1,15 +1,17 @@
 {
   "_comment": "Temporary hand-off tracker. handoff/ holds ready-to-apply patches for upstream repos while they are still files here rather than merged PRs. When an upstream repo applies its patch, record the receiving commit SHA below, note it in handoff/README.md, and archive/remove the applied copy. handoff/ is retired once every entry below is 'applied'.",
-  "contract_version": "1.0.0",
+  "contract_version": "2.1.0",
   "isochrones": {
-    "status": "pending",
-    "receiving_commit": null,
-    "artifacts_released": false,
-    "notes": "build_urps_workforce_artifacts.R (producer) + tests staged in handoff/isochrones/. Awaiting a versioned artifacts/workforce/ release with its own hashes + git SHA. Until then mufflyaccess serves the bundled bootstrap (canonical_release=false)."
+    "status": "released",
+    "artifacts_released": true,
+    "artifact_commit": "91104c777905c00ac7ac6be87a838b8b40de6d93",
+    "source_commit": "565755b2a9e2295855edae541db47516c973b27b",
+    "artifact_path": "artifacts/workforce/",
+    "notes": "isochrones published the v2.1.0 URPS workforce artifact set (urps_counts_by_year.csv with measure x geography, urps_manifest.json, urps_provider_snapshot.parquet, urps_release_contract.json). mufflyaccess reads + validates it via use_urps_artifact() and pins it in the isochrones-integration CI job. The v2.1.0 bytes are also bundled as the bootstrap (canonical_release=false) so the default serves the corrected numbers."
   },
   "cliff": {
     "status": "pending",
     "receiving_commit": null,
-    "notes": "R/urps_baseline.R shim + no-hardcoded-baseline guard tests staged in handoff/cliff/. Switches cliff's baseline to mufflyaccess::urps_count(2023L, ...)."
+    "notes": "R/urps_baseline.R shim + no-hardcoded-baseline guard tests staged in handoff/cliff/. Switch cliff's baseline to mufflyaccess::urps_count(2023, 'board_certified_active', <geography>, include_urology). NOTE: the canonical 2023 active count is now 1332 (national) / 1329 (conus); 1339 is the 2025 roster_snapshot, not the 2023 active count."
   }
 }

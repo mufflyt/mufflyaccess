@@ -71,20 +71,23 @@ real release is gated:
 The default is not switched from bootstrap to a release until the upstream
 artifact is published, tagged, and passes these gates.
 
-### Remaining (upstream)
-The mufflyaccess side of the contract is in place (exported API, shipped canonical
-table + manifest, fail-loud validation, deprecated constants, **and a reader that
-consumes a released isochrones artifact** via `use_urps_artifact(dir)` — proven
-end-to-end against a real artifact generated from the isochrones snapshot). What
-remains is upstream and in other repos (tracked in `handoff/STATUS.json`):
-1. **isochrones** publishes the versioned artifacts
-   (`artifacts/workforce/urps_provider_snapshot.parquet`, `urps_counts_by_year.csv`,
-   `urps_manifest.json`) with its own hashes + git SHA (the producer +
-   unified-manifest contract are staged in `handoff/isochrones/`). mufflyaccess
-   already reads + validates such a directory; point it there with
-   `use_urps_artifact()` and it replaces the bundled BOOTSTRAP.
-2. A single both-pathway snapshot: ABU (+308) is presently a 2023-only layer from
-   the cliff reconciliation, not a hashed isochrones artifact — fold it in so the
-   with-urology series is by-year too.
-3. **cliff / twostep** switch their baseline to `mufflyaccess::urps_count(2023L, ...)`
-   and add a test that fails if a hardcoded 1031/1339/1295/264/308 reappears.
+### Contract v2.1.0 (released)
+**isochrones has published the versioned artifacts** at
+`artifacts/workforce/` (commit `91104c77`, source `565755b2`): a
+`measure × geography` `urps_counts_by_year.csv`, `urps_manifest.json`,
+`urps_provider_snapshot.parquet`, and `urps_release_contract.json` — each hashed,
+with its git SHA. mufflyaccess reads + validates that directory
+(`validate_urps_artifact()`) and pins it in the `isochrones-integration` CI job;
+the same bytes are bundled as the bootstrap so the default already serves the
+corrected numbers. The canonical 2023 estimand is **board_certified_active /
+national = 1332** (ABOG 1031 + ABU **301**); **1339 is the 2025 `roster_snapshot`**,
+kept as a distinct measure.
+
+### Remaining (tracked in `handoff/STATUS.json`)
+1. **cliff / twostep** switch their baseline to
+   `mufflyaccess::urps_count(2023, "board_certified_active", <geography>, ...)` and
+   add a test that fails if a hardcoded 1031/1332/1329/1339/301/308 reappears. Note
+   the correction: the 2023 active count is **1332** (national) / **1329** (conus),
+   **not** 1339.
+2. The `handoff/isochrones/` producer copy can be archived now that the release is
+   live; keep it only as a reference for regeneration.

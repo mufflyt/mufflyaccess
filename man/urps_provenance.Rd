@@ -10,25 +10,24 @@ urps_provenance()
 A named list; \code{measure_years} is integer, \code{snapshot_date} is a \code{Date}.
 }
 \description{
-Metadata for the active artifact: version, measure years,
-snapshot date, boards, geographic scope, definitions, source hash / git
-commit, method version, the installed package version, and release-readiness
-flags. \code{artifact_source} is \code{"external"} when a released artifact is served
-and \code{"bundled_bootstrap"} otherwise (including after a silent option/env
-fallback, whose reason is in \code{external_artifact_error}). \code{canonical_release}
-and \code{suitable_for_release} are \code{FALSE} for the bootstrap.
-}
-\examples{
-urps_provenance()$geographic_scope
-urps_provenance()$canonical_release   # FALSE for the bundled bootstrap
+Metadata for the active artifact: versions, measures/geographies,
+snapshot date, definitions, source hash / git commit, release-readiness
+flags, and the installed package version. \code{artifact_source} is \code{"external"}
+when a released artifact is served and \code{"bundled_bootstrap"} otherwise
+(including after a silent option/env fallback, whose reason is in
+\code{external_artifact_error}). \code{canonical_release} / \code{suitable_for_release} are
+\code{FALSE} for the bootstrap.
 }
 \seealso{
 \code{\link[=urps_count]{urps_count()}}, \code{\link[=validate_urps_ssot]{validate_urps_ssot()}}, \code{\link[=use_urps_artifact]{use_urps_artifact()}}
 
 Other URPS workforce: 
+\code{\link{compare_urps_artifacts}()},
 \code{\link{urps_count}()},
 \code{\link{urps_counts}()},
+\code{\link{urps_counts_long}()},
 \code{\link{use_urps_artifact}()},
+\code{\link{validate_urps_artifact}()},
 \code{\link{validate_urps_ssot}()}
 }
 \concept{URPS workforce}
