@@ -21,15 +21,7 @@ test_that("Wu-2014 PFD prevalence table + accessors", {
   expect_true(all(WU2014_PFD_PREVALENCE$p_65_79 > 0))
 })
 
-test_that("URPS 2025 workforce counts (with/without urology) are frozen and reconcile", {
-  expect_identical(as.integer(URPS_COUNT_ABOG_ONLY_2025), 1031L)      # without urology (ABOG only)
-  expect_identical(as.integer(URPS_COUNT_ABOG_PLUS_ABU_2025), 1339L)  # with urology (ABOG + ABU); reconciled 2026-07-24
-  # WITH urology exceeds WITHOUT, and the gap is exactly the ABU net-new contribution
-  expect_gt(as.integer(URPS_COUNT_ABOG_PLUS_ABU_2025), as.integer(URPS_COUNT_ABOG_ONLY_2025))
-  expect_identical(as.integer(URPS_COUNT_ABOG_PLUS_ABU_2025) - as.integer(URPS_COUNT_ABOG_ONLY_2025), 308L)
-  # provenance attributes are attached (same contract as ACS2020_CONUS_FEMALE_POP)
-  expect_equal(attr(URPS_COUNT_ABOG_ONLY_2025, "year"), 2025L)
-  expect_true(nzchar(attr(URPS_COUNT_ABOG_PLUS_ABU_2025, "source")))
-  # deterministic: referencing the constant yields the same value every call
-  expect_identical(URPS_COUNT_ABOG_ONLY_2025, URPS_COUNT_ABOG_ONLY_2025)
-})
+# URPS workforce counts are covered by the SSOT contract tests
+# (test-urps-count.R, test-urps-counts-table.R, test-validate-urps-ssot.R,
+# test-deprecated-urps-constants.R). The old frozen-constant assertions were
+# removed when the constants were deprecated to warn-on-access active bindings.

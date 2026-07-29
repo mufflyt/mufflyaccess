@@ -4,19 +4,22 @@
 \alias{validate_urps_ssot}
 \title{Validate the URPS workforce SSOT (fail loud)}
 \usage{
-validate_urps_ssot()
+validate_urps_ssot(counts = NULL)
+}
+\arguments{
+\item{counts}{Optional wide counts \code{data.frame} (as from \code{\link[=urps_counts]{urps_counts()}});
+\code{NULL} (default) validates the bundled table.}
 }
 \value{
 Invisibly \code{TRUE} on success; otherwise stops with the failed check.
 }
 \description{
-Checks the shipped canonical table against its manifest and the
-frozen contract: schema, the reconciled headline values (2023 ABOG = 1031,
-ABOG+ABU = 1339, ABU net-new = 308), the reconciliation identity
-(\code{abog_plus_abu = abog + abu}), the contiguous 2013-2023 ABOG series,
-agreement of the deprecated \verb{*_2025} constants with the table, and (when
-\code{digest} is installed) the table's SHA-256 against the manifest. Errors on
-any violation.
+Checks a wide counts table against the frozen contract: required
+columns, unique measure years covering 2013-2023, well-formed 64-hex
+\code{source_sha256}, and the reconciliation identity
+\code{combined_active == abog_active + abu_net_new} (1339 for 2023). Called with
+no argument it validates the bundled table (and its SHA-256 against the
+manifest when \code{digest} is available).
 }
 \examples{
 validate_urps_ssot()
@@ -27,7 +30,6 @@ validate_urps_ssot()
 Other URPS workforce: 
 \code{\link{urps_count}()},
 \code{\link{urps_counts}()},
-\code{\link{urps_provenance}()},
-\code{\link{urps_workforce_2025}}
+\code{\link{urps_provenance}()}
 }
 \concept{URPS workforce}

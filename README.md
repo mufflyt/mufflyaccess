@@ -3,7 +3,7 @@
 <!-- badges: start -->
 [![Lifecycle: stable](https://img.shields.io/badge/lifecycle-stable-brightgreen.svg)](https://lifecycle.r-lib.org/articles/stages.html#stable)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-0.2.0-informational.svg)](DESCRIPTION)
+[![Version](https://img.shields.io/badge/version-0.3.0-informational.svg)](DESCRIPTION)
 <!-- badges: end -->
 
 **Single source of truth (SSOT) for the constants and pure statistics shared
@@ -237,27 +237,27 @@ these functions — never hardcode or independently derive a national URPS count
 
 | Function | Returns |
 |---|---|
-| `urps_count(year = 2023L, include_urology = FALSE)` | The `n_active` count for one measure year × pathway, with provenance in its attributes. `include_urology = FALSE` → 1031 (2023), `TRUE` → 1339 (2023). |
-| `urps_counts()` | The full canonical table (year × pathway × counts + snapshot date + source hash + method version). |
-| `urps_provenance()` | The manifest: source files, SHA-256s, definitions, dedup rule, scope, limitations, git SHAs. |
-| `validate_urps_ssot()` | Fail-loud check of the table against its manifest and the frozen contract (headline values, reconciliation identity, deprecated-constant agreement). |
+| `urps_count(year = 2023L, include_urology = FALSE)` | A **bare integer** `n_active` for one measure year × pathway. `include_urology = FALSE` → 1031 (2023), `TRUE` → 1339 (2023). Strict validation on both arguments. |
+| `urps_counts()` | The **wide** canonical table: `year, abog_active, abu_net_new, combined_active, measure_year, snapshot_date` (Date), `method_version, source_sha256`. |
+| `urps_provenance()` | Manifest as a list: `measure_years`, `snapshot_date` (Date), `boards`, `geographic_scope`, definitions, `source_sha256` / `source_git_commit`, `method_version`, `package_version`. |
+| `validate_urps_ssot(counts = NULL)` | Fail-loud check of a wide counts table (schema, unique + complete 2013:2023 years, 64-hex hashes, `combined = abog + abu`) — the bundled table by default. |
 
 ```r
-urps_count(2023L, include_urology = FALSE)   # 1031  (without urology)
-urps_count(2023L, include_urology = TRUE)    # 1339  (with urology)
-attr(urps_count(2023L), "snapshot_date")     # "2026-07-22"
-validate_urps_ssot()                         # errors if the SSOT ever drifts
+urps_count(2023L, include_urology = FALSE)   # 1031L  (without urology)
+urps_count(2023L, include_urology = TRUE)    # 1339L  (with urology)
+urps_provenance()$snapshot_date              # Date "2026-07-22"
+validate_urps_ssot()                         # TRUE; errors if the SSOT drifts
 ```
 
-**Three years, never conflated.** Every returned number carries `measure_year`
-(2023), `snapshot_date` (2026-07-22), and `model_baseline_year` (2025) as
-separate attributes.
+**Three years, never conflated.** `urps_counts()` / `urps_provenance()` keep the
+**measure year** (2023), the **snapshot date** (2026-07-22, a `Date`), and the
+**model baseline year** (2025) as separate fields.
 
 The old `URPS_COUNT_ABOG_ONLY_2025` / `URPS_COUNT_ABOG_PLUS_ABU_2025` constants
-are **deprecated** (the `_2025` suffix conflated the model-baseline year with the
-2023 measure year) — call `urps_count()` instead. Per the architecture,
-`isochrones` owns provider cleaning and the hashed snapshot; `mufflyaccess`
-validates it and serves the number; the by-year derivation reference lives in
+are **deprecated** — they now **warn on access** (still returning 1031 / 1339);
+call `urps_count()` instead. Per the architecture, `isochrones` owns provider
+cleaning and the hashed snapshot; `mufflyaccess` validates it and serves the
+number; the by-year derivation reference lives in
 [`analysis/urps_counts/`](analysis/urps_counts/).
 
 ## Design principles
