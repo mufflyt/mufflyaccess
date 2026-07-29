@@ -1,0 +1,14 @@
+URPS workforce SSOT -- validation report
+========================================
+[PASS] artifact directory + schema (validate_urps_artifact)
+[PASS] release gate: external + canonical + contract 2.1.0
+[PASS] release gate: source git commit pin
+[PASS] reconciliation ABOG_PLUS_ABU == ABOG + ABU_NET_NEW (wide slice)
+[INFO] provider-snapshot reconstruction: NOT RUN here (no parquet reader; run in CI with arrow)
+
+Governance checks enforced by validate_urps_artifact():
+  supported contract major; measure x geography schema; per-measure year
+  windows; both-geography completeness; reconciliation; duplicate-key;
+  missing-pathway; snapshot-date; release-contract canonical-cell agreement;
+  CSV SHA-256 vs manifest; provider reconstruction (with a parquet reader);
+  fail-closed loading.
