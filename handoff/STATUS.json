@@ -10,14 +10,16 @@
     "notes": "isochrones published the v2.1.0 URPS workforce artifact set (urps_counts_by_year.csv with measure x geography, urps_manifest.json, urps_provider_snapshot.parquet, urps_release_contract.json). mufflyaccess reads + validates it via use_urps_artifact() and pins it in the isochrones-integration CI job. The v2.1.0 bytes are also bundled as the bootstrap (canonical_release=false) so the default serves the corrected numbers."
   },
   "cliff": {
-    "status": "pending",
-    "receiving_commit": null,
-    "notes": "R/urps_baseline.R shim (v2.1.0 measure+geography API) + shared unqualified-baseline guard staged in handoff/cliff/. Switch cliff's baseline to mufflyaccess::urps_count(2023, 'board_certified_active', <geography>, include_urology). Canonical 2023 active = 1332 (national) / 1329 (conus); 1339 is the 2025 roster_snapshot, not the 2023 active count."
+    "status": "migrated (branch pushed, not merged)",
+    "branch": "claude/urps-contract-migration",
+    "mufflyaccess_consumed": "0.6.0",
+    "notes": "Non-value-changing migration. 2025 status-quo (=roster_snapshot=1339) usages routed through mufflyaccess::urps_count(); legacy frozen SGS projection cohort (1295) PRESERVED, relabeled (not '2025 active'), annotated # ssot-ok, and NOT re-run. Guard + test-urps-contract-migration.R added (15 checks pass). Requires mufflyaccess>=0.6.0 (not yet declared in cliff DESCRIPTION)."
   },
   "twostep": {
-    "status": "pending",
-    "receiving_commit": null,
-    "notes": "R/urps_workforce.R (urps_workforce_n(geography, ...)) + shared unqualified-baseline guard staged in handoff/twostep/. twostep is geography-aware: the workforce total must match the geography of its denominators and isochrone bands (conus 1329 / national 1332 for 2023 active)."
+    "status": "migrated (branch pushed, not merged)",
+    "branch": "claude/urps-contract-migration",
+    "mufflyaccess_consumed": "0.6.0 (guard is base R; twostep consumes no urps_count)",
+    "notes": "Guard installed (passes; no URPS national numerator exists). R/geography_agreement.R reusable assert_same_geography() added but NOT bolted onto a national call site (none exists; E2SFCA is spatial, CRS-unified). 2020 7-subspecialty supply table documented as a distinct estimand. No value changes. DESCRIPTION still pins mufflyaccess@v0.1.2 (stale); bump when pinning consumers to the release."
   },
   "shared_guard": {
     "path": "handoff/_shared/test-no-unqualified-urps-baseline.R",
