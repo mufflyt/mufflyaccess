@@ -235,14 +235,17 @@ The national active URPS (urogynecology and reconstructive pelvic surgery) count
 these functions — never hardcode or independently derive a national URPS count**
 (see [`ARCHITECTURE.md`](ARCHITECTURE.md)).
 
-The workforce artifact follows the isochrones **contract v2.1.0** `measure × geography`
-schema. The canonical 2023 estimand is **board_certified_active / national = 1332**
-(ABOG 1031 + ABU net-new **301**); **1339 is the 2025 `roster_snapshot`, not the
-2023 active count**, and the two are never interchangeable.
+The workforce artifact follows the isochrones **contract v3.0.0** `measure × geography`
+schema. The canonical 2023 estimand is **board_certified_active / national = 1306**
+(CONUS 1303; ABOG **1027** + ABU net-new **279**), keyed on the URPS subspecialty
+cert year. **1339 is the 2025 `roster_snapshot`, not the 2023 active count**, and
+**1332 / 1329 are RETIRED v2.1.0 cells** (primary-cert basis) exposed only via
+`urps_lineage()` / `urps_retired_values()` — never as current.
 
 | Function | Returns |
 |---|---|
-| `urps_count(year, measure = "board_certified_active", geography = "national", include_urology = FALSE, incomplete = "error", details = FALSE)` | A **bare integer** `n_active`. `measure` ∈ `board_certified_active` (2013–2023) / `roster_snapshot` (2025); `geography` ∈ `national` / `conus` (case-insensitive). 2023 national: 1031 / **1332** (± urology); conus: 1030 / 1329. `incomplete = "na"` yields `NA` (never a silent 0); `details = TRUE` returns a labelled record. |
+| `urps_count(year, measure = "board_certified_active", geography = "national", include_urology = FALSE, incomplete = "error", details = FALSE)` | A **bare integer** `n_active`. `measure` ∈ `board_certified_active` (2013–2023) / `roster_snapshot` (2025); `geography` ∈ `national` / `conus` (case-insensitive). 2023 national: 1027 / **1306** (± urology); conus: 1026 / 1303. `incomplete = "na"` yields `NA` (never a silent 0); `details = TRUE` returns a labelled record. |
+| `urps_lineage()` / `urps_retired_values()` | The contract lineage (current 3.0.0 = 1306/1303 vs retired 2.1.0 = 1332/1329) / the retired values, so consumers never present a retired count as current. |
 | `urps_counts(measure, geography)` / `urps_counts_long()` | A **wide** slice (default `board_certified_active` / `national`, years 2013–2023, with `*_status` columns) / the complete **long** table across all cells. |
 | `urps_provenance()` | Manifest as a list: `artifact_source`, `canonical_release`, `suitable_for_release`, `contract_version`, `canonical_2023_estimand`, `measures`, `geographies`, `snapshot_date` (Date), `source_sha256` / `source_git_commit`, `git_commit_semantics`, `package_version`, … |
 | `validate_urps_artifact(path)` | Fail-loud **semantic** validation of an artifact directory: contract version, schema, year windows, both-geography completeness, reconciliation, hashes, canonical-cell agreement, and (with a parquet reader) provider reconstruction. |
@@ -251,18 +254,19 @@ schema. The canonical 2023 estimand is **board_certified_active / national = 133
 | `compare_urps_artifacts(old, candidate)` | Release-to-release drift report. |
 
 ```r
-urps_count(2023, "board_certified_active", "national", FALSE)  # 1031L
-urps_count(2023, "board_certified_active", "national", TRUE)   # 1332L  (not 1339)
-urps_count(2023, "board_certified_active", "conus",    TRUE)   # 1329L
+urps_count(2023, "board_certified_active", "national", FALSE)  # 1027L
+urps_count(2023, "board_certified_active", "national", TRUE)   # 1306L  (not 1339, not the retired 1332)
+urps_count(2023, "board_certified_active", "conus",    TRUE)   # 1303L
 urps_count(2025, "roster_snapshot",        "national", TRUE)   # 1339L  (2025 snapshot)
-urps_provenance()$canonical_2023_estimand    # "board_certified_active / national = 1332"
+urps_provenance()$canonical_2023_estimand    # "board_certified_active / national = 1306"
+urps_lineage()                               # 3.0.0 current (1306/1303) + 2.1.0 retired (1332/1329)
 
 # serve the released isochrones artifact instead of the bundled bootstrap:
 use_urps_artifact("path/to/isochrones/artifacts/workforce")    # validated; fails closed
-validate_urps_ssot(require_external = TRUE, require_contract_version = "2.1.0")
+validate_urps_ssot(require_external = TRUE, require_contract_version = "3.0.0")
 ```
 
-The shipped artifact carries the **v2.1.0 numbers** but is labeled a **bootstrap, not
+The shipped artifact carries the **v3.0.0 numbers** but is labeled a **bootstrap, not
 the canonical release** — `urps_provenance()$canonical_release` is `FALSE` until you
 point at the external immutable release. Selecting an external source via the
 `mufflyaccess.urps_artifact_dir` option / `MUFFLYACCESS_URPS_ARTIFACT_DIR` env var

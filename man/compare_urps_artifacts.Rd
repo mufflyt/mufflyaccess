@@ -29,7 +29,9 @@ Other URPS workforce:
 \code{\link{urps_count}()},
 \code{\link{urps_counts}()},
 \code{\link{urps_counts_long}()},
+\code{\link{urps_lineage}()},
 \code{\link{urps_provenance}()},
+\code{\link{urps_retired_values}()},
 \code{\link{use_urps_artifact}()},
 \code{\link{validate_urps_artifact}()},
 \code{\link{validate_urps_ssot}()}

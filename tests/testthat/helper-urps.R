@@ -1,9 +1,9 @@
 # Shared helpers for the isochrones <-> mufflyaccess producer/consumer tests.
-# The checked-in fixture under fixtures/isochrones-v2.1.0/ holds the REAL
-# immutable v2.1.0 release bytes (verified SHA-256 against the manifest). CI can
+# The checked-in fixture under fixtures/isochrones-v3.0.0/ holds the REAL
+# immutable v3.0.0 release bytes (verified SHA-256 against the manifest). CI can
 # override with a fresh isochrones checkout via MUFFLYACCESS_URPS_ARTIFACT_DIR.
 
-urps_fixture_dir <- function(name = "isochrones-v2.1.0") {
+urps_fixture_dir <- function(name = "isochrones-v3.0.0") {
   testthat::test_path("fixtures", name)
 }
 
@@ -17,7 +17,7 @@ real_isochrones_artifact_path <- function() {
 reset_urps_artifact <- function() use_urps_artifact(NULL)
 
 # copy a fixture into a fresh tempdir so a test can mutate it safely
-copy_urps_fixture <- function(name = "isochrones-v2.1.0") {
+copy_urps_fixture <- function(name = "isochrones-v3.0.0") {
   src <- urps_fixture_dir(name)
   dst <- file.path(tempfile("urps_fx_"))
   dir.create(dst, recursive = TRUE, showWarnings = FALSE)

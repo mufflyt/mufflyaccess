@@ -1,26 +1,26 @@
 {
-  "contract_version": "2.1.0",
-  "canonical_2023_estimand": "board_certified_active / national = 1332",
+  "contract_version": "3.0.0",
+  "canonical_2023_estimand": "board_certified_active / national = 1306",
   "canonical": {
     "measure": "board_certified_active",
     "year": 2023,
     "geography": "national",
     "board_pathway": "ABOG_PLUS_ABU",
-    "n_active": 1332
+    "n_active": 1306
   },
   "geography_resolution_rule": ["1. roster state", "2. if missing, NPPES business state", "3. otherwise unknown (is_conus = FALSE)"],
   "measures": {
     "board_certified_active": {
       "measure_year": 2023,
       "national": {
-        "abog": 1031,
-        "abu_net_new": 301,
-        "combined": 1332
+        "abog": 1027,
+        "abu_net_new": 279,
+        "combined": 1306
       },
       "conus": {
-        "abog": 1030,
-        "abu_net_new": 299,
-        "combined": 1329
+        "abog": 1026,
+        "abu_net_new": 277,
+        "combined": 1303
       }
     },
     "roster_snapshot": {

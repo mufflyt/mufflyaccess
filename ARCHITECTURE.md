@@ -71,23 +71,26 @@ real release is gated:
 The default is not switched from bootstrap to a release until the upstream
 artifact is published, tagged, and passes these gates.
 
-### Contract v2.1.0 (released)
+### Contract v3.0.0 (released)
 **isochrones has published the versioned artifacts** at
-`artifacts/workforce/` (commit `91104c77`, source `565755b2`): a
+`artifacts/workforce/` (artifact commit `cf7222df`, source `74085a9e6`): a
 `measure × geography` `urps_counts_by_year.csv`, `urps_manifest.json`,
 `urps_provider_snapshot.parquet`, and `urps_release_contract.json` — each hashed,
 with its git SHA. mufflyaccess reads + validates that directory
 (`validate_urps_artifact()`) and pins it in the `isochrones-integration` CI job;
-the same bytes are bundled as the bootstrap so the default already serves the
-corrected numbers. The canonical 2023 estimand is **board_certified_active /
-national = 1332** (ABOG 1031 + ABU **301**); **1339 is the 2025 `roster_snapshot`**,
-kept as a distinct measure.
+the same bytes are bundled as the bootstrap so the default serves the canonical
+numbers. The canonical 2023 estimand is **board_certified_active / national =
+1306** (CONUS 1303; ABOG 1027 + ABU **279**), keyed on the URPS **subspecialty**
+cert year. **1339 is the 2025 `roster_snapshot`** (distinct measure); **1332 /
+1329 are RETIRED v2.1.0 cells** (primary-cert basis), surfaced only by
+`urps_lineage()` / `urps_retired_values()`.
 
 ### Remaining (tracked in `handoff/STATUS.json`)
-1. **cliff / twostep** switch their baseline to
-   `mufflyaccess::urps_count(2023, "board_certified_active", <geography>, ...)` and
-   add a test that fails if a hardcoded 1031/1332/1329/1339/301/308 reappears. Note
-   the correction: the 2023 active count is **1332** (national) / **1329** (conus),
-   **not** 1339.
+1. **cliff / twostep** consume the contract via
+   `mufflyaccess::urps_count(2023, "board_certified_active", <geography>, ...)` with
+   a guard that fails if an unqualified workforce total reappears. The 2023 active
+   count is now **1306** (national) / **1303** (conus); 1332/1329 are retired and
+   1339 is the 2025 roster snapshot. (cliff/twostep pin bumps to 0.7.0 happen when
+   consumers are re-pinned to the release.)
 2. The `handoff/isochrones/` producer copy can be archived now that the release is
    live; keep it only as a reference for regeneration.

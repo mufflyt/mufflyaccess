@@ -44,8 +44,8 @@ national URPS count} (see \code{ARCHITECTURE.md}).
 }
 \examples{
 urps_count(2023, "board_certified_active", "national", FALSE)  # 1031
-urps_count(2023, "board_certified_active", "national", TRUE)   # 1332
-urps_count(2023, "board_certified_active", "conus",    TRUE)   # 1329
+urps_count(2023, "board_certified_active", "national", TRUE)   # 1306
+urps_count(2023, "board_certified_active", "conus",    TRUE)   # 1303
 urps_count(2025, "roster_snapshot",        "national", TRUE)   # 1339
 }
 \seealso{
@@ -55,7 +55,9 @@ Other URPS workforce:
 \code{\link{compare_urps_artifacts}()},
 \code{\link{urps_counts}()},
 \code{\link{urps_counts_long}()},
+\code{\link{urps_lineage}()},
 \code{\link{urps_provenance}()},
+\code{\link{urps_retired_values}()},
 \code{\link{use_urps_artifact}()},
 \code{\link{validate_urps_artifact}()},
 \code{\link{validate_urps_ssot}()}

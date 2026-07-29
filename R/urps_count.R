@@ -3,7 +3,7 @@
 # isochrones builds + hashes the roster; mufflyaccess reads/validates/serves it;
 # consumers call these functions and never derive a national URPS count.
 #
-# Contract v2.1.0 schema (isochrones artifacts/workforce/):
+# Contract v3.0.0 schema (isochrones artifacts/workforce/):
 #   urps_counts_by_year.csv columns:
 #     year, measure, geography, board_pathway, n_active, n_ever_certified,
 #     n_retired, snapshot_date, source_sha256, method_version
@@ -11,11 +11,13 @@
 #   geography in {national, conus}
 #   board_pathway in {ABOG, ABU_NET_NEW, ABOG_PLUS_ABU}
 #
-# Canonical 2023 estimand: board_certified_active / national / ABOG_PLUS_ABU = 1332
-# (1339 is the 2025 roster_snapshot, NOT the 2023 active count). The 2023 ABU
-# net-new increment is 301 (308 is the roster snapshot increment).
+# Canonical 2023 estimand: board_certified_active / national / ABOG_PLUS_ABU = 1306
+# (CONUS = 1303), keyed on the URPS SUBSPECIALTY cert year (training-accurate).
+# 1339 is the 2025 roster_snapshot, NOT the 2023 active count.
+# RETIRED: v2.1.0's 1332 / 1329 used the primary-cert basis and must never be
+# presented as current (see urps_lineage() / urps_retired_values()).
 #
-# mufflyaccess ships the v2.1.0 counts as a bundled BOOTSTRAP: it serves the
+# mufflyaccess ships the v3.0.0 counts as a bundled BOOTSTRAP: it serves the
 # correct numbers by default but is NOT the canonical immutable release
 # (urps_provenance()$canonical_release is FALSE unless you point at the external
 # released directory). use_urps_artifact("<dir>") adopts an external isochrones
@@ -30,7 +32,7 @@
 .urps_pathways        <- c("ABOG", "ABU_NET_NEW", "ABOG_PLUS_ABU")
 .urps_bca_years       <- 2013:2023
 .urps_snapshot_year   <- 2025L
-.urps_contract_majors <- 2L                       # supported major contract versions
+.urps_contract_majors <- 3L                       # supported major contract version (current; v2.x retired)
 
 # ---- artifact resolution ----------------------------------------------------
 
@@ -204,8 +206,8 @@ use_urps_artifact <- function(dir = NULL) {
 #' @family URPS workforce
 #' @examples
 #' urps_count(2023, "board_certified_active", "national", FALSE)  # 1031
-#' urps_count(2023, "board_certified_active", "national", TRUE)   # 1332
-#' urps_count(2023, "board_certified_active", "conus",    TRUE)   # 1329
+#' urps_count(2023, "board_certified_active", "national", TRUE)   # 1306
+#' urps_count(2023, "board_certified_active", "conus",    TRUE)   # 1303
 #' urps_count(2025, "roster_snapshot",        "national", TRUE)   # 1339
 #' @export
 urps_count <- function(year = 2023L, measure = "board_certified_active",
@@ -353,16 +355,71 @@ urps_provenance <- function() {
     source_sha256             = src_sha,
     source_git_commit         = m$git_commit %||% m$source_git_commit,
     git_commit_semantics      = m$git_commit_semantics,
+    source_description        = m$source_description,
+    source_systems            = m$source_systems,
+    retired_cells             = m$retired_cells,
     method_version            = m$method_version,
     package_version           = as.character(utils::packageVersion("mufflyaccess"))
   )
+}
+
+#' URPS contract lineage (which cells are current vs retired)
+#'
+#' @description A machine-readable lineage of the 2023 board_certified_active
+#'   national/CONUS cells across contract versions, built from the served
+#'   artifact: the **current** headline (from the manifest) and any **retired**
+#'   cells the producer recorded (`retired_cells`). Consumers use this to detect a
+#'   value that was canonical under an old contract but must never be presented as
+#'   current (e.g. v2.1.0's 1332/1329 after v3.0.0).
+#' @return A `data.frame` with `contract_version`, `national_active`,
+#'   `conus_active`, `status` (`"current"` / `"retired"`), and `basis`.
+#' @seealso [urps_provenance()], [urps_count()]
+#' @family URPS workforce
+#' @examples
+#' urps_lineage()
+#' @export
+urps_lineage <- function() {
+  r <- .urps_resolve(); m <- .urps_manifest(r$dir)
+  cur_v <- .urps_effective_contract_version(m, .urps_contract(r$dir))
+  hc <- m$headline_counts$board_certified_active_2023
+  rows <- data.frame(
+    contract_version = as.character(cur_v),
+    national_active  = as.integer(hc$national$combined),
+    conus_active     = as.integer(hc$conus$combined),
+    status           = "current",
+    basis            = "URPS subspecialty cert year",
+    stringsAsFactors = FALSE)
+  rc <- m$retired_cells
+  if (!is.null(rc) && !is.null(rc$v2_1_0_national)) {
+    rows <- rbind(rows, data.frame(
+      contract_version = "2.1.0",
+      national_active  = as.integer(rc$v2_1_0_national),
+      conus_active     = as.integer(rc$v2_1_0_conus),
+      status           = "retired",
+      basis            = "primary board cert year",
+      stringsAsFactors = FALSE))
+  }
+  rows[order(rows$status != "current"), , drop = FALSE]
+}
+
+#' Values retired from an earlier URPS contract (never present as current)
+#'
+#' @return An integer vector of retired national/CONUS 2023 active counts (e.g.
+#'   v2.1.0's 1332/1329), or `integer(0)` if the artifact records none.
+#' @seealso [urps_lineage()]
+#' @family URPS workforce
+#' @export
+urps_retired_values <- function() {
+  rc <- .urps_manifest()$retired_cells
+  if (is.null(rc)) return(integer(0))
+  as.integer(stats::na.omit(c(rc$v2_1_0_national, rc$v2_1_0_conus)))
 }
 
 #' Validate a URPS workforce artifact directory (fail loud, semantic)
 #'
 #' @description Path-based contract check used before adopting an isochrones
 #'   release. Verifies far more than a checksum: the contract version is
-#'   supported, the counts table carries the v2.1.0 `measure`/`geography` schema,
+#'   supported, the counts table carries the `measure`/`geography` schema,
 #'   each measure stays inside its declared year window, every measure/year/
 #'   pathway is published for **both** geographies, `ABOG_PLUS_ABU` reconciles as
 #'   `ABOG + ABU_NET_NEW`, hashes are well formed, the release-contract canonical
@@ -401,7 +458,7 @@ validate_urps_artifact <- function(path) {
            "snapshot_date", "source_sha256", "method_version")
   if (!all(req %in% names(d)))
     stop("[validate_urps_artifact] counts table is missing required columns; ",
-         "the v2.1.0 schema needs measure + geography (fused-geography contracts are unsupported schema).",
+         "the measure x geography schema needs measure + geography (fused-geography contracts are unsupported schema).",
          call. = FALSE)
   if (!all(d$geography %in% .urps_geographies))
     stop("[validate_urps_artifact] unknown geography value(s): ",
@@ -500,8 +557,13 @@ validate_urps_artifact <- function(path) {
   pq <- file.path(path, "urps_provider_snapshot.parquet")
   if (!is.null(reader) && file.exists(pq)) {
     pv <- reader(pq)
-    if (all(c("certification_year", "retirement_year") %in% names(pv))) {
-      cy <- suppressWarnings(as.integer(pv$certification_year))
+    # v3.0.0 keys board_certified_active on the URPS SUBSPECIALTY cert year
+    # (training-accurate); v2.x used the primary certification_year. Reconstruct
+    # on whichever basis this artifact ships.
+    cert_col <- if ("urps_subspecialty_cert_year" %in% names(pv)) "urps_subspecialty_cert_year"
+                else "certification_year"
+    if (all(c(cert_col, "retirement_year") %in% names(pv))) {
+      cy <- suppressWarnings(as.integer(pv[[cert_col]]))
       ry <- suppressWarnings(as.integer(pv$retirement_year))
       active <- !is.na(cy) & cy <= 2023L & (is.na(ry) | ry > 2023L)
       served_nat <- d$n_active[d$year == 2023L & d$measure == "board_certified_active" &
