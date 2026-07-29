@@ -4,24 +4,63 @@
 # consumers call these functions and never derive a national URPS count.
 #
 # By default mufflyaccess serves a bundled BOOTSTRAP artifact
-# (inst/extdata/urps_{counts_by_year.csv,manifest.json}). Point it at a released
-# isochrones artifact directory with use_urps_artifact("<dir>") (or the
-# `mufflyaccess.urps_artifact_dir` option / MUFFLYACCESS_URPS_ARTIFACT_DIR env
-# var); the external artifact is validated before it is used.
+# (inst/extdata/urps_{counts_by_year.csv,manifest.json}). It is explicitly NOT a
+# canonical release: urps_provenance()$canonical_release and $suitable_for_release
+# are both FALSE. Point at a released isochrones artifact directory with
+# use_urps_artifact("<dir>") (explicit call: FAILS CLOSED on an invalid artifact)
+# or via the `mufflyaccess.urps_artifact_dir` option / MUFFLYACCESS_URPS_ARTIFACT_DIR
+# env var (resolver path: an invalid source WARNS + falls back to the bundled
+# bootstrap, and the fallback is revealed by urps_provenance()$artifact_source and
+# $external_artifact_error -- unless options(mufflyaccess.urps_artifact_strict=TRUE),
+# which turns the fallback into an error).
 # ==============================================================================
 
 `%||%` <- function(a, b) if (is.null(a) || length(a) == 0L) b else a
 
-# resolve the active artifact directory: option -> env var -> bundled extdata
-.urps_artifact_dir <- function() {
-  d <- getOption("mufflyaccess.urps_artifact_dir",
-                 Sys.getenv("MUFFLYACCESS_URPS_ARTIFACT_DIR", ""))
-  if (!is.null(d) && nzchar(d)) return(d)
-  system.file("extdata", package = "mufflyaccess")
+# bundled bootstrap directory (installed extdata, or inst/extdata under load_all)
+.urps_bundled_dir <- function() {
+  d <- system.file("extdata", package = "mufflyaccess")
+  if (nzchar(d)) d else file.path("inst", "extdata")
 }
 
-.urps_path <- function(file) {
-  p <- file.path(.urps_artifact_dir(), file)
+# lightweight usability check for a candidate artifact directory; NULL == usable
+.urps_dir_error <- function(dir) {
+  if (is.null(dir) || !nzchar(dir)) return("empty path")
+  if (!dir.exists(dir)) return(sprintf("directory does not exist (%s)", dir))
+  need <- c("urps_counts_by_year.csv", "urps_manifest.json")
+  miss <- need[!file.exists(file.path(dir, need))]
+  if (length(miss)) return(sprintf("missing %s", paste(miss, collapse = ", ")))
+  NULL
+}
+
+# Resolve the active artifact: an external directory selected via the option/env
+# (validated for usability) else the bundled bootstrap. Returns
+#   list(dir, source = "external" | "bundled_bootstrap", error)
+# On an unusable external source: strict mode errors; otherwise warn + fall back
+# and report the reason in `error` so urps_provenance() can surface it.
+.urps_resolve <- function() {
+  opt <- getOption("mufflyaccess.urps_artifact_dir", NULL)
+  env <- Sys.getenv("MUFFLYACCESS_URPS_ARTIFACT_DIR", "")
+  requested <- if (!is.null(opt) && nzchar(opt)) opt
+               else if (nzchar(env)) env else NULL
+  bundled <- .urps_bundled_dir()
+  if (is.null(requested))
+    return(list(dir = bundled, source = "bundled_bootstrap", error = NULL))
+  err <- .urps_dir_error(requested)
+  if (is.null(err))
+    return(list(dir = requested, source = "external", error = NULL))
+  if (isTRUE(getOption("mufflyaccess.urps_artifact_strict", FALSE)))
+    stop(sprintf("[mufflyaccess] requested URPS artifact is unusable and strict mode is on (%s): %s",
+                 err, requested), call. = FALSE)
+  warning(sprintf("[mufflyaccess] requested URPS artifact is unusable (%s); serving the bundled bootstrap instead: %s",
+                  err, requested), call. = FALSE)
+  list(dir = bundled, source = "bundled_bootstrap", error = err)
+}
+
+.urps_artifact_dir <- function() .urps_resolve()$dir
+
+.urps_path <- function(file, dir = .urps_artifact_dir()) {
+  p <- file.path(dir, file)
   if (!file.exists(p)) {                                   # dev (load_all) fallback
     alt <- file.path("inst", "extdata", file)
     if (file.exists(alt)) return(alt)
@@ -29,9 +68,9 @@
   p
 }
 
-.urps_read_long <- function() {
+.urps_read_long <- function(dir = .urps_artifact_dir()) {
   utils::read.csv(
-    .urps_path("urps_counts_by_year.csv"),
+    .urps_path("urps_counts_by_year.csv", dir),
     stringsAsFactors = FALSE, na.strings = c("", "NA"),
     colClasses = c(year = "integer", board_pathway = "character",
                    n_active = "integer", n_ever_certified = "integer",
@@ -39,12 +78,20 @@
                    source_sha256 = "character", method_version = "character"))
 }
 
-.urps_manifest <- function() {
-  jsonlite::fromJSON(.urps_path("urps_manifest.json"), simplifyVector = TRUE)
+.urps_manifest <- function(dir = .urps_artifact_dir()) {
+  jsonlite::fromJSON(.urps_path("urps_manifest.json", dir), simplifyVector = TRUE)
 }
 
-.urps_wide <- function() {
-  d <- .urps_read_long()
+# normalized geography code for the served artifact (from the manifest scope)
+.urps_scope_code <- function(dir = .urps_artifact_dir()) {
+  s <- tolower(.urps_manifest(dir)$geographic_scope %||% "")
+  if (grepl("contiguous", s) || grepl("conus", s)) "CONUS"
+  else if (grepl("national|united states|nationwide", s)) "NATIONAL"
+  else toupper(.urps_manifest(dir)$geographic_scope %||% NA_character_)
+}
+
+.urps_wide <- function(dir = .urps_artifact_dir()) {
+  d <- .urps_read_long(dir)
   ys <- sort(unique(d$year))
   nat <- function(y, p) { v <- d$n_active[d$year == y & d$board_pathway == p]
                           if (length(v) == 1L) as.integer(v) else NA_integer_ }
@@ -53,27 +100,40 @@
   if (!any(d$board_pathway == "ABOG"))
     stop("[mufflyaccess] artifact has no ABOG rows -- board_pathway must use ",
          "ABOG / ABU_NET_NEW / ABOG_PLUS_ABU (check casing).", call. = FALSE)
+  abu <- vapply(ys, nat, integer(1), p = "ABU_NET_NEW")
+  comb <- vapply(ys, nat, integer(1), p = "ABOG_PLUS_ABU")
   data.frame(
-    year            = ys,
-    abog_active     = vapply(ys, nat, integer(1), p = "ABOG"),
-    abu_net_new     = vapply(ys, nat, integer(1), p = "ABU_NET_NEW"),
-    combined_active = vapply(ys, nat, integer(1), p = "ABOG_PLUS_ABU"),
-    measure_year    = ys,
-    snapshot_date   = as.Date(vapply(ys, abog_field, character(1), col = "snapshot_date")),
-    method_version  = vapply(ys, abog_field, character(1), col = "method_version"),
-    source_sha256   = vapply(ys, abog_field, character(1), col = "source_sha256"),
+    year                   = ys,
+    abog_active            = vapply(ys, nat, integer(1), p = "ABOG"),
+    abu_net_new            = abu,
+    combined_active        = comb,
+    measure_year           = ys,
+    snapshot_date          = as.Date(vapply(ys, abog_field, character(1), col = "snapshot_date")),
+    method_version         = vapply(ys, abog_field, character(1), col = "method_version"),
+    source_sha256          = vapply(ys, abog_field, character(1), col = "source_sha256"),
+    # explicit missingness so consumers never mistake NA for zero
+    abog_active_status     = "snapshot-derived",
+    abu_net_new_status     = ifelse(is.na(abu),  "unavailable", "snapshot"),
+    combined_active_status = ifelse(is.na(comb), "unavailable", "derived"),
     stringsAsFactors = FALSE)
 }
 
 #' Select the URPS workforce artifact mufflyaccess serves
 #'
 #' @description Point the SSOT readers at a released isochrones artifact directory
-#'   (one containing `urps_counts_by_year.csv` + `urps_manifest.json`). The
-#'   directory is **validated** ([validate_urps_ssot()]) before it is adopted; an
-#'   invalid artifact is rejected and the previous source restored. `dir = NULL`
-#'   resets to the bundled bootstrap. The choice is stored in the
+#'   (one containing `urps_counts_by_year.csv` + `urps_manifest.json`). This
+#'   explicit call **fails closed**: the directory is fully validated
+#'   ([validate_urps_ssot()]) before it is adopted, and an invalid artifact is
+#'   **rejected with an error while the previously active source is left
+#'   unchanged** -- it never silently continues as if the switch succeeded.
+#'   `dir = NULL` resets to the bundled bootstrap. The choice is stored in the
 #'   `mufflyaccess.urps_artifact_dir` option (also honored via the
-#'   `MUFFLYACCESS_URPS_ARTIFACT_DIR` environment variable).
+#'   `MUFFLYACCESS_URPS_ARTIFACT_DIR` environment variable). When the source is set
+#'   through the option/env instead of this function, an unusable directory does
+#'   **not** error at read time: it warns and falls back to the bundled bootstrap,
+#'   and the fallback is revealed by `urps_provenance()$artifact_source` /
+#'   `$external_artifact_error` (set `options(mufflyaccess.urps_artifact_strict =
+#'   TRUE)` to make that fallback an error).
 #' @param dir Path to an isochrones `artifacts/workforce/` directory, or `NULL`
 #'   to use the bundled artifact.
 #' @return Invisibly the resolved directory (or `"bundled"`).
@@ -92,18 +152,17 @@ use_urps_artifact <- function(dir = NULL) {
     return(invisible("bundled"))
   }
   dir <- normalizePath(dir, mustWork = TRUE)
-  need <- c("urps_counts_by_year.csv", "urps_manifest.json")
-  miss <- need[!file.exists(file.path(dir, need))]
-  if (length(miss))
-    stop("[use_urps_artifact] directory is missing ", paste(miss, collapse = ", "),
-         ": ", dir, call. = FALSE)
+  err <- .urps_dir_error(dir)
+  if (!is.null(err))
+    stop("[use_urps_artifact] ", err, ": ", dir,
+         "\nThe previous source is unchanged.", call. = FALSE)
   prev <- getOption("mufflyaccess.urps_artifact_dir")
   options(mufflyaccess.urps_artifact_dir = dir)
   tryCatch(validate_urps_ssot(),
            error = function(e) {
-             options(mufflyaccess.urps_artifact_dir = prev)
-             stop("[use_urps_artifact] artifact failed validation; keeping the ",
-                  "previous source.\n", conditionMessage(e), call. = FALSE)
+             options(mufflyaccess.urps_artifact_dir = prev)   # fail closed
+             stop("[use_urps_artifact] artifact failed validation; the previous ",
+                  "source is unchanged.\n", conditionMessage(e), call. = FALSE)
            })
   message("mufflyaccess: using URPS artifact ", dir)
   invisible(dir)
@@ -118,14 +177,25 @@ use_urps_artifact <- function(dir = NULL) {
 #'   available 2013-2023; the with-urology (ABU) cohort is a 2023 snapshot only.
 #' @param include_urology Single non-`NA` logical. `FALSE` (default) = ABOG only;
 #'   `TRUE` = both-pathway ABOG + ABU.
-#' @return A length-1 integer `n_active`.
+#' @param incomplete How to handle a year/cohort combination the artifact does not
+#'   carry (e.g. with-urology before 2023): `"error"` (default) stops with an
+#'   explanatory message; `"na"` returns `NA_integer_`. Never returns a silent 0.
+#' @param geography Optional single string asserting the geography the caller
+#'   expects (e.g. `"CONUS"` or `"national"`). `NULL` (default) accepts whatever
+#'   the served artifact declares. A mismatch is an **error** -- mufflyaccess does
+#'   not re-project counts onto a geography the artifact was not built for.
+#' @return A length-1 integer `n_active` (or `NA_integer_` when `incomplete = "na"`
+#'   and the value is unavailable).
 #' @seealso [urps_counts()], [urps_provenance()], [validate_urps_ssot()], [use_urps_artifact()]
 #' @family URPS workforce
 #' @examples
 #' urps_count(2023L, include_urology = FALSE)  # 1031
 #' urps_count(2023L, include_urology = TRUE)   # 1339
+#' urps_count(2013L, include_urology = TRUE, incomplete = "na")  # NA (ABU is 2023 only)
 #' @export
-urps_count <- function(year = 2023L, include_urology = FALSE) {
+urps_count <- function(year = 2023L, include_urology = FALSE,
+                       incomplete = c("error", "na"), geography = NULL) {
+  incomplete <- match.arg(incomplete)
   if (length(year) != 1L)
     stop("[urps_count] `year` must be a single value.", call. = FALSE)
   if (!is.numeric(year))
@@ -139,26 +209,41 @@ urps_count <- function(year = 2023L, include_urology = FALSE) {
   if (is.na(include_urology))
     stop("[urps_count] `include_urology` must not be NA.", call. = FALSE)
 
+  if (!is.null(geography)) {
+    if (!is.character(geography) || length(geography) != 1L || is.na(geography))
+      stop("[urps_count] `geography` must be a single string or NULL.", call. = FALSE)
+    served <- .urps_scope_code()
+    if (!identical(toupper(geography), served))
+      stop(sprintf("[urps_count] geography '%s' not available; the served artifact covers '%s' (%s). mufflyaccess does not re-project counts onto another geography.",
+                   geography, served %||% "unknown", .urps_manifest()$geographic_scope %||% "scope unset"),
+           call. = FALSE)
+  }
+
   year <- as.integer(year)
   w <- .urps_wide()
   if (!year %in% w$year)
     stop(sprintf("[urps_count] year %d not available (2013:2023).", year), call. = FALSE)
   col <- if (include_urology) "combined_active" else "abog_active"
   val <- w[[col]][w$year == year]
-  if (is.na(val))
-    stop(sprintf("[urps_count] with-urology count not available for %d (2023 only).", year),
+  if (is.na(val)) {
+    if (incomplete == "na") return(NA_integer_)
+    stop(sprintf("[urps_count] %s count not available for %d (the with-urology/ABU cohort is a 2023 snapshot only). Pass incomplete = \"na\" to receive NA instead.",
+                 if (include_urology) "with-urology" else "count", year),
          call. = FALSE)
+  }
   as.integer(val)
 }
 
 #' The complete canonical URPS workforce table
 #'
 #' @description The compact wide table `mufflyaccess` serves: one row per measure
-#'   year (2013-2023) with `abog_active`, `abu_net_new`, `combined_active`, and
-#'   provenance columns. `abu_net_new` / `combined_active` are `NA` before 2023.
+#'   year (2013-2023) with `abog_active`, `abu_net_new`, `combined_active`,
+#'   explicit `*_status` columns, and provenance columns. `abu_net_new` /
+#'   `combined_active` are `NA` before 2023 (status `"unavailable"`).
 #' @return A `data.frame` with columns `year`, `abog_active`, `abu_net_new`,
 #'   `combined_active`, `measure_year`, `snapshot_date` (Date), `method_version`,
-#'   `source_sha256`.
+#'   `source_sha256`, `abog_active_status`, `abu_net_new_status`,
+#'   `combined_active_status`.
 #' @seealso [urps_count()], [urps_provenance()], [validate_urps_ssot()]
 #' @family URPS workforce
 #' @examples
@@ -170,21 +255,32 @@ urps_counts <- function() .urps_wide()
 #'
 #' @description Metadata for the active artifact: version, measure years,
 #'   snapshot date, boards, geographic scope, definitions, source hash / git
-#'   commit, method version, and the installed package version.
+#'   commit, method version, the installed package version, and release-readiness
+#'   flags. `artifact_source` is `"external"` when a released artifact is served
+#'   and `"bundled_bootstrap"` otherwise (including after a silent option/env
+#'   fallback, whose reason is in `external_artifact_error`). `canonical_release`
+#'   and `suitable_for_release` are `FALSE` for the bootstrap.
 #' @return A named list; `measure_years` is integer, `snapshot_date` is a `Date`.
 #' @seealso [urps_count()], [validate_urps_ssot()], [use_urps_artifact()]
 #' @family URPS workforce
 #' @examples
 #' urps_provenance()$geographic_scope
+#' urps_provenance()$canonical_release   # FALSE for the bundled bootstrap
 #' @export
 urps_provenance <- function() {
-  m <- .urps_manifest()
+  r <- .urps_resolve()
+  m <- .urps_manifest(r$dir)
   sf <- m$source_files
   src_sha <- if (is.data.frame(sf)) sf$sha256[1]
              else if (is.list(sf) && length(sf)) sf[[1]]$sha256
              else m$source_sha256
   list(
     artifact_version          = m$artifact_version,
+    artifact_source           = r$source,
+    canonical_release         = isTRUE(m$canonical_release),
+    suitable_for_release      = isTRUE(m$suitable_for_release),
+    contract_version          = m$contract_version %||% NA_character_,
+    external_artifact_error   = r$error %||% NA_character_,
     measure_years             = as.integer(m$measure_years),
     snapshot_date             = as.Date(m$snapshot_date),
     boards                    = m$boards,
@@ -208,13 +304,22 @@ urps_provenance <- function() {
 #'   including its SHA-256 against the manifest when `digest` is available.
 #' @param counts Optional wide counts `data.frame` (as from [urps_counts()]);
 #'   `NULL` (default) validates the active artifact.
+#' @param require_external If `TRUE`, additionally require that the active artifact
+#'   is an external released directory (not the bundled bootstrap); errors
+#'   otherwise. Use in release/integration gates.
 #' @return Invisibly `TRUE` on success; otherwise stops with the failed check.
 #' @seealso [urps_count()], [urps_counts()], [urps_provenance()], [use_urps_artifact()]
 #' @family URPS workforce
 #' @examples
 #' validate_urps_ssot()
 #' @export
-validate_urps_ssot <- function(counts = NULL) {
+validate_urps_ssot <- function(counts = NULL, require_external = FALSE) {
+  if (isTRUE(require_external)) {
+    r <- .urps_resolve()
+    if (!identical(r$source, "external"))
+      stop("[validate] require_external = TRUE but the active artifact is the bundled ",
+           "bootstrap; call use_urps_artifact('<released dir>') first.", call. = FALSE)
+  }
   bundled <- is.null(counts)
   w <- if (bundled) .urps_wide() else counts
   req <- c("year", "abog_active", "abu_net_new", "combined_active", "source_sha256")

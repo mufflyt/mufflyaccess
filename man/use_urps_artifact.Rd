@@ -15,12 +15,18 @@ Invisibly the resolved directory (or \code{"bundled"}).
 }
 \description{
 Point the SSOT readers at a released isochrones artifact directory
-(one containing \code{urps_counts_by_year.csv} + \code{urps_manifest.json}). The
-directory is \strong{validated} (\code{\link[=validate_urps_ssot]{validate_urps_ssot()}}) before it is adopted; an
-invalid artifact is rejected and the previous source restored. \code{dir = NULL}
-resets to the bundled bootstrap. The choice is stored in the
+(one containing \code{urps_counts_by_year.csv} + \code{urps_manifest.json}). This
+explicit call \strong{fails closed}: the directory is fully validated
+(\code{\link[=validate_urps_ssot]{validate_urps_ssot()}}) before it is adopted, and an invalid artifact is
+\strong{rejected with an error while the previously active source is left
+unchanged} -- it never silently continues as if the switch succeeded.
+\code{dir = NULL} resets to the bundled bootstrap. The choice is stored in the
 \code{mufflyaccess.urps_artifact_dir} option (also honored via the
-\code{MUFFLYACCESS_URPS_ARTIFACT_DIR} environment variable).
+\code{MUFFLYACCESS_URPS_ARTIFACT_DIR} environment variable). When the source is set
+through the option/env instead of this function, an unusable directory does
+\strong{not} error at read time: it warns and falls back to the bundled bootstrap,
+and the fallback is revealed by \code{urps_provenance()$artifact_source} /
+\verb{$external_artifact_error} (set \code{options(mufflyaccess.urps_artifact_strict = TRUE)} to make that fallback an error).
 }
 \examples{
 \dontrun{

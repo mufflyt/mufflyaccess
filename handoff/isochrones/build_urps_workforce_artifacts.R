@@ -104,8 +104,17 @@ build <- function(cfg) {
   # mufflyaccess::urps_provenance() / validate_urps_ssot().
   sf <- list(list(path = cfg$abog_snapshot, sha256 = abog_sha))
   if (file.exists(cfg$abu_roster)) sf <- c(sf, list(list(path = cfg$abu_roster, sha256 = abu_sha)))
+  has_abu_by_year <- file.exists(cfg$abu_roster) &&
+    "certification_year" %in% names(tryCatch(
+      utils::read.csv(cfg$abu_roster, nrows = 1, stringsAsFactors = FALSE, check.names = FALSE),
+      error = function(e) data.frame()))
   manifest <- list(
     artifact_version = "1.0.0",
+    contract_version = "1.0.0",
+    # A real isochrones release IS canonical; suitability still requires the
+    # full by-year ABU series (with-urology every year, not just the 2023 snapshot).
+    canonical_release = TRUE,
+    suitable_for_release = isTRUE(has_abu_by_year),
     created_at = as.character(Sys.Date()),
     measure_years = cfg$years,
     snapshot_date = cfg$snapshot_date,

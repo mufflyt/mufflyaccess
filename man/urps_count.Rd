@@ -4,7 +4,12 @@
 \alias{urps_count}
 \title{National URPS workforce count -- the published SSOT accessor}
 \usage{
-urps_count(year = 2023L, include_urology = FALSE)
+urps_count(
+  year = 2023L,
+  include_urology = FALSE,
+  incomplete = c("error", "na"),
+  geography = NULL
+)
 }
 \arguments{
 \item{year}{Integer measure year in 2013:2023 (default \code{2023L}). ABOG-only is
@@ -12,9 +17,19 @@ available 2013-2023; the with-urology (ABU) cohort is a 2023 snapshot only.}
 
 \item{include_urology}{Single non-\code{NA} logical. \code{FALSE} (default) = ABOG only;
 \code{TRUE} = both-pathway ABOG + ABU.}
+
+\item{incomplete}{How to handle a year/cohort combination the artifact does not
+carry (e.g. with-urology before 2023): \code{"error"} (default) stops with an
+explanatory message; \code{"na"} returns \code{NA_integer_}. Never returns a silent 0.}
+
+\item{geography}{Optional single string asserting the geography the caller
+expects (e.g. \code{"CONUS"} or \code{"national"}). \code{NULL} (default) accepts whatever
+the served artifact declares. A mismatch is an \strong{error} -- mufflyaccess does
+not re-project counts onto a geography the artifact was not built for.}
 }
 \value{
-A length-1 integer \code{n_active}.
+A length-1 integer \code{n_active} (or \code{NA_integer_} when \code{incomplete = "na"}
+and the value is unavailable).
 }
 \description{
 The single-source-of-truth accessor for the national active URPS
@@ -24,6 +39,7 @@ national URPS count} (see \code{ARCHITECTURE.md}). Returns a bare integer.
 \examples{
 urps_count(2023L, include_urology = FALSE)  # 1031
 urps_count(2023L, include_urology = TRUE)   # 1339
+urps_count(2013L, include_urology = TRUE, incomplete = "na")  # NA (ABU is 2023 only)
 }
 \seealso{
 \code{\link[=urps_counts]{urps_counts()}}, \code{\link[=urps_provenance]{urps_provenance()}}, \code{\link[=validate_urps_ssot]{validate_urps_ssot()}}, \code{\link[=use_urps_artifact]{use_urps_artifact()}}
