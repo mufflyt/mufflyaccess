@@ -2,40 +2,30 @@
 % Please edit documentation in R/urps_count.R
 \name{urps_count}
 \alias{urps_count}
-\title{National URPS workforce count -- the published SSOT interface}
+\title{National URPS workforce count -- the published SSOT accessor}
 \usage{
 urps_count(year = 2023L, include_urology = FALSE)
 }
 \arguments{
-\item{year}{Integer measure year (default \code{2023L}). ABOG-only is available
-2013-2023; the with-urology (ABU) cohort is a 2023 snapshot only.}
+\item{year}{Integer measure year in 2013:2023 (default \code{2023L}). ABOG-only is
+available 2013-2023; the with-urology (ABU) cohort is a 2023 snapshot only.}
 
-\item{include_urology}{Logical. \code{FALSE} (default) = ABOG / OB-GYN pathway
-only (WITHOUT urology); \code{TRUE} = both-pathway ABOG + ABU (WITH urology).}
+\item{include_urology}{Single non-\code{NA} logical. \code{FALSE} (default) = ABOG /
+OB-GYN pathway only; \code{TRUE} = both-pathway ABOG + ABU.}
 }
 \value{
-An integer \code{n_active} count carrying attributes \code{measure_year},
-\code{board_pathway}, \code{include_urology}, \code{n_ever_certified}, \code{n_retired},
-\code{snapshot_date}, \code{model_baseline_year}, \code{source_sha256}, \code{method_version},
-and a one-line \code{provenance} string. It is a plain integer, usable directly
-in arithmetic, with provenance riding along in its attributes.
+A length-1 integer \code{n_active}.
 }
 \description{
 The single-source-of-truth accessor for the national active URPS
-(urogynecology and reconstructive pelvic surgery) workforce count. This is
-what \code{cliff} / \code{twostep} / manuscripts / apps call -- \strong{never hardcode or
-independently derive a national URPS count} (see \code{ARCHITECTURE.md}).
-
-Three distinct years travel with every number and must not be conflated:
-the \strong{measure year} (\code{year}, what the count refers to), the \strong{snapshot
-date} (when the underlying roster was extracted, e.g. 2026-07-22), and the
-\strong{model baseline year} (the workforce-model label, e.g. 2025). They are
-returned as separate attributes.
+count. Consumers (\code{cliff} / \code{twostep} / manuscripts / apps) call this and
+\strong{never hardcode or independently derive a national URPS count} (see
+\code{ARCHITECTURE.md}). Returns a bare integer; provenance lives in
+\code{\link[=urps_counts]{urps_counts()}} / \code{\link[=urps_provenance]{urps_provenance()}}.
 }
 \examples{
-urps_count(2023L, include_urology = FALSE)  # 1031  (without urology)
-urps_count(2023L, include_urology = TRUE)   # 1339  (with urology)
-attr(urps_count(2023L), "snapshot_date")
+urps_count(2023L, include_urology = FALSE)  # 1031
+urps_count(2023L, include_urology = TRUE)   # 1339
 }
 \seealso{
 \code{\link[=urps_counts]{urps_counts()}}, \code{\link[=urps_provenance]{urps_provenance()}}, \code{\link[=validate_urps_ssot]{validate_urps_ssot()}}
@@ -43,7 +33,6 @@ attr(urps_count(2023L), "snapshot_date")
 Other URPS workforce: 
 \code{\link{urps_counts}()},
 \code{\link{urps_provenance}()},
-\code{\link{urps_workforce_2025}},
 \code{\link{validate_urps_ssot}()}
 }
 \concept{URPS workforce}

@@ -1,3 +1,28 @@
+# mufflyaccess 0.3.0
+
+* Reshaped the URPS SSOT interface to the cross-repo contract (the red-first
+  contract tests are now green, verified against the installed package):
+    - `urps_count(year, include_urology)` returns a **bare integer** with strict
+      validation (rejects vector / NA / non-numeric `year`, non-logical / NA
+      `include_urology`, and unavailable years).
+    - `urps_counts()` returns the **wide** table: `year, abog_active, abu_net_new,
+      combined_active, measure_year, snapshot_date` (Date), `method_version,
+      source_sha256`.
+    - `urps_provenance()` returns `measure_years`, `snapshot_date` (Date),
+      `boards`, `geographic_scope`, definitions, `source_sha256` /
+      `source_git_commit`, `method_version`, `package_version` -- measure year,
+      snapshot date, and model baseline year kept separate.
+    - `validate_urps_ssot(counts = NULL)` validates a supplied wide table (schema,
+      unique + complete 2013:2023 years, 64-hex hashes, the reconciliation
+      identity `combined = abog + abu`) or the bundled table.
+* Canonical artifact is now LONG with UPPERCASE pathways (`ABOG` / `ABU_NET_NEW`
+  / `ABOG_PLUS_ABU`) matching the isochrones producer contract. Added
+  `inst/extdata/urps_release_contract.json` (identical copy shipped in isochrones).
+* `URPS_COUNT_ABOG_ONLY_2025` / `URPS_COUNT_ABOG_PLUS_ABU_2025` are now
+  **deprecated active bindings that warn on access** (still return 1031 / 1339).
+* Added the mufflyaccess contract tests; `handoff/` gains the isochrones producer
+  tests + release contract and the cliff consumer / guard / version tests.
+
 # mufflyaccess 0.2.0
 
 * **Published URPS workforce SSOT interface** (implements the isochrones ->

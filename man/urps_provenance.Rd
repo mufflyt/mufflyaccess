@@ -7,17 +7,16 @@
 urps_provenance()
 }
 \value{
-A named list (parsed from \code{inst/extdata/urps_manifest.json}).
+A named list; \code{measure_years} is integer, \code{snapshot_date} is a \code{Date}.
 }
 \description{
-Returns the manifest for the canonical table: source files and
-SHA-256 hashes, snapshot date, the active-in-year definition, the ABOG/ABU
-deduplication rule, geographic scope, known limitations, and provenance git
-SHAs. Every returned count traces back to this.
+Metadata for the canonical table: version, measure years,
+snapshot date, boards, geographic scope, the active-in-year definition, the
+deduplication rule, source hashes / git commit, method version, and the
+installed package version. Every returned count traces back to this.
 }
 \examples{
-urps_provenance()$years
-urps_provenance()$known_limitations
+urps_provenance()$geographic_scope
 }
 \seealso{
 \code{\link[=urps_count]{urps_count()}}, \code{\link[=validate_urps_ssot]{validate_urps_ssot()}}
@@ -25,7 +24,6 @@ urps_provenance()$known_limitations
 Other URPS workforce: 
 \code{\link{urps_count}()},
 \code{\link{urps_counts}()},
-\code{\link{urps_workforce_2025}},
 \code{\link{validate_urps_ssot}()}
 }
 \concept{URPS workforce}

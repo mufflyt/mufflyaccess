@@ -1,179 +1,184 @@
 # ==============================================================================
-# The published URPS workforce SSOT interface.
+# The published URPS workforce SSOT interface (see ARCHITECTURE.md).
+# isochrones builds + hashes the roster; mufflyaccess reads/validates/serves it;
+# consumers call these functions and never derive a national URPS count.
 #
-# Per ARCHITECTURE.md: isochrones builds the provider roster and publishes the
-# hashed workforce artifacts; mufflyaccess reads + validates them and serves the
-# number; cliff / twostep / manuscripts / apps call these functions and never
-# derive a national URPS count themselves.
-#
-# mufflyaccess ships a COMPACT canonical table (inst/extdata/urps_counts_by_year.csv)
-# and its manifest (inst/extdata/urps_manifest.json). This is currently a
-# BOOTSTRAP of what isochrones will publish as
-# artifacts/workforce/urps_counts_by_year.csv + urps_manifest.json; when that
-# versioned release exists, these readers point at it instead. mufflyaccess never
-# rebuilds provider rosters.
+# Ships a compact canonical table (inst/extdata/urps_counts_by_year.csv, LONG,
+# board_pathway in {ABOG, ABU_NET_NEW, ABOG_PLUS_ABU}) + manifest. This is a
+# BOOTSTRAP of what isochrones will publish under artifacts/workforce/.
 # ==============================================================================
 
 .urps_extdata <- function(file) {
   p <- system.file("extdata", file, package = "mufflyaccess")
-  if (!nzchar(p)) p <- file.path("inst", "extdata", file)  # dev (load_all) fallback
+  if (!nzchar(p)) p <- file.path("inst", "extdata", file)   # dev (load_all) fallback
   p
 }
 
-.urps_read_counts <- function() {
+.urps_read_long <- function() {
   utils::read.csv(
     .urps_extdata("urps_counts_by_year.csv"),
     stringsAsFactors = FALSE, na.strings = c("", "NA"),
     colClasses = c(year = "integer", board_pathway = "character",
                    n_active = "integer", n_ever_certified = "integer",
                    n_retired = "integer", snapshot_date = "character",
-                   source_sha256 = "character", method_version = "character")
-  )
+                   source_sha256 = "character", method_version = "character"))
 }
 
-.urps_read_manifest <- function() {
+.urps_manifest <- function() {
   jsonlite::fromJSON(.urps_extdata("urps_manifest.json"), simplifyVector = TRUE)
 }
 
-#' National URPS workforce count -- the published SSOT interface
+# pivot the LONG artifact to the compact WIDE published table
+.urps_wide <- function() {
+  d <- .urps_read_long()
+  ys <- sort(unique(d$year))
+  nat <- function(y, p) { v <- d$n_active[d$year == y & d$board_pathway == p]
+                          if (length(v) == 1L) as.integer(v) else NA_integer_ }
+  abog_field <- function(y, col) { v <- d[[col]][d$year == y & d$board_pathway == "ABOG"]
+                                   if (length(v)) v[1] else NA }
+  data.frame(
+    year            = ys,
+    abog_active     = vapply(ys, nat, integer(1), p = "ABOG"),
+    abu_net_new     = vapply(ys, nat, integer(1), p = "ABU_NET_NEW"),
+    combined_active = vapply(ys, nat, integer(1), p = "ABOG_PLUS_ABU"),
+    measure_year    = ys,
+    snapshot_date   = as.Date(vapply(ys, abog_field, character(1), col = "snapshot_date")),
+    method_version  = vapply(ys, abog_field, character(1), col = "method_version"),
+    source_sha256   = vapply(ys, abog_field, character(1), col = "source_sha256"),
+    stringsAsFactors = FALSE)
+}
+
+#' National URPS workforce count -- the published SSOT accessor
 #'
 #' @description The single-source-of-truth accessor for the national active URPS
-#'   (urogynecology and reconstructive pelvic surgery) workforce count. This is
-#'   what `cliff` / `twostep` / manuscripts / apps call -- **never hardcode or
-#'   independently derive a national URPS count** (see `ARCHITECTURE.md`).
-#'
-#'   Three distinct years travel with every number and must not be conflated:
-#'   the **measure year** (`year`, what the count refers to), the **snapshot
-#'   date** (when the underlying roster was extracted, e.g. 2026-07-22), and the
-#'   **model baseline year** (the workforce-model label, e.g. 2025). They are
-#'   returned as separate attributes.
-#' @param year Integer measure year (default `2023L`). ABOG-only is available
-#'   2013-2023; the with-urology (ABU) cohort is a 2023 snapshot only.
-#' @param include_urology Logical. `FALSE` (default) = ABOG / OB-GYN pathway
-#'   only (WITHOUT urology); `TRUE` = both-pathway ABOG + ABU (WITH urology).
-#' @return An integer `n_active` count carrying attributes `measure_year`,
-#'   `board_pathway`, `include_urology`, `n_ever_certified`, `n_retired`,
-#'   `snapshot_date`, `model_baseline_year`, `source_sha256`, `method_version`,
-#'   and a one-line `provenance` string. It is a plain integer, usable directly
-#'   in arithmetic, with provenance riding along in its attributes.
+#'   count. Consumers (`cliff` / `twostep` / manuscripts / apps) call this and
+#'   **never hardcode or independently derive a national URPS count** (see
+#'   `ARCHITECTURE.md`). Returns a bare integer; provenance lives in
+#'   [urps_counts()] / [urps_provenance()].
+#' @param year Integer measure year in 2013:2023 (default `2023L`). ABOG-only is
+#'   available 2013-2023; the with-urology (ABU) cohort is a 2023 snapshot only.
+#' @param include_urology Single non-`NA` logical. `FALSE` (default) = ABOG /
+#'   OB-GYN pathway only; `TRUE` = both-pathway ABOG + ABU.
+#' @return A length-1 integer `n_active`.
 #' @seealso [urps_counts()], [urps_provenance()], [validate_urps_ssot()]
 #' @family URPS workforce
 #' @examples
-#' urps_count(2023L, include_urology = FALSE)  # 1031  (without urology)
-#' urps_count(2023L, include_urology = TRUE)   # 1339  (with urology)
-#' attr(urps_count(2023L), "snapshot_date")
+#' urps_count(2023L, include_urology = FALSE)  # 1031
+#' urps_count(2023L, include_urology = TRUE)   # 1339
 #' @export
 urps_count <- function(year = 2023L, include_urology = FALSE) {
-  stopifnot(length(year) == 1L, length(include_urology) == 1L,
-            is.logical(include_urology), !is.na(include_urology))
-  year    <- as.integer(year)
-  pathway <- if (include_urology) "abog_plus_abu" else "abog"
-  tab     <- .urps_read_counts()
-  row     <- tab[tab$year == year & tab$board_pathway == pathway, , drop = FALSE]
-  if (nrow(row) != 1L) {
-    avail <- sort(unique(tab$year[tab$board_pathway == pathway]))
-    stop(sprintf("[urps_count] no %s count for measure year %d (available: %s).%s",
-                 pathway, year, paste(avail, collapse = ", "),
-                 if (include_urology)
-                   " The with-urology (ABU) cohort is a 2023 snapshot only." else ""),
+  if (length(year) != 1L)
+    stop("[urps_count] `year` must be a single value.", call. = FALSE)
+  if (!is.numeric(year))
+    stop("[urps_count] `year` must be an integer/numeric value.", call. = FALSE)
+  if (is.na(year))
+    stop("[urps_count] `year` must not be NA.", call. = FALSE)
+  if (length(include_urology) != 1L)
+    stop("[urps_count] `include_urology` must be a single logical.", call. = FALSE)
+  if (!is.logical(include_urology))
+    stop("[urps_count] `include_urology` must be logical.", call. = FALSE)
+  if (is.na(include_urology))
+    stop("[urps_count] `include_urology` must not be NA.", call. = FALSE)
+
+  year <- as.integer(year)
+  w <- .urps_wide()
+  if (!year %in% w$year)
+    stop(sprintf("[urps_count] year %d not available (2013:2023).", year), call. = FALSE)
+  col <- if (include_urology) "combined_active" else "abog_active"
+  val <- w[[col]][w$year == year]
+  if (is.na(val))
+    stop(sprintf("[urps_count] with-urology count not available for %d (2023 only).", year),
          call. = FALSE)
-  }
-  man <- .urps_read_manifest()
-  structure(
-    row$n_active,
-    measure_year        = year,
-    board_pathway       = pathway,
-    include_urology     = include_urology,
-    n_ever_certified    = row$n_ever_certified,
-    n_retired           = row$n_retired,
-    snapshot_date       = row$snapshot_date,
-    model_baseline_year = as.integer(man$years$model_baseline_year),
-    source_sha256       = row$source_sha256,
-    method_version      = row$method_version,
-    provenance          = sprintf(
-      "mufflyaccess SSOT | measure_year=%d | snapshot_date=%s | model_baseline_year=%s | pathway=%s",
-      year, row$snapshot_date, man$years$model_baseline_year, pathway)
-  )
+  as.integer(val)
 }
 
-#' The full canonical URPS workforce table
+#' The complete canonical URPS workforce table
 #'
-#' @description Returns the compact canonical workforce table `mufflyaccess`
-#'   ships: one row per (measure year x board pathway), with `n_active`,
-#'   `n_ever_certified`, `n_retired`, `snapshot_date`, `source_sha256`, and
-#'   `method_version`. Board pathways: `"abog"` (2013-2023), `"abu"` (2023
-#'   net-new snapshot), `"abog_plus_abu"` (2023 combined).
-#' @return A `data.frame`.
+#' @description The compact wide table `mufflyaccess` publishes: one row per
+#'   measure year (2013-2023) with `abog_active`, `abu_net_new`,
+#'   `combined_active`, and provenance columns. `abu_net_new` / `combined_active`
+#'   are `NA` before 2023 (ABU is a 2023 snapshot).
+#' @return A `data.frame` with columns `year`, `abog_active`, `abu_net_new`,
+#'   `combined_active`, `measure_year`, `snapshot_date` (Date), `method_version`,
+#'   `source_sha256`.
 #' @seealso [urps_count()], [urps_provenance()], [validate_urps_ssot()]
 #' @family URPS workforce
 #' @examples
-#' head(urps_counts())
-#' subset(urps_counts(), board_pathway == "abog_plus_abu")
+#' urps_counts()
 #' @export
-urps_counts <- function() .urps_read_counts()
+urps_counts <- function() .urps_wide()
 
 #' Provenance / manifest for the URPS workforce SSOT
 #'
-#' @description Returns the manifest for the canonical table: source files and
-#'   SHA-256 hashes, snapshot date, the active-in-year definition, the ABOG/ABU
-#'   deduplication rule, geographic scope, known limitations, and provenance git
-#'   SHAs. Every returned count traces back to this.
-#' @return A named list (parsed from `inst/extdata/urps_manifest.json`).
+#' @description Metadata for the canonical table: version, measure years,
+#'   snapshot date, boards, geographic scope, the active-in-year definition, the
+#'   deduplication rule, source hashes / git commit, method version, and the
+#'   installed package version. Every returned count traces back to this.
+#' @return A named list; `measure_years` is integer, `snapshot_date` is a `Date`.
 #' @seealso [urps_count()], [validate_urps_ssot()]
 #' @family URPS workforce
 #' @examples
-#' urps_provenance()$years
-#' urps_provenance()$known_limitations
+#' urps_provenance()$geographic_scope
 #' @export
-urps_provenance <- function() .urps_read_manifest()
+urps_provenance <- function() {
+  m <- .urps_manifest()
+  list(
+    artifact_version          = m$artifact_version,
+    measure_years             = as.integer(m$measure_years),
+    snapshot_date             = as.Date(m$snapshot_date),
+    boards                    = m$boards,
+    geographic_scope          = m$geographic_scope,
+    active_in_year_definition = m$active_in_year_definition,
+    deduplication_rule        = m$deduplication_rule,
+    source_sha256             = m$source_sha256,
+    source_git_commit         = m$source_git_commit,
+    method_version            = m$method_version,
+    package_version           = as.character(utils::packageVersion("mufflyaccess"))
+  )
+}
 
 #' Validate the URPS workforce SSOT (fail loud)
 #'
-#' @description Checks the shipped canonical table against its manifest and the
-#'   frozen contract: schema, the reconciled headline values (2023 ABOG = 1031,
-#'   ABOG+ABU = 1339, ABU net-new = 308), the reconciliation identity
-#'   (`abog_plus_abu = abog + abu`), the contiguous 2013-2023 ABOG series,
-#'   agreement of the deprecated `*_2025` constants with the table, and (when
-#'   `digest` is installed) the table's SHA-256 against the manifest. Errors on
-#'   any violation.
+#' @description Checks a wide counts table against the frozen contract: required
+#'   columns, unique measure years covering 2013-2023, well-formed 64-hex
+#'   `source_sha256`, and the reconciliation identity
+#'   `combined_active == abog_active + abu_net_new` (1339 for 2023). Called with
+#'   no argument it validates the bundled table (and its SHA-256 against the
+#'   manifest when `digest` is available).
+#' @param counts Optional wide counts `data.frame` (as from [urps_counts()]);
+#'   `NULL` (default) validates the bundled table.
 #' @return Invisibly `TRUE` on success; otherwise stops with the failed check.
 #' @seealso [urps_count()], [urps_counts()], [urps_provenance()]
 #' @family URPS workforce
 #' @examples
 #' validate_urps_ssot()
 #' @export
-validate_urps_ssot <- function() {
-  tab <- .urps_read_counts()
-  man <- .urps_read_manifest()
-  need <- c("year", "board_pathway", "n_active", "n_ever_certified",
-            "n_retired", "snapshot_date", "source_sha256", "method_version")
-  pick <- function(y, p) {
-    v <- tab$n_active[tab$year == y & tab$board_pathway == p]
-    if (length(v) == 1L) v else NA_integer_
-  }
-  abog23 <- pick(2023L, "abog"); abu23 <- pick(2023L, "abu")
-  comb23 <- pick(2023L, "abog_plus_abu")
-  stopifnot(
-    "[validate] canonical table is missing required columns" = all(need %in% names(tab)),
-    "[validate] 2023 ABOG-only must be 1031"                  = identical(abog23, 1031L),
-    "[validate] 2023 ABOG+ABU (with urology) must be 1339"    = identical(comb23, 1339L),
-    "[validate] 2023 ABU net-new must be 308"                 = identical(abu23, 308L),
-    "[validate] reconciliation must hold: abog_plus_abu == abog + abu" =
-      identical(comb23, abog23 + abu23),
-    "[validate] ABOG series must be the contiguous 2013-2023 years" =
-      identical(sort(tab$year[tab$board_pathway == "abog"]), 2013:2023),
-    "[validate] deprecated URPS_COUNT_ABOG_ONLY_2025 must equal the table" =
-      identical(as.integer(URPS_COUNT_ABOG_ONLY_2025), abog23),
-    "[validate] deprecated URPS_COUNT_ABOG_PLUS_ABU_2025 must equal the table" =
-      identical(as.integer(URPS_COUNT_ABOG_PLUS_ABU_2025), comb23)
-  )
-  if (requireNamespace("digest", quietly = TRUE)) {
+validate_urps_ssot <- function(counts = NULL) {
+  bundled <- is.null(counts)
+  w <- if (bundled) .urps_wide() else counts
+  req <- c("year", "abog_active", "abu_net_new", "combined_active", "source_sha256")
+  if (!all(req %in% names(w)))
+    stop("[validate] counts table is missing required columns.", call. = FALSE)
+  if (anyDuplicated(w$year))
+    stop("[validate] measure years must be unique (duplicate year found).", call. = FALSE)
+  miss <- setdiff(2013:2023, w$year)
+  if (length(miss))
+    stop(sprintf("[validate] missing measure year(s) %s; the series must cover 2013:2023.",
+                 paste(miss, collapse = ", ")), call. = FALSE)
+  sh <- w$source_sha256[!is.na(w$source_sha256)]
+  if (!all(grepl("^[0-9a-f]{64}$", sh)))
+    stop("[validate] malformed source_sha256 (each must be a 64-character hex hash).",
+         call. = FALSE)
+  ok <- is.na(w$combined_active) | is.na(w$abu_net_new) |
+        (w$combined_active == w$abog_active + w$abu_net_new)
+  if (!all(ok))
+    stop("[validate] combined_active must reconcile as abog_active + abu_net_new ",
+         "(1339 for 2023).", call. = FALSE)
+  if (bundled && requireNamespace("digest", quietly = TRUE)) {
+    m <- .urps_manifest()
     got <- digest::digest(file = .urps_extdata("urps_counts_by_year.csv"), algo = "sha256")
-    if (!identical(got, man$artifact_sha256))
-      stop("[validate] canonical table SHA-256 does not match the manifest.\n",
-           "  manifest: ", man$artifact_sha256, "\n  actual:   ", got, call. = FALSE)
+    if (!identical(got, m$artifact_sha256))
+      stop("[validate] canonical table SHA-256 does not match the manifest.", call. = FALSE)
   }
-  message("URPS SSOT OK: 2023 without urology = 1031, with urology = 1339 ",
-          "(ABU net-new 308); table matches manifest.")
   invisible(TRUE)
 }

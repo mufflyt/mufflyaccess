@@ -2,23 +2,23 @@
 % Please edit documentation in R/urps_count.R
 \name{urps_counts}
 \alias{urps_counts}
-\title{The full canonical URPS workforce table}
+\title{The complete canonical URPS workforce table}
 \usage{
 urps_counts()
 }
 \value{
-A \code{data.frame}.
+A \code{data.frame} with columns \code{year}, \code{abog_active}, \code{abu_net_new},
+\code{combined_active}, \code{measure_year}, \code{snapshot_date} (Date), \code{method_version},
+\code{source_sha256}.
 }
 \description{
-Returns the compact canonical workforce table \code{mufflyaccess}
-ships: one row per (measure year x board pathway), with \code{n_active},
-\code{n_ever_certified}, \code{n_retired}, \code{snapshot_date}, \code{source_sha256}, and
-\code{method_version}. Board pathways: \code{"abog"} (2013-2023), \code{"abu"} (2023
-net-new snapshot), \code{"abog_plus_abu"} (2023 combined).
+The compact wide table \code{mufflyaccess} publishes: one row per
+measure year (2013-2023) with \code{abog_active}, \code{abu_net_new},
+\code{combined_active}, and provenance columns. \code{abu_net_new} / \code{combined_active}
+are \code{NA} before 2023 (ABU is a 2023 snapshot).
 }
 \examples{
-head(urps_counts())
-subset(urps_counts(), board_pathway == "abog_plus_abu")
+urps_counts()
 }
 \seealso{
 \code{\link[=urps_count]{urps_count()}}, \code{\link[=urps_provenance]{urps_provenance()}}, \code{\link[=validate_urps_ssot]{validate_urps_ssot()}}
@@ -26,7 +26,6 @@ subset(urps_counts(), board_pathway == "abog_plus_abu")
 Other URPS workforce: 
 \code{\link{urps_count}()},
 \code{\link{urps_provenance}()},
-\code{\link{urps_workforce_2025}},
 \code{\link{validate_urps_ssot}()}
 }
 \concept{URPS workforce}

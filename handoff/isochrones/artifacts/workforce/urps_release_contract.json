@@ -1,0 +1,10 @@
+{
+  "contract_version": "1.0.0",
+  "measure_year": 2023,
+  "geographic_scope": "contiguous United States",
+  "abog_active": 1031,
+  "abu_net_new": 308,
+  "combined_active": 1339,
+  "producer": "mufflyt/isochrones",
+  "consumer_package": "mufflyt/mufflyaccess"
+}

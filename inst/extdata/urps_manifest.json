@@ -1,47 +1,47 @@
 {
+  "artifact_version": "1.0.0",
   "artifact": "urps_counts_by_year.csv",
-  "artifact_sha256": "5c77340b9b341322170c8bb8bfd33a2f0dd9af28c51117224019f0add64cf185",
+  "artifact_sha256": "fce3c9bfce4b89f6bea27a9469bc64622feb107b793db4199818fa54b5c0b9ba",
+  "created_at": "2026-07-24",
+  "measure_years": [
+    2013,
+    2014,
+    2015,
+    2016,
+    2017,
+    2018,
+    2019,
+    2020,
+    2021,
+    2022,
+    2023
+  ],
+  "snapshot_date": "2026-07-22",
+  "model_baseline_year": 2025,
+  "boards": [
+    "ABOG",
+    "ABU"
+  ],
+  "geographic_scope": "contiguous United States",
+  "active_in_year_definition": "active in Y iff certification_year <= Y AND (retirement_year is empty OR retirement_year > Y); retirement = isochrones 7-source consensus",
+  "deduplication_rule": "ABU_NET_NEW excludes NPIs already present in the ABOG cohort; ABOG_PLUS_ABU = ABOG + ABU_NET_NEW with no double count",
+  "source_sha256": "5f1b6167fad81ba896c0b1bc1ceda8eb966e681f51b176105b389a27399e0c0f",
+  "source_git_commit": "a1d5a225cea59b163996115773748210a920d93f",
   "method_version": "2026-07-22.bootstrap",
-  "status": "BOOTSTRAP -- compact table shipped by mufflyaccess pending the versioned isochrones release (artifacts/workforce/urps_manifest.json). Swap to reading that release when it exists.",
-  "years": {
-    "measure_year_range": [
-      2013,
-      2023
-    ],
-    "headline_measure_year": 2023,
-    "snapshot_date": "2026-07-22",
-    "model_baseline_year": 2025
-  },
-  "headline_values_2023": {
-    "abog_only_without_urology": 1031,
-    "abog_plus_abu_with_urology": 1339,
-    "abu_net_new": 308
-  },
   "source_files": [
     {
-      "repo": "isochrones",
-      "path": "manuscript/tables/table1_physician_characteristics.csv",
-      "role": "ABOG active-workforce snapshot (per-provider, cert/retirement)",
+      "path": "isochrones/manuscript/tables/table1_physician_characteristics.csv",
       "sha256": "5f1b6167fad81ba896c0b1bc1ceda8eb966e681f51b176105b389a27399e0c0f"
-    },
-    {
-      "repo": "cliff",
-      "path": "data/abu_urology/abu_all_urps_2026-07-22.csv (via SSOT_URPS_BASELINE_RECONCILIATION.md 2026-07-24)",
-      "role": "ABU net-new roster (2023 snapshot; +308)",
-      "sha256": null
     }
   ],
-  "active_in_year_definition": "A provider is active in year Y iff certification_year <= Y AND (retirement_year is empty OR retirement_year > Y). Retirement = isochrones 7-source consensus.",
-  "abog_abu_dedup_rule": "ABU roster is NET-NEW to ABOG: ABU NPIs already present in the ABOG cohort are removed, so combined = ABOG + ABU with no double count.",
-  "geographic_scope": "National (United States). ABOG by-year is the full NPI-matched cohort; no CONUS restriction applied to these counts.",
+  "output_files": {
+    "urps_counts_by_year_csv": {
+      "sha256": "fce3c9bfce4b89f6bea27a9469bc64622feb107b793db4199818fa54b5c0b9ba"
+    }
+  },
   "known_limitations": [
-    "ABU is a 2023 snapshot only -- no by-year ABU series (the ABU roster carries no cert/retirement year for a full panel), so 'abu' and 'abog_plus_abu' rows exist for 2023 only.",
-    "n_ever_certified / n_retired are unavailable for the abu and abog_plus_abu pathways (empty).",
-    "ABU source file is not yet a hashed isochrones artifact; the +308 comes from the cliff reconciliation (2026-07-24). source_sha256 is empty for ABU rows.",
-    "2013-2015 ABOG counts predate the ~2016 retirement-detection window and are approximate (they under-represent pre-2016 exits)."
-  ],
-  "provenance_git_sha": {
-    "isochrones": "a1d5a225cea59b163996115773748210a920d93f",
-    "mufflyaccess": "SET_AT_RELEASE"
-  }
+    "BOOTSTRAP pending the versioned isochrones artifacts release.",
+    "ABU is a 2023 snapshot only (no by-year series); abu_net_new/combined are NA before 2023.",
+    "2013-2015 predate the ~2016 retirement-detection window and are approximate."
+  ]
 }
