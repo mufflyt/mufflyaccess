@@ -8,7 +8,7 @@ validate_urps_ssot(counts = NULL)
 }
 \arguments{
 \item{counts}{Optional wide counts \code{data.frame} (as from \code{\link[=urps_counts]{urps_counts()}});
-\code{NULL} (default) validates the bundled table.}
+\code{NULL} (default) validates the active artifact.}
 }
 \value{
 Invisibly \code{TRUE} on success; otherwise stops with the failed check.
@@ -17,19 +17,20 @@ Invisibly \code{TRUE} on success; otherwise stops with the failed check.
 Checks a wide counts table against the frozen contract: required
 columns, unique measure years covering 2013-2023, well-formed 64-hex
 \code{source_sha256}, and the reconciliation identity
-\code{combined_active == abog_active + abu_net_new} (1339 for 2023). Called with
-no argument it validates the bundled table (and its SHA-256 against the
-manifest when \code{digest} is available).
+\code{combined_active == abog_active + abu_net_new}. With no argument it validates
+the active artifact (bundled or the one selected by \code{\link[=use_urps_artifact]{use_urps_artifact()}}),
+including its SHA-256 against the manifest when \code{digest} is available.
 }
 \examples{
 validate_urps_ssot()
 }
 \seealso{
-\code{\link[=urps_count]{urps_count()}}, \code{\link[=urps_counts]{urps_counts()}}, \code{\link[=urps_provenance]{urps_provenance()}}
+\code{\link[=urps_count]{urps_count()}}, \code{\link[=urps_counts]{urps_counts()}}, \code{\link[=urps_provenance]{urps_provenance()}}, \code{\link[=use_urps_artifact]{use_urps_artifact()}}
 
 Other URPS workforce: 
 \code{\link{urps_count}()},
 \code{\link{urps_counts}()},
-\code{\link{urps_provenance}()}
+\code{\link{urps_provenance}()},
+\code{\link{use_urps_artifact}()}
 }
 \concept{URPS workforce}

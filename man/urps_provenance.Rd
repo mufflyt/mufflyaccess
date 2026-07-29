@@ -10,20 +10,20 @@ urps_provenance()
 A named list; \code{measure_years} is integer, \code{snapshot_date} is a \code{Date}.
 }
 \description{
-Metadata for the canonical table: version, measure years,
-snapshot date, boards, geographic scope, the active-in-year definition, the
-deduplication rule, source hashes / git commit, method version, and the
-installed package version. Every returned count traces back to this.
+Metadata for the active artifact: version, measure years,
+snapshot date, boards, geographic scope, definitions, source hash / git
+commit, method version, and the installed package version.
 }
 \examples{
 urps_provenance()$geographic_scope
 }
 \seealso{
-\code{\link[=urps_count]{urps_count()}}, \code{\link[=validate_urps_ssot]{validate_urps_ssot()}}
+\code{\link[=urps_count]{urps_count()}}, \code{\link[=validate_urps_ssot]{validate_urps_ssot()}}, \code{\link[=use_urps_artifact]{use_urps_artifact()}}
 
 Other URPS workforce: 
 \code{\link{urps_count}()},
 \code{\link{urps_counts}()},
+\code{\link{use_urps_artifact}()},
 \code{\link{validate_urps_ssot}()}
 }
 \concept{URPS workforce}

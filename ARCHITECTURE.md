@@ -56,12 +56,16 @@ Call `mufflyaccess` for every national URPS count. **Never** hardcode a count an
 
 ### Remaining (upstream)
 The mufflyaccess side of the contract is in place (exported API, shipped canonical
-table + manifest, fail-loud validation, deprecated constants). What remains is
-upstream and in other repos:
+table + manifest, fail-loud validation, deprecated constants, **and a reader that
+consumes a released isochrones artifact** via `use_urps_artifact(dir)` — proven
+end-to-end against a real artifact generated from the isochrones snapshot). What
+remains is upstream and in other repos:
 1. **isochrones** publishes the versioned artifacts
    (`artifacts/workforce/urps_provider_snapshot.parquet`, `urps_counts_by_year.csv`,
-   `urps_manifest.json`) with its own hashes + git SHA; mufflyaccess then reads that
-   release instead of the current BOOTSTRAP table, and validates the parquet by hash.
+   `urps_manifest.json`) with its own hashes + git SHA (the producer +
+   unified-manifest contract are staged in `handoff/isochrones/`). mufflyaccess
+   already reads + validates such a directory; point it there with
+   `use_urps_artifact()` and it replaces the bundled BOOTSTRAP.
 2. A single both-pathway snapshot: ABU (+308) is presently a 2023-only layer from
    the cliff reconciliation, not a hashed isochrones artifact — fold it in so the
    with-urology series is by-year too.

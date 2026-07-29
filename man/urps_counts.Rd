@@ -12,10 +12,9 @@ A \code{data.frame} with columns \code{year}, \code{abog_active}, \code{abu_net_
 \code{source_sha256}.
 }
 \description{
-The compact wide table \code{mufflyaccess} publishes: one row per
-measure year (2013-2023) with \code{abog_active}, \code{abu_net_new},
-\code{combined_active}, and provenance columns. \code{abu_net_new} / \code{combined_active}
-are \code{NA} before 2023 (ABU is a 2023 snapshot).
+The compact wide table \code{mufflyaccess} serves: one row per measure
+year (2013-2023) with \code{abog_active}, \code{abu_net_new}, \code{combined_active}, and
+provenance columns. \code{abu_net_new} / \code{combined_active} are \code{NA} before 2023.
 }
 \examples{
 urps_counts()
@@ -26,6 +25,7 @@ urps_counts()
 Other URPS workforce: 
 \code{\link{urps_count}()},
 \code{\link{urps_provenance}()},
+\code{\link{use_urps_artifact}()},
 \code{\link{validate_urps_ssot}()}
 }
 \concept{URPS workforce}
