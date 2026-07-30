@@ -143,6 +143,65 @@
   list(canonical_release = canonical, suitable_for_release = suitable)
 }
 
+# ---- detailed provenance -----------------------------------------------------
+
+# normalize the manifest's source_files (named list OR data.frame) to a tidy
+# data.frame(name, path, sha256)
+.urps_source_files_df <- function(sf) {
+  if (is.null(sf)) return(NULL)
+  if (is.data.frame(sf))
+    return(data.frame(name = rownames(sf) %||% seq_len(nrow(sf)),
+                      path = sf$path %||% NA_character_, sha256 = sf$sha256 %||% NA_character_,
+                      row.names = NULL, stringsAsFactors = FALSE))
+  if (is.list(sf))
+    return(do.call(rbind, lapply(names(sf), function(nm) data.frame(
+      name = nm, path = sf[[nm]]$path %||% NA_character_,
+      sha256 = sf[[nm]]$sha256 %||% NA_character_, stringsAsFactors = FALSE))))
+  NULL
+}
+
+# live integrity check: recompute the served CSV hash and compare to the manifest
+.urps_integrity <- function(dir, m) {
+  of  <- m$output_files
+  exp_csv <- m$artifact_sha256 %||% of$urps_counts_by_year_csv$sha256
+  exp_pq  <- of$urps_provider_snapshot_parquet$sha256
+  csv <- .urps_path("urps_counts_by_year.csv", dir)
+  pq  <- file.path(dir, "urps_provider_snapshot.parquet")
+  got_csv <- if (requireNamespace("digest", quietly = TRUE) && file.exists(csv))
+    digest::digest(file = csv, algo = "sha256") else NA_character_
+  got_pq  <- if (requireNamespace("digest", quietly = TRUE) && file.exists(pq))
+    digest::digest(file = pq, algo = "sha256") else NA_character_
+  list(
+    counts_csv_sha256_expected = exp_csv %||% NA_character_,
+    counts_csv_sha256_observed = got_csv,
+    counts_csv_verified        = if (is.na(got_csv) || is.null(exp_csv)) NA else identical(got_csv, exp_csv),
+    provider_parquet_present   = file.exists(pq),
+    provider_parquet_sha256_expected = exp_pq %||% NA_character_,
+    provider_parquet_sha256_observed = got_pq,
+    provider_parquet_verified  = if (is.na(got_pq) || is.null(exp_pq)) NA else identical(got_pq, exp_pq))
+}
+
+# the full provenance chain: source rosters (hashed) -> combined hash -> git
+# commit -> output artifacts (hashed, live-verified) -> cohort definition ->
+# provider-snapshot reconstruction stats -> known limitations.
+.urps_provenance_detail <- function(r, m, ct) {
+  list(
+    artifact_dir           = r$dir,
+    created_at             = m$created_at,
+    measure_year           = if (!is.null(m$measure_year)) as.integer(m$measure_year),
+    model_baseline_year    = m$model_baseline_year,
+    roster_snapshot_date   = if (!is.null(m$roster_snapshot_date)) as.Date(m$roster_snapshot_date),
+    geography_resolution_rule = m$geography_resolution_rule,
+    state_source_counts    = m$state_source_counts,
+    cohort_definition      = m$urps_subspecialty_cert_year,
+    provider_snapshot      = m$provider_snapshot,
+    source_files           = .urps_source_files_df(m$source_files),
+    combined_source_sha256 = m$combined_source_sha256,
+    output_files           = m$output_files,
+    integrity              = .urps_integrity(r$dir, m),
+    known_limitations      = m$known_limitations)
+}
+
 # ---- exported API -----------------------------------------------------------
 
 #' Select the URPS workforce artifact mufflyaccess serves
@@ -426,13 +485,44 @@ urps_counts_long <- function() .urps_read_long()
 #'       [urps_retired_values()])}
 #'     \item{method_version, package_version}{producer + installed package versions}
 #'   }
-#' @seealso [urps_count()], [urps_lineage()], [validate_urps_ssot()], [use_urps_artifact()]
+#'   With `detailed = TRUE`, one extra element `detail` -- a nested list carrying
+#'   the full, verifiable provenance chain:
+#'   \describe{
+#'     \item{artifact_dir, created_at}{served directory and artifact build time}
+#'     \item{measure_year, model_baseline_year, roster_snapshot_date}{the three
+#'       distinct years, kept separate}
+#'     \item{geography_resolution_rule, state_source_counts}{how each provider's
+#'       state (hence CONUS membership) was resolved, and from which source}
+#'     \item{cohort_definition}{the URPS-subspecialty-cert basis: real cert dates,
+#'       the fellowship-proxy fallbacks, and how many providers used each}
+#'     \item{provider_snapshot}{grain and the reconstruction counts
+#'       (`rows_national`, `rows_active_2023`, future certifications)}
+#'     \item{source_files}{a `data.frame(name, path, sha256)` of the enriched
+#'       source rosters}
+#'     \item{combined_source_sha256, output_files}{the combined source hash and
+#'       the produced-artifact hashes}
+#'     \item{integrity}{a **live** check -- the served CSV / parquet SHA-256
+#'       recomputed and compared to the manifest (`*_verified` is `TRUE`/`FALSE`,
+#'       or `NA` when `digest` is unavailable)}
+#'     \item{known_limitations}{the producer's documented caveats}
+#'   }
+#' @param detailed If `TRUE`, add the nested `detail` element (see **Value**) with
+#'   the full source-to-artifact provenance chain and a live integrity check.
+#'   Default `FALSE` returns the stable summary only.
+#' @seealso [urps_count()], [urps_lineage()], [validate_urps_artifact()],
+#'   [validate_urps_ssot()], [use_urps_artifact()]
 #' @family URPS workforce
 #' @examples
 #' urps_provenance()$canonical_2023_estimand
 #' urps_provenance()[c("contract_version", "artifact_source", "canonical_release")]
+#'
+#' # the full chain, with a live SHA-256 integrity check of the served bytes:
+#' d <- urps_provenance(detailed = TRUE)$detail
+#' d$source_files                      # enriched rosters + hashes
+#' d$cohort_definition$source_counts   # how the active cohort was dated
+#' d$integrity$counts_csv_verified     # TRUE: served bytes match the manifest
 #' @export
-urps_provenance <- function() {
+urps_provenance <- function(detailed = FALSE) {
   r  <- .urps_resolve()
   m  <- .urps_manifest(r$dir)
   ct <- .urps_contract(r$dir)
@@ -442,7 +532,7 @@ urps_provenance <- function() {
     (if (is.data.frame(sf)) sf$sha256[1]
      else if (is.list(sf) && length(sf)) sf[[1]]$sha256
      else m$source_sha256)
-  list(
+  out <- list(
     artifact_version          = m$artifact_version,
     contract_version          = .urps_effective_contract_version(m, ct),
     artifact_source           = r$source,
@@ -468,6 +558,8 @@ urps_provenance <- function() {
     method_version            = m$method_version,
     package_version           = as.character(utils::packageVersion("mufflyaccess"))
   )
+  if (isTRUE(detailed)) out$detail <- .urps_provenance_detail(r, m, ct)
+  out
 }
 
 #' URPS contract lineage (which cells are current vs retired)
