@@ -7,19 +7,48 @@
 urps_provenance()
 }
 \value{
-A named list; \code{measure_years} is integer, \code{snapshot_date} is a \code{Date}.
+A named list:
+\describe{
+\item{artifact_version, contract_version}{version strings (e.g. \code{"3.0.0"})}
+\item{artifact_source}{\code{"external"} or \code{"bundled_bootstrap"}}
+\item{canonical_release, suitable_for_release}{release-readiness flags}
+\item{canonical_2023_estimand}{human-readable canonical-cell statement}
+\item{external_artifact_error}{\code{NULL}, or the fallback reason}
+\item{measure_years}{integer vector (2013:2023)}
+\item{measures, geographies, boards}{the published dimensions}
+\item{snapshot_date}{a \code{Date}; distinct from the measure year}
+\item{roster_reflects_certifications_through}{last cert year in the roster}
+\item{geographic_scope, active_in_year_definition, deduplication_rule}{
+definitional metadata}
+\item{source_sha256, source_git_commit, git_commit_semantics}{source
+integrity + commit provenance}
+\item{source_description, source_systems}{disclosure-ready source wording}
+\item{retired_cells}{cells retired by an earlier contract (see
+\code{\link[=urps_retired_values]{urps_retired_values()}})}
+\item{method_version, package_version}{producer + installed package versions}
+}
 }
 \description{
-Metadata for the active artifact: versions, measures/geographies,
-snapshot date, definitions, source hash / git commit, release-readiness
-flags, and the installed package version. \code{artifact_source} is \code{"external"}
-when a released artifact is served and \code{"bundled_bootstrap"} otherwise
-(including after a silent option/env fallback, whose reason is in
-\code{external_artifact_error}). \code{canonical_release} / \code{suitable_for_release} are
-\code{FALSE} for the bootstrap.
+Everything needed to cite or audit the served numbers: contract /
+artifact versions, the measures and geographies, the snapshot date, the
+active-in-year and deduplication definitions, the source hash and git commit,
+the disclosure-ready source wording, release-readiness flags, and the recorded
+retired cells.
+}
+\details{
+\code{artifact_source} is \code{"external"} when a released artifact is served
+and \code{"bundled_bootstrap"} otherwise -- including after a silent option/env
+fallback, whose reason is then in \code{external_artifact_error}.
+\code{canonical_release} / \code{suitable_for_release} are \code{FALSE} for the bootstrap.
+Accessing this on an unusable external source emits a warning (see
+\code{\link[=use_urps_artifact]{use_urps_artifact()}}).
+}
+\examples{
+urps_provenance()$canonical_2023_estimand
+urps_provenance()[c("contract_version", "artifact_source", "canonical_release")]
 }
 \seealso{
-\code{\link[=urps_count]{urps_count()}}, \code{\link[=validate_urps_ssot]{validate_urps_ssot()}}, \code{\link[=use_urps_artifact]{use_urps_artifact()}}
+\code{\link[=urps_count]{urps_count()}}, \code{\link[=urps_lineage]{urps_lineage()}}, \code{\link[=validate_urps_ssot]{validate_urps_ssot()}}, \code{\link[=use_urps_artifact]{use_urps_artifact()}}
 
 Other URPS workforce: 
 \code{\link{compare_urps_artifacts}()},

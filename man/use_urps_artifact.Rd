@@ -25,6 +25,13 @@ bundled bootstrap, revealed by \code{urps_provenance()$artifact_source} /
 \verb{$external_artifact_error} (\code{options(mufflyaccess.urps_artifact_strict = TRUE)}
 makes that fallback an error).
 }
+\examples{
+\dontrun{
+use_urps_artifact("path/to/isochrones/artifacts/workforce")  # validated; fails closed
+urps_provenance()$artifact_source                            # "external"
+use_urps_artifact(NULL)                                      # back to the bundled bootstrap
+}
+}
 \seealso{
 \code{\link[=urps_count]{urps_count()}}, \code{\link[=urps_provenance]{urps_provenance()}}, \code{\link[=validate_urps_artifact]{validate_urps_artifact()}}
 

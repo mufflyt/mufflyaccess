@@ -15,41 +15,93 @@ urps_count(
 }
 \arguments{
 \item{year}{Integer measure year. \code{board_certified_active} covers 2013-2023;
-\code{roster_snapshot} is the 2025 snapshot.}
+\code{roster_snapshot} is the 2025 snapshot. A year outside a measure's window is
+a hard error.}
 
 \item{measure}{\code{"board_certified_active"} (default; the active-in-year cohort)
 or \code{"roster_snapshot"} (the 2025 roster). Case-insensitive.}
 
 \item{geography}{\code{"national"} (default) or \code{"conus"}. Case-insensitive.}
 
-\item{include_urology}{Single non-\code{NA} logical. \code{FALSE} (default) = ABOG only;
-\code{TRUE} = both-pathway ABOG + ABU (\code{ABOG_PLUS_ABU}).}
+\item{include_urology}{Single non-\code{NA} logical. \code{FALSE} (default) = ABOG only
+(\code{ABOG} pathway); \code{TRUE} = both-pathway ABOG + ABU (\code{ABOG_PLUS_ABU}).}
 
 \item{incomplete}{How to handle a published cell that is absent/\code{NA}:
-\code{"error"} (default) stops; \code{"na"} returns \code{NA_integer_}. (A year outside a
-measure's declared window is always a hard error, never a silent \code{NA}.)}
+\code{"error"} (default) stops with an explanatory message; \code{"na"} returns
+\code{NA_integer_}. A year outside a measure's declared window is always a hard
+error, never a silent \code{NA}.}
 
-\item{details}{If \code{TRUE}, return a labelled list (count plus measure,
-geography, year, pathway, value status, snapshot date, contract/artifact
-version, source commit, and canonical flag) so a downstream caller never
-receives a context-free integer. Default \code{FALSE} returns a bare integer.}
+\item{details}{If \code{TRUE}, return a labelled list instead of a bare integer so a
+downstream caller never receives a context-free number (see \strong{Value}).}
 }
 \value{
-A length-1 integer (or, with \code{details = TRUE}, a named list).
+With \code{details = FALSE} (default), a length-1 integer \code{n_active} (or
+\code{NA_integer_} when \code{incomplete = "na"} and the cell is absent). With
+\code{details = TRUE}, a named list:
+\describe{
+\item{count}{the integer count}
+\item{year, measure, geography, include_urology}{the resolved request}
+\item{board_pathway}{\code{"ABOG"} or \code{"ABOG_PLUS_ABU"}}
+\item{value_status}{\code{"observed"} (ABOG) or \code{"derived"} (ABOG_PLUS_ABU)}
+\item{snapshot_date}{source roster snapshot \code{Date}}
+\item{contract_version, artifact_version, source_git_commit}{provenance}
+\item{canonical_release}{\code{TRUE} only when serving an external release}
+\item{artifact_source}{\code{"external"} or \code{"bundled_bootstrap"}}
+}
 }
 \description{
-The single-source-of-truth accessor for the national active URPS
-count. Consumers call this and \strong{never hardcode or independently derive a
-national URPS count} (see \code{ARCHITECTURE.md}).
+The single-source-of-truth accessor for the national urogynecology
+/ reconstructive-pelvic-surgery (URPS) workforce count. Consumers call this
+and \strong{never hardcode or independently derive a national URPS count} (see
+\code{ARCHITECTURE.md}). A count is only interpretable once its \emph{measure}, \emph{year},
+\emph{geography}, and \emph{pathway inclusion} are fixed, so all four are explicit
+arguments.
 }
+\details{
+Under contract v3.0.0 \code{board_certified_active} is keyed on the URPS
+\strong{subspecialty} certification year (training-accurate, post-fellowship), so a
+provider whose subspecialty certification postdates the requested year is not
+yet counted. The two measures answer different questions and are \strong{not}
+interchangeable:
+\itemize{
+\item \code{board_certified_active} -- the estimated active board-certified
+workforce in a given year (2013-2023).
+\item \code{roster_snapshot} -- the 2025 headcount of the identified roster
+(includes providers whose subspecialty certification postdates 2023).
+}
+Validation errors are raised (never silent) for an out-of-window year, an
+unknown measure/geography, a non-scalar or \code{NA} argument, and -- unless
+\code{incomplete = "na"} -- an absent published cell.
+}
+\section{Estimands (contract v3.0.0)}{
+
+The published 2023 \code{board_certified_active} and 2025 \code{roster_snapshot} cells:
+\itemize{
+\item national / 2023 active: ABOG 1027 + ABU net-new 279 = \strong{1306}
+\item conus / 2023 active: ABOG 1026 + ABU net-new 277 = \strong{1303}
+\item national / 2025 roster: 1031 + 308 = \strong{1339}; conus = 1336
+}
+\strong{1339 is the 2025 roster snapshot, not the 2023 active count. 1332 / 1329 are
+RETIRED v2.1.0 cells} (primary-cert basis) surfaced only by \code{\link[=urps_lineage]{urps_lineage()}} /
+\code{\link[=urps_retired_values]{urps_retired_values()}} and must never be presented as current.
+}
+
 \examples{
-urps_count(2023, "board_certified_active", "national", FALSE)  # 1031
-urps_count(2023, "board_certified_active", "national", TRUE)   # 1306
+urps_count(2023, "board_certified_active", "national", FALSE)  # 1027 (ABOG only)
+urps_count(2023, "board_certified_active", "national", TRUE)   # 1306 (with urology)
 urps_count(2023, "board_certified_active", "conus",    TRUE)   # 1303
-urps_count(2025, "roster_snapshot",        "national", TRUE)   # 1339
+urps_count(2025, "roster_snapshot",        "national", TRUE)   # 1339 (2025 roster)
+
+# a labelled record for a footnote / caption (never a context-free 1306):
+str(urps_count(2023, "board_certified_active", "national", TRUE, details = TRUE))
+
+# out-of-window requests are hard errors (a measure is only valid in its window):
+try(urps_count(2025, "board_certified_active"))  # error: bca is 2013-2023
+try(urps_count(2023, "roster_snapshot"))         # error: roster is 2025 only
 }
 \seealso{
-\code{\link[=urps_counts]{urps_counts()}}, \code{\link[=urps_provenance]{urps_provenance()}}, \code{\link[=validate_urps_ssot]{validate_urps_ssot()}}, \code{\link[=use_urps_artifact]{use_urps_artifact()}}
+\code{\link[=urps_counts]{urps_counts()}}, \code{\link[=urps_provenance]{urps_provenance()}}, \code{\link[=urps_lineage]{urps_lineage()}},
+\code{\link[=validate_urps_ssot]{validate_urps_ssot()}}, \code{\link[=use_urps_artifact]{use_urps_artifact()}}
 
 Other URPS workforce: 
 \code{\link{compare_urps_artifacts}()},

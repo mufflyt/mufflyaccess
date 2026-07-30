@@ -7,19 +7,36 @@
 urps_counts(measure = "board_certified_active", geography = "national")
 }
 \arguments{
-\item{measure}{\code{"board_certified_active"} (default) or \code{"roster_snapshot"}.}
+\item{measure}{\code{"board_certified_active"} (default) or \code{"roster_snapshot"}.
+Case-insensitive.}
 
-\item{geography}{\code{"national"} (default) or \code{"conus"}.}
+\item{geography}{\code{"national"} (default) or \code{"conus"}. Case-insensitive.}
 }
 \value{
-A \code{data.frame}.
+A \code{data.frame} with one row per measure year and columns:
+\describe{
+\item{year, measure, geography}{the slice keys}
+\item{abog_active, abu_net_new, combined_active}{counts per pathway
+(\code{combined_active == abog_active + abu_net_new})}
+\item{measure_year}{alias of \code{year}, to keep the measure year distinct from
+the snapshot date}
+\item{snapshot_date}{source roster \code{Date}}
+\item{method_version, source_sha256}{provenance}
+\item{abog_active_status, abu_net_new_status, combined_active_status}{
+\code{"observed"} / \code{"derived"} / \code{"unavailable"} -- so \code{NA} is never mistaken
+for a genuine zero}
+}
 }
 \description{
-One row per year for the chosen \code{measure}/\code{geography}, with
-\code{abog_active}, \code{abu_net_new}, \code{combined_active}, provenance columns, and
-explicit \verb{*_status} columns. Defaults to the canonical
-\code{board_certified_active} / \code{national} slice (years 2013-2023). Use
-\code{\link[=urps_counts_long]{urps_counts_long()}} for the complete long table across all cells.
+One row per year for the chosen \code{measure}/\code{geography}, pivoted
+wide across pathways, with explicit missingness columns. Defaults to the
+canonical \code{board_certified_active} / \code{national} slice (years 2013-2023). Use
+\code{\link[=urps_counts_long]{urps_counts_long()}} for the complete long table across all cells, or
+\code{\link[=urps_count]{urps_count()}} for a single value.
+}
+\examples{
+urps_counts()                                   # board_certified_active / national
+utils::tail(urps_counts("board_certified_active", "conus"), 3)
 }
 \seealso{
 \code{\link[=urps_count]{urps_count()}}, \code{\link[=urps_counts_long]{urps_counts_long()}}, \code{\link[=urps_provenance]{urps_provenance()}}

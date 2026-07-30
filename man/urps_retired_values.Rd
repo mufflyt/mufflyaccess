@@ -8,13 +8,22 @@ urps_retired_values()
 }
 \value{
 An integer vector of retired national/CONUS 2023 active counts (e.g.
-v2.1.0's 1332/1329), or \code{integer(0)} if the artifact records none.
+v2.1.0's 1332 / 1329), or \code{integer(0)} if the artifact records none.
 }
 \description{
-Values retired from an earlier URPS contract (never present as current)
+A flat integer vector of counts that were canonical under a prior
+contract and must \strong{not} be presented as current. Use it as a guard in
+downstream code and manuscripts (e.g. fail a build if a figure caption
+contains one of these as "the 2023 count").
+}
+\examples{
+urps_retired_values()
+# a consumer-side guard:
+stopifnot(!urps_count(2023, "board_certified_active", "national", TRUE) \%in\%
+          urps_retired_values())
 }
 \seealso{
-\code{\link[=urps_lineage]{urps_lineage()}}
+\code{\link[=urps_lineage]{urps_lineage()}}, \code{\link[=urps_provenance]{urps_provenance()}}
 
 Other URPS workforce: 
 \code{\link{compare_urps_artifacts}()},

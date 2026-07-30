@@ -24,8 +24,29 @@ cell agrees with the counts table, the CSV SHA-256 matches the manifest, and
 -- when a parquet reader is available -- the served counts reconstruct from
 the provider snapshot.
 }
+\details{
+Checks performed, each failing loud with a specific message:
+\itemize{
+\item required files present; contract version valid, supported major, and
+consistent between manifest and release contract;
+\item the \verb{measure x geography} schema, known measure/geography/pathway
+values, and each measure inside its declared year window;
+\item no duplicate keys; every \verb{(measure, year)} cell present for \strong{both}
+geographies and all three pathways;
+\item \code{ABOG_PLUS_ABU == ABOG + ABU_NET_NEW}; 64-hex \code{source_sha256};
+manifest snapshot date consistent with the table;
+\item release-contract canonical cell agrees with the counts table;
+\item CSV SHA-256 matches the manifest;
+\item with a parquet reader, the served counts reconstruct from the
+provider snapshot (subspecialty-cert basis).
+}
+}
+\examples{
+# the bundled artifact validates:
+validate_urps_artifact(system.file("extdata", package = "mufflyaccess"))
+}
 \seealso{
-\code{\link[=use_urps_artifact]{use_urps_artifact()}}, \code{\link[=validate_urps_ssot]{validate_urps_ssot()}}
+\code{\link[=use_urps_artifact]{use_urps_artifact()}}, \code{\link[=validate_urps_ssot]{validate_urps_ssot()}}, \code{\link[=compare_urps_artifacts]{compare_urps_artifacts()}}
 
 Other URPS workforce: 
 \code{\link{compare_urps_artifacts}()},

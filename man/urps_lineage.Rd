@@ -7,8 +7,13 @@
 urps_lineage()
 }
 \value{
-A \code{data.frame} with \code{contract_version}, \code{national_active},
-\code{conus_active}, \code{status} (\code{"current"} / \code{"retired"}), and \code{basis}.
+A \code{data.frame}, current row first, with columns:
+\describe{
+\item{contract_version}{e.g. \code{"3.0.0"} (current) / \code{"2.1.0"} (retired)}
+\item{national_active, conus_active}{the 2023 board_certified_active cells}
+\item{status}{\code{"current"} or \code{"retired"}}
+\item{basis}{the certification basis for that estimate}
+}
 }
 \description{
 A machine-readable lineage of the 2023 board_certified_active
@@ -18,11 +23,19 @@ cells the producer recorded (\code{retired_cells}). Consumers use this to detect
 value that was canonical under an old contract but must never be presented as
 current (e.g. v2.1.0's 1332/1329 after v3.0.0).
 }
+\details{
+The \code{current} row comes from the served manifest's headline counts;
+the \code{retired} row(s) come from its \code{retired_cells} block. \code{basis} names the
+certification basis (e.g. URPS subspecialty cert vs primary board cert) that
+distinguishes the estimates. A consumer can screen a candidate value against
+the \code{retired} rows (or \code{\link[=urps_retired_values]{urps_retired_values()}}) to refuse presenting a stale
+count as current.
+}
 \examples{
 urps_lineage()
 }
 \seealso{
-\code{\link[=urps_provenance]{urps_provenance()}}, \code{\link[=urps_count]{urps_count()}}
+\code{\link[=urps_retired_values]{urps_retired_values()}}, \code{\link[=urps_provenance]{urps_provenance()}}, \code{\link[=urps_count]{urps_count()}}
 
 Other URPS workforce: 
 \code{\link{compare_urps_artifacts}()},

@@ -35,8 +35,14 @@ wide \code{counts} \code{data.frame} (as from \code{\link[=urps_counts]{urps_cou
 schema, unique + complete 2013-2023 years, 64-hex hashes, and the
 \code{combined_active == abog_active + abu_net_new} identity.
 }
+\examples{
+validate_urps_ssot()                     # the active artifact
+validate_urps_ssot(urps_counts())        # a wide counts table
+# release gate (errors on the bundled bootstrap):
+try(validate_urps_ssot(require_external = TRUE, require_contract_version = "3.0.0"))
+}
 \seealso{
-\code{\link[=validate_urps_artifact]{validate_urps_artifact()}}, \code{\link[=urps_provenance]{urps_provenance()}}
+\code{\link[=validate_urps_artifact]{validate_urps_artifact()}}, \code{\link[=urps_provenance]{urps_provenance()}}, \code{\link[=use_urps_artifact]{use_urps_artifact()}}
 
 Other URPS workforce: 
 \code{\link{compare_urps_artifacts}()},

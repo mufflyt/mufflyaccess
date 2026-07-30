@@ -20,16 +20,27 @@
 #' * **Rurality (RUCA)** — [RUCA_NONMETRO_MIN], [rurality_from_ruca()]
 #' * **PFD prevalence** — [WU2014_PFD_PREVALENCE], [pfd_prevalence()],
 #'   [pfd_prevalence_acs_bands()]
-#' * **URPS workforce (frozen)** — [URPS_COUNT_ABOG_ONLY_2025],
-#'   [URPS_COUNT_ABOG_PLUS_ABU_2025]
+#' * **URPS workforce SSOT** — [urps_count()], [urps_counts()],
+#'   [urps_counts_long()], [urps_provenance()], [urps_lineage()],
+#'   [urps_retired_values()], [use_urps_artifact()], [validate_urps_artifact()],
+#'   [validate_urps_ssot()], [compare_urps_artifacts()]; the deprecated
+#'   [URPS_COUNT_ABOG_ONLY_2025] / [URPS_COUNT_ABOG_PLUS_ABU_2025] constants
 #' * **Accessibility statistics** — [weighted_mean_all()], [zero_access_share()],
 #'   [mc_weighted_ci()], [annual_trend()], [tract_vintage_of()], [acs_year_of()]
 #' * **Safe division** — [safe_divide()] and its family
 #'
+#' @section The URPS workforce SSOT:
+#' isochrones builds and hashes the provider roster; mufflyaccess reads, validates,
+#' and serves it; consumers call [urps_count()] and never derive a national count
+#' themselves. The served contract is v3.0.0: the canonical 2023 estimand is
+#' `board_certified_active / national` = **1306** (CONUS 1303), **1339** is the
+#' 2025 `roster_snapshot`, and the retired v2.1.0 cells (1332 / 1329) are surfaced
+#' only via [urps_lineage()] / [urps_retired_values()]. See `ARCHITECTURE.md`.
+#'
 #' @section Design:
 #' Values that must agree are *derived* from one another (never duplicated), each
 #' `R/` file ends in a `stopifnot()` block that errors at load on an impossible
-#' edit, and consumers pin a tagged release rather than tracking the branch. See
+#' edit, and consumers pin a release commit rather than tracking the branch. See
 #' the package README and `CONTRIBUTING.md` for the promotion checklist and the
 #' consumer shim pattern.
 #'
