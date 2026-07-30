@@ -13,7 +13,7 @@
     "status": "migrated + pinned to 0.7.0 (branch pushed, not merged)",
     "branch": "claude/urps-contract-migration",
     "mufflyaccess_pin": "mufflyt/mufflyaccess@69a8560 (0.7.0, contract v3.0.0)",
-    "notes": "2025 status-quo (roster_snapshot=1339) routed through urps_count(); legacy frozen SGS projection cohort (1295) PRESERVED, relabeled, annotated, NOT re-run. NEW SCENARIO URPS_2023_ACTIVE_NATIONAL_CURRENT/_CONUS_CURRENT sourced from urps_count() (1306/1303), separate from 1295. DESCRIPTION Imports+Remotes pin; test-mufflyaccess-version.R enforces >=0.7.0 + v3.0.0. Guard now protects 1306/1303/1339/1336/1332/1329/1295. 25 checks pass. Three distinct baselines: 1295 legacy / 1306 active / 1339 roster."
+    "notes": "2025 status-quo (roster_snapshot=1339) routed through urps_count(); legacy frozen SGS projection cohort (1295) PRESERVED, relabeled, annotated, NOT re-run. NEW SCENARIO URPS_2023_ACTIVE_NATIONAL_CURRENT/_CONUS_CURRENT sourced from urps_count() (1306/1303), separate from 1295. DESCRIPTION Imports+Remotes pin; test-mufflyaccess-version.R enforces >=0.7.0 + v3.0.0. Guard now protects 1306/1303/1339/1336/1332/1329/1295. SCIENTIFIC FOLLOW-UP DONE: scripts/urps_baseline_scenarios/ compares 1295 (published, not re-run) / 1306 (engine re-run) / 1339 (engine re-run); frozen projection preserved. 36 checks pass."
   },
   "twostep": {
     "status": "migrated + pinned to 0.7.0 (branch pushed, not merged)",
