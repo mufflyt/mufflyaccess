@@ -45,4 +45,5 @@ ci95_halfwidth <- moe_90 * MOE90_TO_CI95_FACTOR
 \code{\link[=mc_weighted_ci]{mc_weighted_ci()}}, which divides an ACS margin of error by
 \code{ACS_MOE_Z90} to recover the standard error it resamples.
 }
+\concept{margin-of-error}
 \keyword{datasets}

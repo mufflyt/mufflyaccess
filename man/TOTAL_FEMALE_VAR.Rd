@@ -4,10 +4,10 @@
 \name{TOTAL_FEMALE_VAR}
 \alias{TOTAL_FEMALE_VAR}
 \alias{RACE_FEMALE_VARS}
-\title{Canonical ACS female-population variable codes (footgun: race tables use _017,
-full B01001 uses _026).}
+\title{Canonical ACS female-population variable codes}
 \format{
-An object of class \code{character} of length 1.
+\code{TOTAL_FEMALE_VAR} is a character scalar; \code{RACE_FEMALE_VARS} is a named
+character vector (\code{white_nh}, \code{hispanic}, \code{black}, \code{aian}, \code{asian}, \code{nhpi}).
 
 An object of class \code{character} of length 6.
 }
@@ -22,7 +22,26 @@ TOTAL_FEMALE_VAR
 RACE_FEMALE_VARS
 }
 \description{
-Canonical ACS female-population variable codes (footgun: race tables use _017,
-full B01001 uses _026).
+The ACS table variables behind every female-population
+denominator. \code{TOTAL_FEMALE_VAR} is total female from the full B01001 table;
+\code{RACE_FEMALE_VARS} is a named vector of the race-iterated female totals.
+\strong{Footgun (why these are pinned here):} the full B01001 table uses the
+\verb{_026} total-female cell, but the race-iterated tables (B01001B-I) top out at
+\verb{_017} -- mixing the two silently double-counts or drops age bands. Reference
+these rather than re-typing variable codes.
 }
+\examples{
+TOTAL_FEMALE_VAR                 # "B01001_026" (full table -> _026)
+names(RACE_FEMALE_VARS)          # the six race/ethnicity groups
+RACE_FEMALE_VARS[["black"]]      # "B01001B_017" (race tables -> _017)
+}
+\seealso{
+\link{ACS2020_CONUS_FEMALE_POP} (the summed denominator),
+\link{DENOMINATOR_CATEGORY} (the access-table row label)
+
+Other census denominators: 
+\code{\link{ACS2020_CONUS_FEMALE_POP}},
+\code{\link{DENOMINATOR_CATEGORY}}
+}
+\concept{census denominators}
 \keyword{datasets}

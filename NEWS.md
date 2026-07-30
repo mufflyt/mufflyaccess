@@ -1,3 +1,14 @@
+# mufflyaccess 0.7.2
+
+* **Documentation.** Grouped the constants into `@family` clusters so the help
+  index and pkgdown reference navigate cleanly: `census denominators`
+  (`ACS2020_CONUS_FEMALE_POP`, `TOTAL_FEMALE_VAR`/`RACE_FEMALE_VARS`,
+  `DENOMINATOR_CATEGORY`), `margin-of-error`, `rurality`
+  (`RUCA_NONMETRO_MIN` + `rurality_from_ruca()`), and `TRACT_REACHED_COVERAGE_PCT`
+  under `access-band constants`. Fleshed out the ACS female-variable-code docs
+  (`@description`/`@format`/`@seealso`/`@examples`, incl. the `_017` vs `_026`
+  footgun) and added the missing `NON_CONTIGUOUS_FIPS` example. Docs-only.
+
 # mufflyaccess 0.7.1
 
 * **Documentation.** Expanded the URPS SSOT roxygen: an `@details` estimand model

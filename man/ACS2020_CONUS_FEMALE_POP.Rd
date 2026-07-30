@@ -28,5 +28,10 @@ attr(ACS2020_CONUS_FEMALE_POP, "vintage")  # "ACS 2016-2020 5-year"
 }
 \seealso{
 \link{TOTAL_FEMALE_VAR} (the ACS variable code), \link{CONUS_STATE_FIPS} (the scope)
+
+Other census denominators: 
+\code{\link{DENOMINATOR_CATEGORY}},
+\code{\link{TOTAL_FEMALE_VAR}}
 }
+\concept{census denominators}
 \keyword{datasets}

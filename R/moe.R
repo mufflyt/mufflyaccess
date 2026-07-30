@@ -14,6 +14,7 @@
 #'   Promoted from isochrones/R/moe_propagation.R.
 #' @seealso [mc_weighted_ci()], which divides an ACS margin of error by
 #'   `ACS_MOE_Z90` to recover the standard error it resamples.
+#' @family margin-of-error
 #' @examples
 #' ACS_MOE_Z90                         # 1.645
 #' moe_90 <- 500

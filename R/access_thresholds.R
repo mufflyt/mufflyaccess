@@ -8,6 +8,7 @@
 #' @format Integer scalar, percent in (0, 100].
 #' @source isochrones/R/access_thresholds.R; Ryerson 2022 two-vector desert def.
 #' @seealso [PRIMARY_ACCESS_BAND_MIN] (the band a tract is "reached" within)
+#' @family access-band constants
 #' @examples
 #' TRACT_REACHED_COVERAGE_PCT               # 50
 #' # a tract counts as reached when >= this percent of its women are in-band:

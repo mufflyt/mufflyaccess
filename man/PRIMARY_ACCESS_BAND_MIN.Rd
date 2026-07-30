@@ -23,7 +23,8 @@ PRIMARY_ACCESS_BAND_MIN  # 60
 
 Other access-band constants: 
 \code{\link{CANONICAL_BANDS}},
-\code{\link{PRIMARY_ACCESS_BAND_SEC}}
+\code{\link{PRIMARY_ACCESS_BAND_SEC}},
+\code{\link{TRACT_REACHED_COVERAGE_PCT}}
 }
 \concept{access-band constants}
 \keyword{datasets}

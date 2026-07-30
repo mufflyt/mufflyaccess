@@ -17,6 +17,10 @@ NON_CONTIGUOUS_CODES <- c("HI", "AK", "PR", "GU", "VI", "AS", "MP")
 #'   Promoted from isochrones/R/geographic_classification.R.
 #' @seealso [NON_CONTIGUOUS_CODES] (the USPS form), [CONUS_STATE_FIPS] (the complement)
 #' @family geography constants
+#' @examples
+#' NON_CONTIGUOUS_FIPS               # "02" (AK) "15" (HI) "60" ... territories
+#' # drop non-contiguous rows from a state-FIPS-keyed table:
+#' # subset(tbl, !state_fips %in% NON_CONTIGUOUS_FIPS)
 #' @export
 NON_CONTIGUOUS_FIPS <- c("02", "15", "60", "66", "69", "72", "78")
 
