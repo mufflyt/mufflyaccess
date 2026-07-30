@@ -1,3 +1,17 @@
+# mufflyaccess 0.8.0
+
+* **Detailed provenance.** `urps_provenance(detailed = TRUE)` adds a nested
+  `detail` element carrying the full source-to-artifact chain: the enriched source
+  rosters as a `data.frame(name, path, sha256)`, the `combined_source_sha256`, the
+  producing git commit, the output-artifact hashes, the cohort/cert-basis
+  definition (real subspecialty cert dates + the fellowship-proxy fallbacks and
+  their counts), the geography-resolution rule and state-source counts, the
+  provider-snapshot reconstruction stats (`rows_national`, `rows_active_2023`,
+  future certifications), and the producer's known limitations. It also runs a
+  **live integrity check** -- the served CSV / provider-parquet SHA-256 recomputed
+  and compared to the manifest (`integrity$*_verified`). The default
+  (`detailed = FALSE`) output is unchanged, so existing callers are unaffected.
+
 # mufflyaccess 0.7.2
 
 * **Documentation.** Grouped the constants into `@family` clusters so the help

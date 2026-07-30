@@ -4,7 +4,12 @@
 \alias{urps_provenance}
 \title{Provenance / manifest for the URPS workforce SSOT}
 \usage{
-urps_provenance()
+urps_provenance(detailed = FALSE)
+}
+\arguments{
+\item{detailed}{If \code{TRUE}, add the nested \code{detail} element (see \strong{Value}) with
+the full source-to-artifact provenance chain and a live integrity check.
+Default \code{FALSE} returns the stable summary only.}
 }
 \value{
 A named list:
@@ -27,6 +32,27 @@ integrity + commit provenance}
 \code{\link[=urps_retired_values]{urps_retired_values()}})}
 \item{method_version, package_version}{producer + installed package versions}
 }
+With \code{detailed = TRUE}, one extra element \code{detail} -- a nested list carrying
+the full, verifiable provenance chain:
+\describe{
+\item{artifact_dir, created_at}{served directory and artifact build time}
+\item{measure_year, model_baseline_year, roster_snapshot_date}{the three
+distinct years, kept separate}
+\item{geography_resolution_rule, state_source_counts}{how each provider's
+state (hence CONUS membership) was resolved, and from which source}
+\item{cohort_definition}{the URPS-subspecialty-cert basis: real cert dates,
+the fellowship-proxy fallbacks, and how many providers used each}
+\item{provider_snapshot}{grain and the reconstruction counts
+(\code{rows_national}, \code{rows_active_2023}, future certifications)}
+\item{source_files}{a \code{data.frame(name, path, sha256)} of the enriched
+source rosters}
+\item{combined_source_sha256, output_files}{the combined source hash and
+the produced-artifact hashes}
+\item{integrity}{a \strong{live} check -- the served CSV / parquet SHA-256
+recomputed and compared to the manifest (\verb{*_verified} is \code{TRUE}/\code{FALSE},
+or \code{NA} when \code{digest} is unavailable)}
+\item{known_limitations}{the producer's documented caveats}
+}
 }
 \description{
 Everything needed to cite or audit the served numbers: contract /
@@ -46,9 +72,16 @@ Accessing this on an unusable external source emits a warning (see
 \examples{
 urps_provenance()$canonical_2023_estimand
 urps_provenance()[c("contract_version", "artifact_source", "canonical_release")]
+
+# the full chain, with a live SHA-256 integrity check of the served bytes:
+d <- urps_provenance(detailed = TRUE)$detail
+d$source_files                      # enriched rosters + hashes
+d$cohort_definition$source_counts   # how the active cohort was dated
+d$integrity$counts_csv_verified     # TRUE: served bytes match the manifest
 }
 \seealso{
-\code{\link[=urps_count]{urps_count()}}, \code{\link[=urps_lineage]{urps_lineage()}}, \code{\link[=validate_urps_ssot]{validate_urps_ssot()}}, \code{\link[=use_urps_artifact]{use_urps_artifact()}}
+\code{\link[=urps_count]{urps_count()}}, \code{\link[=urps_lineage]{urps_lineage()}}, \code{\link[=validate_urps_artifact]{validate_urps_artifact()}},
+\code{\link[=validate_urps_ssot]{validate_urps_ssot()}}, \code{\link[=use_urps_artifact]{use_urps_artifact()}}
 
 Other URPS workforce: 
 \code{\link{compare_urps_artifacts}()},
