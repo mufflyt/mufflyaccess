@@ -11,9 +11,15 @@ compare_urps_artifacts(old, candidate)
 \code{candidate} = proposed).}
 }
 \value{
-A named list with \code{added_providers}, \code{removed_providers},
-\code{changed_certification_year}, \code{changed_geography}, \code{changed_pathway},
-\code{changed_counts}.
+A named list; provider-level fields are populated only when the
+provider parquet is readable (arrow / nanoparquet):
+\describe{
+\item{added_providers, removed_providers}{NPIs gained / dropped}
+\item{changed_certification_year, changed_geography, changed_pathway}{
+NPIs whose attribute changed}
+\item{changed_counts}{\code{year|measure|geography|pathway} keys whose count
+changed}
+}
 }
 \description{
 Structured diff of two artifact directories: provider additions /
@@ -22,8 +28,14 @@ certification years, changed geography assignments, changed pathway
 assignments, and changed count cells. A non-empty diff means the candidate
 release must not be adopted without reviewed, accepted drift.
 }
+\examples{
+\dontrun{
+drift <- compare_urps_artifacts("artifacts/v3.0.0", "artifacts/candidate")
+if (length(drift$changed_counts)) stop("counts changed; review before adopting")
+}
+}
 \seealso{
-\code{\link[=validate_urps_artifact]{validate_urps_artifact()}}
+\code{\link[=validate_urps_artifact]{validate_urps_artifact()}}, \code{\link[=use_urps_artifact]{use_urps_artifact()}}
 
 Other URPS workforce: 
 \code{\link{urps_count}()},

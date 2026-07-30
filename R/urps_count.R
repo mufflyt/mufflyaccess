@@ -162,6 +162,12 @@
 #' @return Invisibly the resolved directory (or `"bundled"`).
 #' @seealso [urps_count()], [urps_provenance()], [validate_urps_artifact()]
 #' @family URPS workforce
+#' @examples
+#' \dontrun{
+#' use_urps_artifact("path/to/isochrones/artifacts/workforce")  # validated; fails closed
+#' urps_provenance()$artifact_source                            # "external"
+#' use_urps_artifact(NULL)                                      # back to the bundled bootstrap
+#' }
 #' @export
 use_urps_artifact <- function(dir = NULL) {
   if (is.null(dir)) {
@@ -184,31 +190,83 @@ use_urps_artifact <- function(dir = NULL) {
 
 #' National URPS workforce count -- the published SSOT accessor
 #'
-#' @description The single-source-of-truth accessor for the national active URPS
-#'   count. Consumers call this and **never hardcode or independently derive a
-#'   national URPS count** (see `ARCHITECTURE.md`).
+#' @description The single-source-of-truth accessor for the national urogynecology
+#'   / reconstructive-pelvic-surgery (URPS) workforce count. Consumers call this
+#'   and **never hardcode or independently derive a national URPS count** (see
+#'   `ARCHITECTURE.md`). A count is only interpretable once its *measure*, *year*,
+#'   *geography*, and *pathway inclusion* are fixed, so all four are explicit
+#'   arguments.
+#'
+#' @details
+#' Under contract v3.0.0 `board_certified_active` is keyed on the URPS
+#' **subspecialty** certification year (training-accurate, post-fellowship), so a
+#' provider whose subspecialty certification postdates the requested year is not
+#' yet counted. The two measures answer different questions and are **not**
+#' interchangeable:
+#' \itemize{
+#'   \item `board_certified_active` -- the estimated active board-certified
+#'     workforce in a given year (2013-2023).
+#'   \item `roster_snapshot` -- the 2025 headcount of the identified roster
+#'     (includes providers whose subspecialty certification postdates 2023).
+#' }
+#' Validation errors are raised (never silent) for an out-of-window year, an
+#' unknown measure/geography, a non-scalar or `NA` argument, and -- unless
+#' `incomplete = "na"` -- an absent published cell.
+#'
+#' @section Estimands (contract v3.0.0):
+#' The published 2023 `board_certified_active` and 2025 `roster_snapshot` cells:
+#' \itemize{
+#'   \item national / 2023 active: ABOG 1027 + ABU net-new 279 = **1306**
+#'   \item conus / 2023 active: ABOG 1026 + ABU net-new 277 = **1303**
+#'   \item national / 2025 roster: 1031 + 308 = **1339**; conus = 1336
+#' }
+#' **1339 is the 2025 roster snapshot, not the 2023 active count. 1332 / 1329 are
+#' RETIRED v2.1.0 cells** (primary-cert basis) surfaced only by [urps_lineage()] /
+#' [urps_retired_values()] and must never be presented as current.
+#'
 #' @param year Integer measure year. `board_certified_active` covers 2013-2023;
-#'   `roster_snapshot` is the 2025 snapshot.
+#'   `roster_snapshot` is the 2025 snapshot. A year outside a measure's window is
+#'   a hard error.
 #' @param measure `"board_certified_active"` (default; the active-in-year cohort)
 #'   or `"roster_snapshot"` (the 2025 roster). Case-insensitive.
 #' @param geography `"national"` (default) or `"conus"`. Case-insensitive.
-#' @param include_urology Single non-`NA` logical. `FALSE` (default) = ABOG only;
-#'   `TRUE` = both-pathway ABOG + ABU (`ABOG_PLUS_ABU`).
+#' @param include_urology Single non-`NA` logical. `FALSE` (default) = ABOG only
+#'   (`ABOG` pathway); `TRUE` = both-pathway ABOG + ABU (`ABOG_PLUS_ABU`).
 #' @param incomplete How to handle a published cell that is absent/`NA`:
-#'   `"error"` (default) stops; `"na"` returns `NA_integer_`. (A year outside a
-#'   measure's declared window is always a hard error, never a silent `NA`.)
-#' @param details If `TRUE`, return a labelled list (count plus measure,
-#'   geography, year, pathway, value status, snapshot date, contract/artifact
-#'   version, source commit, and canonical flag) so a downstream caller never
-#'   receives a context-free integer. Default `FALSE` returns a bare integer.
-#' @return A length-1 integer (or, with `details = TRUE`, a named list).
-#' @seealso [urps_counts()], [urps_provenance()], [validate_urps_ssot()], [use_urps_artifact()]
+#'   `"error"` (default) stops with an explanatory message; `"na"` returns
+#'   `NA_integer_`. A year outside a measure's declared window is always a hard
+#'   error, never a silent `NA`.
+#' @param details If `TRUE`, return a labelled list instead of a bare integer so a
+#'   downstream caller never receives a context-free number (see **Value**).
+#'
+#' @return With `details = FALSE` (default), a length-1 integer `n_active` (or
+#'   `NA_integer_` when `incomplete = "na"` and the cell is absent). With
+#'   `details = TRUE`, a named list:
+#'   \describe{
+#'     \item{count}{the integer count}
+#'     \item{year, measure, geography, include_urology}{the resolved request}
+#'     \item{board_pathway}{`"ABOG"` or `"ABOG_PLUS_ABU"`}
+#'     \item{value_status}{`"observed"` (ABOG) or `"derived"` (ABOG_PLUS_ABU)}
+#'     \item{snapshot_date}{source roster snapshot `Date`}
+#'     \item{contract_version, artifact_version, source_git_commit}{provenance}
+#'     \item{canonical_release}{`TRUE` only when serving an external release}
+#'     \item{artifact_source}{`"external"` or `"bundled_bootstrap"`}
+#'   }
+#' @seealso [urps_counts()], [urps_provenance()], [urps_lineage()],
+#'   [validate_urps_ssot()], [use_urps_artifact()]
 #' @family URPS workforce
 #' @examples
-#' urps_count(2023, "board_certified_active", "national", FALSE)  # 1031
-#' urps_count(2023, "board_certified_active", "national", TRUE)   # 1306
+#' urps_count(2023, "board_certified_active", "national", FALSE)  # 1027 (ABOG only)
+#' urps_count(2023, "board_certified_active", "national", TRUE)   # 1306 (with urology)
 #' urps_count(2023, "board_certified_active", "conus",    TRUE)   # 1303
-#' urps_count(2025, "roster_snapshot",        "national", TRUE)   # 1339
+#' urps_count(2025, "roster_snapshot",        "national", TRUE)   # 1339 (2025 roster)
+#'
+#' # a labelled record for a footnote / caption (never a context-free 1306):
+#' str(urps_count(2023, "board_certified_active", "national", TRUE, details = TRUE))
+#'
+#' # out-of-window requests are hard errors (a measure is only valid in its window):
+#' try(urps_count(2025, "board_certified_active"))  # error: bca is 2013-2023
+#' try(urps_count(2023, "roster_snapshot"))         # error: roster is 2025 only
 #' @export
 urps_count <- function(year = 2023L, measure = "board_certified_active",
                        geography = "national", include_urology = FALSE,
@@ -259,16 +317,32 @@ urps_count <- function(year = 2023L, measure = "board_certified_active",
 
 #' A wide URPS workforce slice for one measure x geography
 #'
-#' @description One row per year for the chosen `measure`/`geography`, with
-#'   `abog_active`, `abu_net_new`, `combined_active`, provenance columns, and
-#'   explicit `*_status` columns. Defaults to the canonical
-#'   `board_certified_active` / `national` slice (years 2013-2023). Use
-#'   [urps_counts_long()] for the complete long table across all cells.
+#' @description One row per year for the chosen `measure`/`geography`, pivoted
+#'   wide across pathways, with explicit missingness columns. Defaults to the
+#'   canonical `board_certified_active` / `national` slice (years 2013-2023). Use
+#'   [urps_counts_long()] for the complete long table across all cells, or
+#'   [urps_count()] for a single value.
 #' @param measure `"board_certified_active"` (default) or `"roster_snapshot"`.
-#' @param geography `"national"` (default) or `"conus"`.
-#' @return A `data.frame`.
+#'   Case-insensitive.
+#' @param geography `"national"` (default) or `"conus"`. Case-insensitive.
+#' @return A `data.frame` with one row per measure year and columns:
+#'   \describe{
+#'     \item{year, measure, geography}{the slice keys}
+#'     \item{abog_active, abu_net_new, combined_active}{counts per pathway
+#'       (`combined_active == abog_active + abu_net_new`)}
+#'     \item{measure_year}{alias of `year`, to keep the measure year distinct from
+#'       the snapshot date}
+#'     \item{snapshot_date}{source roster `Date`}
+#'     \item{method_version, source_sha256}{provenance}
+#'     \item{abog_active_status, abu_net_new_status, combined_active_status}{
+#'       `"observed"` / `"derived"` / `"unavailable"` -- so `NA` is never mistaken
+#'       for a genuine zero}
+#'   }
 #' @seealso [urps_count()], [urps_counts_long()], [urps_provenance()]
 #' @family URPS workforce
+#' @examples
+#' urps_counts()                                   # board_certified_active / national
+#' utils::tail(urps_counts("board_certified_active", "conus"), 3)
 #' @export
 urps_counts <- function(measure = "board_certified_active", geography = "national") {
   measure   <- .urps_norm_choice(measure,   "measure",   .urps_measures)
@@ -304,26 +378,59 @@ urps_counts <- function(measure = "board_certified_active", geography = "nationa
 
 #' The complete long URPS workforce table (all measures x geographies)
 #'
-#' @return A `data.frame` with columns `year, measure, geography, board_pathway,
-#'   n_active, n_ever_certified, n_retired, snapshot_date, source_sha256,
-#'   method_version`.
-#' @seealso [urps_counts()], [urps_count()]
+#' @description The full served artifact as a tidy long table -- every
+#'   `year x measure x geography x board_pathway` cell -- for callers that want to
+#'   filter or pivot themselves. [urps_counts()] returns a convenient wide slice
+#'   and [urps_count()] a single value.
+#' @return A `data.frame` with columns `year`, `measure`, `geography`,
+#'   `board_pathway`, `n_active`, `n_ever_certified`, `n_retired`,
+#'   `snapshot_date`, `source_sha256`, `method_version`.
+#' @seealso [urps_counts()], [urps_count()], [urps_provenance()]
 #' @family URPS workforce
+#' @examples
+#' d <- urps_counts_long()
+#' d[d$year == 2023 & d$geography == "national", c("measure", "board_pathway", "n_active")]
 #' @export
 urps_counts_long <- function() .urps_read_long()
 
 #' Provenance / manifest for the URPS workforce SSOT
 #'
-#' @description Metadata for the active artifact: versions, measures/geographies,
-#'   snapshot date, definitions, source hash / git commit, release-readiness
-#'   flags, and the installed package version. `artifact_source` is `"external"`
-#'   when a released artifact is served and `"bundled_bootstrap"` otherwise
-#'   (including after a silent option/env fallback, whose reason is in
-#'   `external_artifact_error`). `canonical_release` / `suitable_for_release` are
-#'   `FALSE` for the bootstrap.
-#' @return A named list; `measure_years` is integer, `snapshot_date` is a `Date`.
-#' @seealso [urps_count()], [validate_urps_ssot()], [use_urps_artifact()]
+#' @description Everything needed to cite or audit the served numbers: contract /
+#'   artifact versions, the measures and geographies, the snapshot date, the
+#'   active-in-year and deduplication definitions, the source hash and git commit,
+#'   the disclosure-ready source wording, release-readiness flags, and the recorded
+#'   retired cells.
+#' @details `artifact_source` is `"external"` when a released artifact is served
+#'   and `"bundled_bootstrap"` otherwise -- including after a silent option/env
+#'   fallback, whose reason is then in `external_artifact_error`.
+#'   `canonical_release` / `suitable_for_release` are `FALSE` for the bootstrap.
+#'   Accessing this on an unusable external source emits a warning (see
+#'   [use_urps_artifact()]).
+#' @return A named list:
+#'   \describe{
+#'     \item{artifact_version, contract_version}{version strings (e.g. `"3.0.0"`)}
+#'     \item{artifact_source}{`"external"` or `"bundled_bootstrap"`}
+#'     \item{canonical_release, suitable_for_release}{release-readiness flags}
+#'     \item{canonical_2023_estimand}{human-readable canonical-cell statement}
+#'     \item{external_artifact_error}{`NULL`, or the fallback reason}
+#'     \item{measure_years}{integer vector (2013:2023)}
+#'     \item{measures, geographies, boards}{the published dimensions}
+#'     \item{snapshot_date}{a `Date`; distinct from the measure year}
+#'     \item{roster_reflects_certifications_through}{last cert year in the roster}
+#'     \item{geographic_scope, active_in_year_definition, deduplication_rule}{
+#'       definitional metadata}
+#'     \item{source_sha256, source_git_commit, git_commit_semantics}{source
+#'       integrity + commit provenance}
+#'     \item{source_description, source_systems}{disclosure-ready source wording}
+#'     \item{retired_cells}{cells retired by an earlier contract (see
+#'       [urps_retired_values()])}
+#'     \item{method_version, package_version}{producer + installed package versions}
+#'   }
+#' @seealso [urps_count()], [urps_lineage()], [validate_urps_ssot()], [use_urps_artifact()]
 #' @family URPS workforce
+#' @examples
+#' urps_provenance()$canonical_2023_estimand
+#' urps_provenance()[c("contract_version", "artifact_source", "canonical_release")]
 #' @export
 urps_provenance <- function() {
   r  <- .urps_resolve()
@@ -371,9 +478,20 @@ urps_provenance <- function() {
 #'   cells the producer recorded (`retired_cells`). Consumers use this to detect a
 #'   value that was canonical under an old contract but must never be presented as
 #'   current (e.g. v2.1.0's 1332/1329 after v3.0.0).
-#' @return A `data.frame` with `contract_version`, `national_active`,
-#'   `conus_active`, `status` (`"current"` / `"retired"`), and `basis`.
-#' @seealso [urps_provenance()], [urps_count()]
+#' @details The `current` row comes from the served manifest's headline counts;
+#'   the `retired` row(s) come from its `retired_cells` block. `basis` names the
+#'   certification basis (e.g. URPS subspecialty cert vs primary board cert) that
+#'   distinguishes the estimates. A consumer can screen a candidate value against
+#'   the `retired` rows (or [urps_retired_values()]) to refuse presenting a stale
+#'   count as current.
+#' @return A `data.frame`, current row first, with columns:
+#'   \describe{
+#'     \item{contract_version}{e.g. `"3.0.0"` (current) / `"2.1.0"` (retired)}
+#'     \item{national_active, conus_active}{the 2023 board_certified_active cells}
+#'     \item{status}{`"current"` or `"retired"`}
+#'     \item{basis}{the certification basis for that estimate}
+#'   }
+#' @seealso [urps_retired_values()], [urps_provenance()], [urps_count()]
 #' @family URPS workforce
 #' @examples
 #' urps_lineage()
@@ -404,10 +522,19 @@ urps_lineage <- function() {
 
 #' Values retired from an earlier URPS contract (never present as current)
 #'
+#' @description A flat integer vector of counts that were canonical under a prior
+#'   contract and must **not** be presented as current. Use it as a guard in
+#'   downstream code and manuscripts (e.g. fail a build if a figure caption
+#'   contains one of these as "the 2023 count").
 #' @return An integer vector of retired national/CONUS 2023 active counts (e.g.
-#'   v2.1.0's 1332/1329), or `integer(0)` if the artifact records none.
-#' @seealso [urps_lineage()]
+#'   v2.1.0's 1332 / 1329), or `integer(0)` if the artifact records none.
+#' @seealso [urps_lineage()], [urps_provenance()]
 #' @family URPS workforce
+#' @examples
+#' urps_retired_values()
+#' # a consumer-side guard:
+#' stopifnot(!urps_count(2023, "board_certified_active", "national", TRUE) %in%
+#'           urps_retired_values())
 #' @export
 urps_retired_values <- function() {
   rc <- .urps_manifest()$retired_cells
@@ -426,11 +553,29 @@ urps_retired_values <- function() {
 #'   cell agrees with the counts table, the CSV SHA-256 matches the manifest, and
 #'   -- when a parquet reader is available -- the served counts reconstruct from
 #'   the provider snapshot.
+#' @details Checks performed, each failing loud with a specific message:
+#'   \itemize{
+#'     \item required files present; contract version valid, supported major, and
+#'       consistent between manifest and release contract;
+#'     \item the `measure x geography` schema, known measure/geography/pathway
+#'       values, and each measure inside its declared year window;
+#'     \item no duplicate keys; every `(measure, year)` cell present for **both**
+#'       geographies and all three pathways;
+#'     \item `ABOG_PLUS_ABU == ABOG + ABU_NET_NEW`; 64-hex `source_sha256`;
+#'       manifest snapshot date consistent with the table;
+#'     \item release-contract canonical cell agrees with the counts table;
+#'     \item CSV SHA-256 matches the manifest;
+#'     \item with a parquet reader, the served counts reconstruct from the
+#'       provider snapshot (subspecialty-cert basis).
+#'   }
 #' @param path Directory holding `urps_counts_by_year.csv` + `urps_manifest.json`
 #'   (and, optionally, `urps_release_contract.json` / the provider parquet).
 #' @return Invisibly `TRUE`; otherwise stops with the failed check.
-#' @seealso [use_urps_artifact()], [validate_urps_ssot()]
+#' @seealso [use_urps_artifact()], [validate_urps_ssot()], [compare_urps_artifacts()]
 #' @family URPS workforce
+#' @examples
+#' # the bundled artifact validates:
+#' validate_urps_artifact(system.file("extdata", package = "mufflyaccess"))
 #' @export
 validate_urps_artifact <- function(path) {
   err <- .urps_dir_error(path)
@@ -603,8 +748,13 @@ validate_urps_artifact <- function(path) {
 #' @param require_contract_version Optional exact contract version string to require.
 #' @param require_source_git_commit Optional exact source git commit to require.
 #' @return Invisibly `TRUE`; otherwise stops with the failed check.
-#' @seealso [validate_urps_artifact()], [urps_provenance()]
+#' @seealso [validate_urps_artifact()], [urps_provenance()], [use_urps_artifact()]
 #' @family URPS workforce
+#' @examples
+#' validate_urps_ssot()                     # the active artifact
+#' validate_urps_ssot(urps_counts())        # a wide counts table
+#' # release gate (errors on the bundled bootstrap):
+#' try(validate_urps_ssot(require_external = TRUE, require_contract_version = "3.0.0"))
 #' @export
 validate_urps_ssot <- function(counts = NULL, require_external = FALSE,
                                require_canonical = FALSE,
@@ -664,11 +814,22 @@ validate_urps_ssot <- function(counts = NULL, require_external = FALSE,
 #'   release must not be adopted without reviewed, accepted drift.
 #' @param old,candidate Artifact directories to compare (`old` = current,
 #'   `candidate` = proposed).
-#' @return A named list with `added_providers`, `removed_providers`,
-#'   `changed_certification_year`, `changed_geography`, `changed_pathway`,
-#'   `changed_counts`.
-#' @seealso [validate_urps_artifact()]
+#' @return A named list; provider-level fields are populated only when the
+#'   provider parquet is readable (arrow / nanoparquet):
+#'   \describe{
+#'     \item{added_providers, removed_providers}{NPIs gained / dropped}
+#'     \item{changed_certification_year, changed_geography, changed_pathway}{
+#'       NPIs whose attribute changed}
+#'     \item{changed_counts}{`year|measure|geography|pathway` keys whose count
+#'       changed}
+#'   }
+#' @seealso [validate_urps_artifact()], [use_urps_artifact()]
 #' @family URPS workforce
+#' @examples
+#' \dontrun{
+#' drift <- compare_urps_artifacts("artifacts/v3.0.0", "artifacts/candidate")
+#' if (length(drift$changed_counts)) stop("counts changed; review before adopting")
+#' }
 #' @export
 compare_urps_artifacts <- function(old, candidate) {
   co <- .urps_read_long(old); cc <- .urps_read_long(candidate)

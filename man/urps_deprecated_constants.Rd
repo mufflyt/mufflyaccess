@@ -5,15 +5,18 @@
 \title{Deprecated frozen URPS workforce constants}
 \description{
 \strong{Deprecated -- use \code{\link[=urps_count]{urps_count()}}.} \code{URPS_COUNT_ABOG_ONLY_2025}
-(1031) and \code{URPS_COUNT_ABOG_PLUS_ABU_2025} (1339) carry an ambiguous \verb{_2025}
-suffix: it labels the workforce-model baseline year, but the numbers are the
-\strong{2023 measure-year} active workforce (a distinction \code{\link[=urps_count]{urps_count()}} carries
-explicitly via \code{measure_year} / \code{snapshot_date} / \code{model_baseline_year}).
+(1031) and \code{URPS_COUNT_ABOG_PLUS_ABU_2025} (1339) are the \strong{2025
+\code{roster_snapshot}} values (ABOG-only and ABOG + ABU), \emph{not} the 2023
+board-certified active count (which under contract v3.0.0 is 1027 / 1306).
+The bare \verb{_2025} suffix cannot express the measure/geography a value belongs
+to; \code{\link[=urps_count]{urps_count()}} does, explicitly.
 
+The replacement is
+\code{urps_count(2025, "roster_snapshot", "national", include_urology = ...)}.
 They are retained as \strong{active bindings that warn on access} and return the
-value, so existing references keep working while surfacing the deprecation.
-Call \code{\link[=urps_count]{urps_count()}} instead. Created in \code{.onLoad()}.
+value, so existing references keep working while surfacing the deprecation
+(installed in \code{.onLoad()}).
 }
 \seealso{
-\code{\link[=urps_count]{urps_count()}}, \code{\link[=urps_counts]{urps_counts()}}
+\code{\link[=urps_count]{urps_count()}}, \code{\link[=urps_lineage]{urps_lineage()}}
 }

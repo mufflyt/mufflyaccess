@@ -1,3 +1,14 @@
+# mufflyaccess 0.7.1
+
+* **Documentation.** Expanded the URPS SSOT roxygen: an `@details` estimand model
+  and a v3.0.0 estimand `@section` on `urps_count()`; `\describe{}` return blocks
+  for `urps_count(details=)`, `urps_provenance()`, `urps_counts()`, `urps_lineage()`,
+  and `compare_urps_artifacts()`; a per-check list for `validate_urps_artifact()`;
+  and worked examples on every exported URPS function. Corrected a stale example
+  (2023 ABOG-only is 1027) and the deprecated `*_2025` constants' docs (1031/1339
+  are the 2025 `roster_snapshot`, not the 2023 active count). Package-level doc now
+  lists the full workforce API and states the v3.0.0 estimands. Docs-only.
+
 # mufflyaccess 0.7.0
 
 * **Adopted isochrones contract v3.0.0** (source commit `74085a9e6`,

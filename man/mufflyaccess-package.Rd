@@ -27,19 +27,32 @@ published statistic.
 \item \strong{Rurality (RUCA)} — \link{RUCA_NONMETRO_MIN}, \code{\link[=rurality_from_ruca]{rurality_from_ruca()}}
 \item \strong{PFD prevalence} — \link{WU2014_PFD_PREVALENCE}, \code{\link[=pfd_prevalence]{pfd_prevalence()}},
 \code{\link[=pfd_prevalence_acs_bands]{pfd_prevalence_acs_bands()}}
-\item \strong{URPS workforce (frozen)} — \link{URPS_COUNT_ABOG_ONLY_2025},
-\link{URPS_COUNT_ABOG_PLUS_ABU_2025}
+\item \strong{URPS workforce SSOT} — \code{\link[=urps_count]{urps_count()}}, \code{\link[=urps_counts]{urps_counts()}},
+\code{\link[=urps_counts_long]{urps_counts_long()}}, \code{\link[=urps_provenance]{urps_provenance()}}, \code{\link[=urps_lineage]{urps_lineage()}},
+\code{\link[=urps_retired_values]{urps_retired_values()}}, \code{\link[=use_urps_artifact]{use_urps_artifact()}}, \code{\link[=validate_urps_artifact]{validate_urps_artifact()}},
+\code{\link[=validate_urps_ssot]{validate_urps_ssot()}}, \code{\link[=compare_urps_artifacts]{compare_urps_artifacts()}}; the deprecated
+\link{URPS_COUNT_ABOG_ONLY_2025} / \link{URPS_COUNT_ABOG_PLUS_ABU_2025} constants
 \item \strong{Accessibility statistics} — \code{\link[=weighted_mean_all]{weighted_mean_all()}}, \code{\link[=zero_access_share]{zero_access_share()}},
 \code{\link[=mc_weighted_ci]{mc_weighted_ci()}}, \code{\link[=annual_trend]{annual_trend()}}, \code{\link[=tract_vintage_of]{tract_vintage_of()}}, \code{\link[=acs_year_of]{acs_year_of()}}
 \item \strong{Safe division} — \code{\link[=safe_divide]{safe_divide()}} and its family
 }
 }
 
+\section{The URPS workforce SSOT}{
+
+isochrones builds and hashes the provider roster; mufflyaccess reads, validates,
+and serves it; consumers call \code{\link[=urps_count]{urps_count()}} and never derive a national count
+themselves. The served contract is v3.0.0: the canonical 2023 estimand is
+\code{board_certified_active / national} = \strong{1306} (CONUS 1303), \strong{1339} is the
+2025 \code{roster_snapshot}, and the retired v2.1.0 cells (1332 / 1329) are surfaced
+only via \code{\link[=urps_lineage]{urps_lineage()}} / \code{\link[=urps_retired_values]{urps_retired_values()}}. See \code{ARCHITECTURE.md}.
+}
+
 \section{Design}{
 
 Values that must agree are \emph{derived} from one another (never duplicated), each
 \verb{R/} file ends in a \code{stopifnot()} block that errors at load on an impossible
-edit, and consumers pin a tagged release rather than tracking the branch. See
+edit, and consumers pin a release commit rather than tracking the branch. See
 the package README and \code{CONTRIBUTING.md} for the promotion checklist and the
 consumer shim pattern.
 }
