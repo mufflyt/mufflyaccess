@@ -24,7 +24,8 @@ identical(PRIMARY_ACCESS_BAND_SEC, PRIMARY_ACCESS_BAND_MIN * 60L)  # TRUE
 
 Other access-band constants: 
 \code{\link{CANONICAL_BANDS}},
-\code{\link{PRIMARY_ACCESS_BAND_MIN}}
+\code{\link{PRIMARY_ACCESS_BAND_MIN}},
+\code{\link{TRACT_REACHED_COVERAGE_PCT}}
 }
 \concept{access-band constants}
 \keyword{datasets}

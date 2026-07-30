@@ -10,6 +10,7 @@
 #'   <https://data.census.gov/table/ACSDT5Y2020.B01001>. Promoted from
 #'   isochrones/R/acs_national_female_pop.R.
 #' @seealso [TOTAL_FEMALE_VAR] (the ACS variable code), [CONUS_STATE_FIPS] (the scope)
+#' @family census denominators
 #' @examples
 #' as.integer(ACS2020_CONUS_FEMALE_POP)     # 164690617
 #' attr(ACS2020_CONUS_FEMALE_POP, "vintage")  # "ACS 2016-2020 5-year"

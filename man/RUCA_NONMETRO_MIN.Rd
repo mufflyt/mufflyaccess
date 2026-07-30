@@ -30,5 +30,9 @@ rurality_from_ruca(c(3, 4))         # "Metropolitan" "Rural"
 }
 \seealso{
 \code{\link[=rurality_from_ruca]{rurality_from_ruca()}}, which uses this breakpoint to classify codes.
+
+Other rurality: 
+\code{\link{rurality_from_ruca}()}
 }
+\concept{rurality}
 \keyword{datasets}

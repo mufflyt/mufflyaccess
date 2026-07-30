@@ -18,6 +18,11 @@ NON_CONTIGUOUS_FIPS
 \description{
 Non-contiguous state/territory FIPS codes (excluded from CONUS analyses)
 }
+\examples{
+NON_CONTIGUOUS_FIPS               # "02" (AK) "15" (HI) "60" ... territories
+# drop non-contiguous rows from a state-FIPS-keyed table:
+# subset(tbl, !state_fips \%in\% NON_CONTIGUOUS_FIPS)
+}
 \seealso{
 \link{NON_CONTIGUOUS_CODES} (the USPS form), \link{CONUS_STATE_FIPS} (the complement)
 

@@ -31,5 +31,9 @@ Other accessibility-disparity statistics:
 \code{\link{tract_vintage_of}()},
 \code{\link{weighted_mean_all}()},
 \code{\link{zero_access_share}()}
+
+Other rurality: 
+\code{\link{RUCA_NONMETRO_MIN}}
 }
 \concept{accessibility-disparity statistics}
+\concept{rurality}

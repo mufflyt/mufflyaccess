@@ -26,5 +26,10 @@ DENOMINATOR_CATEGORY                      # "total_female"
 }
 \seealso{
 \link{TOTAL_FEMALE_VAR} (the ACS variable behind this denominator)
+
+Other census denominators: 
+\code{\link{ACS2020_CONUS_FEMALE_POP}},
+\code{\link{TOTAL_FEMALE_VAR}}
 }
+\concept{census denominators}
 \keyword{datasets}

@@ -7,6 +7,7 @@
 #' @format Character scalar.
 #' @source isochrones/R/access_categories.R
 #' @seealso [TOTAL_FEMALE_VAR] (the ACS variable behind this denominator)
+#' @family census denominators
 #' @examples
 #' DENOMINATOR_CATEGORY                      # "total_female"
 #' # select the denominator rows of a Step-4 access table:

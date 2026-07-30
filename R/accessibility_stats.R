@@ -50,6 +50,7 @@ zero_access_share <- function(access, w) {
 #' @return character "Metropolitan"/"Rural" (NA for NA/invalid codes).
 #' @seealso [RUCA_NONMETRO_MIN]
 #' @family accessibility-disparity statistics
+#' @family rurality
 #' @examples
 #' rurality_from_ruca(c(1, 4, 10, NA))
 #' # "Metropolitan" (1-3), "Rural" (>=4), "Rural" (10), NA
@@ -84,11 +85,27 @@ tract_vintage_of <- function(year) ifelse(as.integer(year) >= 2020L, 2020L, 2010
 #' @export
 acs_year_of <- function(year) pmax(pmin(as.integer(year), 2022L), 2013L)
 
-#' Canonical ACS female-population variable codes (footgun: race tables use _017,
-#' full B01001 uses _026).
+#' Canonical ACS female-population variable codes
+#'
+#' @description The ACS table variables behind every female-population
+#'   denominator. `TOTAL_FEMALE_VAR` is total female from the full B01001 table;
+#'   `RACE_FEMALE_VARS` is a named vector of the race-iterated female totals.
+#'   **Footgun (why these are pinned here):** the full B01001 table uses the
+#'   `_026` total-female cell, but the race-iterated tables (B01001B-I) top out at
+#'   `_017` -- mixing the two silently double-counts or drops age bands. Reference
+#'   these rather than re-typing variable codes.
+#' @format `TOTAL_FEMALE_VAR` is a character scalar; `RACE_FEMALE_VARS` is a named
+#'   character vector (`white_nh`, `hispanic`, `black`, `aian`, `asian`, `nhpi`).
 #' @source Primary: U.S. Census Bureau, American Community Survey Detailed Tables
 #'   B01001 "Sex by Age" and the race-iterated B01001B-I,
 #'   <https://data.census.gov/table/ACSDT5Y2020.B01001>.
+#' @seealso [ACS2020_CONUS_FEMALE_POP] (the summed denominator),
+#'   [DENOMINATOR_CATEGORY] (the access-table row label)
+#' @family census denominators
+#' @examples
+#' TOTAL_FEMALE_VAR                 # "B01001_026" (full table -> _026)
+#' names(RACE_FEMALE_VARS)          # the six race/ethnicity groups
+#' RACE_FEMALE_VARS[["black"]]      # "B01001B_017" (race tables -> _017)
 #' @export
 TOTAL_FEMALE_VAR <- "B01001_026"
 #' @rdname TOTAL_FEMALE_VAR
