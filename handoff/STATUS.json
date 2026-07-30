@@ -10,16 +10,16 @@
     "notes": "isochrones published the v2.1.0 URPS workforce artifact set (urps_counts_by_year.csv with measure x geography, urps_manifest.json, urps_provider_snapshot.parquet, urps_release_contract.json). mufflyaccess reads + validates it via use_urps_artifact() and pins it in the isochrones-integration CI job. The v2.1.0 bytes are also bundled as the bootstrap (canonical_release=false) so the default serves the corrected numbers."
   },
   "cliff": {
-    "status": "migrated (branch pushed, not merged)",
+    "status": "migrated + pinned to 0.7.0 (branch pushed, not merged)",
     "branch": "claude/urps-contract-migration",
-    "mufflyaccess_consumed": "0.6.0",
-    "notes": "Non-value-changing migration. 2025 status-quo (=roster_snapshot=1339) usages routed through mufflyaccess::urps_count(); legacy frozen SGS projection cohort (1295) PRESERVED, relabeled (not '2025 active'), annotated # ssot-ok, and NOT re-run. Guard + test-urps-contract-migration.R added (15 checks pass). Requires mufflyaccess>=0.6.0 (not yet declared in cliff DESCRIPTION)."
+    "mufflyaccess_pin": "mufflyt/mufflyaccess@69a8560 (0.7.0, contract v3.0.0)",
+    "notes": "2025 status-quo (roster_snapshot=1339) routed through urps_count(); legacy frozen SGS projection cohort (1295) PRESERVED, relabeled, annotated, NOT re-run. NEW SCENARIO URPS_2023_ACTIVE_NATIONAL_CURRENT/_CONUS_CURRENT sourced from urps_count() (1306/1303), separate from 1295. DESCRIPTION Imports+Remotes pin; test-mufflyaccess-version.R enforces >=0.7.0 + v3.0.0. Guard now protects 1306/1303/1339/1336/1332/1329/1295. 25 checks pass. Three distinct baselines: 1295 legacy / 1306 active / 1339 roster."
   },
   "twostep": {
-    "status": "migrated (branch pushed, not merged)",
+    "status": "migrated + pinned to 0.7.0 (branch pushed, not merged)",
     "branch": "claude/urps-contract-migration",
-    "mufflyaccess_consumed": "0.6.0 (guard is base R; twostep consumes no urps_count)",
-    "notes": "Guard installed (passes; no URPS national numerator exists). R/geography_agreement.R reusable assert_same_geography() added but NOT bolted onto a national call site (none exists; E2SFCA is spatial, CRS-unified). 2020 7-subspecialty supply table documented as a distinct estimand. No value changes. DESCRIPTION still pins mufflyaccess@v0.1.2 (stale); bump when pinning consumers to the release."
+    "mufflyaccess_pin": "mufflyt/mufflyaccess@69a8560 (0.7.0); twostep consumes no urps_count",
+    "notes": "Guard installed + extended to 1306/1303. R/geography_agreement.R reusable assert_same_geography() (not bolted onto a national call site; none exists). 2020 7-subspecialty supply table documented as a distinct E2SFCA estimand. DESCRIPTION pin bumped @v0.1.2 -> @69a8560. test-mufflyaccess-version.R enforces the pin. No value changes."
   },
   "shared_guard": {
     "path": "handoff/_shared/test-no-unqualified-urps-baseline.R",
