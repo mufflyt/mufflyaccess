@@ -15,8 +15,9 @@
     makeActiveBinding(name, getter, ns)
   }
   # These *_2025 values are the 2025 roster_snapshot (1031 / 1339), NOT the
-  # canonical 2023 board_certified_active counts (1031 / 1332). The migration
-  # hint points at the matching roster_snapshot cell.
+  # canonical 2023 board_certified_active counts (1027 / 1306, contract v3.0.0;
+  # 1332 was the retired v2.1.0 combined cell). The migration hint points at the
+  # matching roster_snapshot cell.
   make_dep("URPS_COUNT_ABOG_ONLY_2025", 1031L,
            'urps_count(2025L, "roster_snapshot", "national", include_urology = FALSE)')
   make_dep("URPS_COUNT_ABOG_PLUS_ABU_2025", 1339L,

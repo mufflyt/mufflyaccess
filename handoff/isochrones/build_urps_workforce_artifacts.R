@@ -1,5 +1,16 @@
 #!/usr/bin/env Rscript
 # ==============================================================================
+# ⚠️  STALE — v1.0.0 REFERENCE ONLY. DO NOT USE TO REGENERATE THE CONTRACT.  ⚠️
+# ------------------------------------------------------------------------------
+# This is the ORIGINAL v1.0.0 producer. It emits contract_version "1.0.0" on the
+# old FUSED-GEOGRAPHY schema (no measure / geography columns) and keys on
+# `certification_year` (the PRIMARY-cert basis -> the RETIRED national 1332 /
+# CONUS 1329). The served contract is now v3.0.0 (measure x geography, keyed on
+# urps_subspecialty_cert_year -> 1306 / 1303). Running this would regenerate
+# retired-basis numbers on an obsolete schema. See docs/CHARTER_URPS_SSOT.md:
+# the real v3.0.0 producer is not yet committed in isochrones; that is the open
+# remediation, not this file.
+# ==============================================================================
 # build_urps_workforce_artifacts.R   [APPLY IN: isochrones]
 #
 # Produces the one deterministic, versioned URPS workforce artifact set that
