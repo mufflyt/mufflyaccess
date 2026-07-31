@@ -18,6 +18,7 @@ provides the validated series, a small geographic extract, and full provenance.
 | `out/urps_state_extract_2023_v3.0.0.csv` | State-level `board_certified_active` / 2023 **counts** (± urology); sums to 1,306. Counts only. |
 | `out/urps_state_join_spec_v3.0.0.csv` | The join spec: which fields twostep / isochrones supply (population, access), by key/year — instead of shipping empty columns. |
 | `out/urps_provenance.txt` / `out/urps_validation_report.txt` | Human-readable provenance and every governance check. |
+| `out/urps_provenance.json` | The same provenance as machine-readable JSON — the full `urps_provenance(detailed = TRUE)` chain (source-roster hashes, `combined_source_sha256`, producing commit, output hashes, cohort/cert-basis, live SHA-256 integrity check) — for pipelines that consume it programmatically. |
 | `build_share_package.R`, `build_state_extract.py` | Reproducible generators (self-invalidating). |
 
 Regenerate (aborts unless the served artifact is contract 3.0.0 @ 74085a9e6, national 1,306 / CONUS 1,303, with no retired value shown as current):

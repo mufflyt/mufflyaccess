@@ -1,0 +1,104 @@
+{
+  "artifact_version": "3.0.0",
+  "contract_version": "3.0.0",
+  "artifact_source": "external",
+  "canonical_release": true,
+  "suitable_for_release": true,
+  "canonical_2023_estimand": "board_certified_active / national = 1306",
+  "external_artifact_error": null,
+  "measure_years": [2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023],
+  "measures": ["board_certified_active", "roster_snapshot"],
+  "geographies": ["national", "conus"],
+  "snapshot_date": "2026-07-22",
+  "roster_reflects_certifications_through": 2025,
+  "boards": ["ABOG", "ABU"],
+  "geographic_scope": "national roster (50 states, DC, and territories; includes Hawaii and Puerto Rico); a conus subset is provided via the geography dimension",
+  "active_in_year_definition": "board_certified_active: urps_subspecialty_cert_year <= Y and not retired by Y, within the geography. Keyed on the URPS SUBSPECIALTY certification year (training-accurate, post-fellowship), NOT the primary cert_year. ABOG uses the real sub1startdate (2013+); ABU and unmatched ABOG use a fellowship proxy (primary + 2 urology / + 3 OB-GYN). 33 providers whose URPS cert/proxy postdates 2023 are excluded from the 2023 active count. The canonical 2023 national board-certified active count is 1,306 (1,339 is the roster_snapshot headcount).",
+  "deduplication_rule": "ABOG = OB/GYN board-certification (FPMRS/URPS) pathway. ABU enters only as NET-NEW to the ABOG NPI set; dual-boarded general-urology-primary providers held out; reinstated dual-boarded (n=38) kept; retired/unmatched dropped. Active ABOG and ABU NPI sets are provably disjoint (asserted).",
+  "source_sha256": "a6aad44a8676be79c035b03ac639ff813fa65cb29a356c378abcea1df6c712af",
+  "source_git_commit": "74085a9e695eec5350275a29d8655512ad57422b",
+  "git_commit_semantics": "source-parent (convention 2): the source-only commit these artifacts were regenerated from; the artifact bytes live in a separate child commit",
+  "source_description": "Publicly accessible ABOG physician-certification information, integrated with other public physician-practice sources and independently reconciled for workforce research. ABOG did not supply, license, or endorse this derived dataset.",
+  "source_systems": {
+    "abog_subspecialty_and_certification": "ABOG public Verify Certification directory",
+    "abu_certification": "ABU public certification portal (portal.abu.org)",
+    "npi_identity": "CMS NPPES public registry",
+    "practice_geography": "CMS NPPES / DAC public practice-location data"
+  },
+  "retired_cells": {
+    "note": "v2.1.0 used the PRIMARY board cert basis: national 1,332 / CONUS 1,329. Those are RETIRED historical cells, not competing estimates. Contract 3.0.0 canonical = 1,306 / 1,303 (URPS subspecialty cert basis).",
+    "v2_1_0_national": 1332,
+    "v2_1_0_conus": 1329
+  },
+  "method_version": "urps-workforce-v3.0.0",
+  "package_version": "0.8.1",
+  "detail": {
+    "created_at": "2026-07-29T21:56:12Z",
+    "measure_year": 2023,
+    "model_baseline_year": "not set here (cliff chooses its baseline measure explicitly)",
+    "roster_snapshot_date": "2026-07-22",
+    "geography_resolution_rule": ["1. roster state", "2. if missing, NPPES business state", "3. otherwise unknown (is_conus = FALSE)"],
+    "state_source_counts": {
+      "nppes_business_state": 26,
+      "roster_state": 1313
+    },
+    "cohort_definition": {
+      "description": "training-accurate URPS subspecialty certification year (ADDED step 1; active_2023 and the counts still use the PRIMARY cert_year at this step)",
+      "basis": "ABOG: sub1startdate (real FPMRS/URPS board date, 2013+)",
+      "fallbacks": {
+        "abog_no_sub1startdate": "primary OB/GYN cert_year + 3 (3-year FPMRS fellowship)",
+        "abu_all": "primary urology cert_year + 2 (2-year fellowship; ABU subspecialty date not yet sourced)"
+      },
+      "source_counts": {
+        "abog_primary_plus_3yr_fellowship": 47,
+        "abog_sub1startdate": 984,
+        "abu_primary_plus_2yr_fellowship": 308
+      },
+      "values_before_2013_from_fallback": 196
+    },
+    "provider_snapshot": {
+      "grain": "one row per identified URPS provider (unique npi)",
+      "rows_national": 1339,
+      "rows_active_2023": 1306,
+      "future_certifications_2024_2025": 7
+    },
+    "source_files": [
+      {
+        "name": "abog_enriched",
+        "path": "cliff/data/abog_all_urps_ENRICHED_2026-07-22.csv",
+        "sha256": "96a9be0bfc73ceaac2226fa146d3b2446b6d86535e0729850724344dc650e4c9"
+      },
+      {
+        "name": "abu_enriched",
+        "path": "cliff/data/abu_all_urps_ENRICHED_2026-07-22.csv",
+        "sha256": "5ad396280f28992ff22f0d500938f2f3425e14fff186120d0d316c262e9165d0"
+      },
+      {
+        "name": "canonical_abog",
+        "path": "data/abog_pipeline/canonical_abog_npi_LATEST.rds",
+        "sha256": "d8436ef267128c21c03303c1fdbd28ed4e6a64b2b856acc43759f4203b6b0a08"
+      }
+    ],
+    "combined_source_sha256": "a6aad44a8676be79c035b03ac639ff813fa65cb29a356c378abcea1df6c712af",
+    "output_files": {
+      "urps_counts_by_year_csv": {
+        "path": "artifacts/workforce/urps_counts_by_year.csv",
+        "sha256": "6af7e13d64ca50c381c217a43179f1f8f6bf7cb55817ed319b35f210c7d87cf5"
+      },
+      "urps_provider_snapshot_parquet": {
+        "path": "artifacts/workforce/urps_provider_snapshot.parquet",
+        "sha256": "9df3432efb0930b0a187dd999554dadb08762ce3719bf0315771d61fee6a0e78"
+      }
+    },
+    "integrity": {
+      "counts_csv_sha256_expected": "6af7e13d64ca50c381c217a43179f1f8f6bf7cb55817ed319b35f210c7d87cf5",
+      "counts_csv_sha256_observed": "6af7e13d64ca50c381c217a43179f1f8f6bf7cb55817ed319b35f210c7d87cf5",
+      "counts_csv_verified": true,
+      "provider_parquet_present": true,
+      "provider_parquet_sha256_expected": "9df3432efb0930b0a187dd999554dadb08762ce3719bf0315771d61fee6a0e78",
+      "provider_parquet_sha256_observed": "9df3432efb0930b0a187dd999554dadb08762ce3719bf0315771d61fee6a0e78",
+      "provider_parquet_verified": true
+    },
+    "known_limitations": ["Upstream classification (in_model_baseline / status) originates in the base rosters cliff/data/{abog,abu}_all_urps_2026-07-22.csv, currently UNTRACKED with NO committed producer. Primary remediation (docs/CHARTER_URPS_SSOT.md).", "in_model_baseline disagrees with credentials.retirement_consensus for 48 providers; in_model_baseline is the authority.", "3 identified providers are outside the contiguous US (1 HI ABOG, 1 PR ABU, 1 HI ABU); the conus geography drops them. All 3 are certified <= 2023. 26 providers get their state via the NPPES business-state fallback (see geography_resolution_rule).", "board_certified_active is keyed on urps_subspecialty_cert_year (URPS subspecialty cert, training-accurate/post-fellowship): ABOG real sub1startdate (2013+); ABU and 47 unmatched ABOG use a fellowship proxy (primary +2 urology / +3 OB-GYN). 33 providers whose URPS cert/proxy postdates 2023 are excluded from the 2023 active count (present in roster_snapshot). The entire ABU arm is on the proxy until real ABU subspecialty dates are sourced (step 2). 196 proxy values predate 2013 (retained per PI: these physicians were practising urogynecology before formal subspecialty boards existed).", "Pre-2023 board_certified_active is the certification build-up of the identified cohort (survivorship-biased for historical years); a true entries-and-exits panel is delegated to cliff.", "latitude/longitude are NA (source rosters carry county/ZCTA/tract, not point coordinates); geocoding is a documented follow-up."]
+  }
+}

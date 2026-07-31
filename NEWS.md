@@ -1,3 +1,15 @@
+# mufflyaccess 0.8.1
+
+* **Machine-readable provenance in the share package.** The ACS/Sheps generator
+  (`share/acs_sheps/build_share_package.R`) now emits `out/urps_provenance.json`
+  alongside the human-readable `out/urps_provenance.txt`, so downstream pipelines
+  can consume the provenance without parsing prose. The JSON is the full
+  `urps_provenance(detailed = TRUE)` chain (source-roster hashes,
+  `combined_source_sha256`, producing commit, output-artifact hashes, cohort/
+  cert-basis definition, and the live SHA-256 integrity check). The one
+  machine-specific field (`artifact_dir`, an absolute path) is dropped so the
+  output is byte-for-byte deterministic and the CI drift guard still holds.
+
 # mufflyaccess 0.8.0
 
 * **Detailed provenance.** `urps_provenance(detailed = TRUE)` adds a nested
