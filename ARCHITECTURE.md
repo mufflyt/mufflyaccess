@@ -13,6 +13,7 @@ isochrones
 
 mufflyaccess
   Owns definitions and stable analytical interfaces
+  Owns the scenario dictionary (named scenarios + lever values), not the model
   Validates the supplied snapshot
   Returns counts, metadata, and provenance
   Contains no alternative provider-cleaning pipeline
@@ -40,7 +41,12 @@ given.
 
 ## cliff / twostep / manuscripts / apps — consumers
 Call `mufflyaccess` for every national URPS count. **Never** hardcode a count and
-**never** independently derive one.
+**never** independently derive one. Forward-projection scenarios are named from the
+shared **scenario dictionary** ([`urps_scenarios()`]) — one vocabulary, not a
+per-repo set — and a projection table's `scenario_id` column is validated against
+it ([`validate_urps_scenarios()`]). mufflyaccess fixes what each scenario *is* (its
+lever values: entrant multiplier, retirement-hazard shift, late-career FTE factor);
+cliff owns what the levers *do* (the projection engine).
 
 ---
 
