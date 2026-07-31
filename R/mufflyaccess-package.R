@@ -25,6 +25,9 @@
 #'   [urps_retired_values()], [use_urps_artifact()], [validate_urps_artifact()],
 #'   [validate_urps_ssot()], [compare_urps_artifacts()]; the deprecated
 #'   [URPS_COUNT_ABOG_ONLY_2025] / [URPS_COUNT_ABOG_PLUS_ABU_2025] constants
+#' * **URPS scenario dictionary** — [urps_scenarios()], [urps_scenario()],
+#'   [urps_scenario_ids()], [is_urps_scenario()], [validate_urps_scenarios()],
+#'   [URPS_SCENARIO_REGISTRY_VERSION]
 #' * **Accessibility statistics** — [weighted_mean_all()], [zero_access_share()],
 #'   [mc_weighted_ci()], [annual_trend()], [tract_vintage_of()], [acs_year_of()]
 #' * **Safe division** — [safe_divide()] and its family
@@ -36,6 +39,13 @@
 #' `board_certified_active / national` = **1306** (CONUS 1303), **1339** is the
 #' 2025 `roster_snapshot`, and the retired v2.1.0 cells (1332 / 1329) are surfaced
 #' only via [urps_lineage()] / [urps_retired_values()]. See `ARCHITECTURE.md`.
+#'
+#' mufflyaccess also owns the **scenario dictionary** ([urps_scenarios()]): the
+#' single versioned vocabulary of named forward-projection scenarios (baseline,
+#' earlier/later retirement, fellowship expansion/constraint, reduced late-career
+#' FTE, and composites). It fixes each scenario's *lever values* -- the definition
+#' every repo agrees on and the enum a projection table keys on -- but never the
+#' projection model, which stays in cliff.
 #'
 #' @section Design:
 #' Values that must agree are *derived* from one another (never duplicated), each

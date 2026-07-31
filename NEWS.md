@@ -1,3 +1,24 @@
+# mufflyaccess 0.9.0
+
+* **URPS scenario dictionary (new).** A single, versioned vocabulary of named
+  forward-projection scenarios for the URPS workforce, so the consumer repos stop
+  defining scenarios three different ways and a projection table can key on one
+  agreed `scenario_id` enum. New API: `urps_scenarios()` (the registry as a
+  `data.frame`), `urps_scenario()` (one definition, fail-loud), `urps_scenario_ids()`,
+  `is_urps_scenario()` (vectorised predicate), `validate_urps_scenarios()` (fail-loud
+  guard for a projection table's `scenario_id` column), and
+  `URPS_SCENARIO_REGISTRY_VERSION`. Each scenario is a point in a four-axis lever
+  space (entrant multiplier, retirement-hazard shift, late-career FTE factor + onset
+  age) with `baseline` as the neutral origin; composite scenarios
+  (`combined_pessimistic`, `combined_investment`) are cross-checked against their
+  single-lever components at load so the table cannot drift. mufflyaccess owns the
+  scenario *definitions* (the lever values every repo agrees on), **not** the
+  projection model, which stays in cliff. FTE scenarios carry
+  `requires_fte_model = TRUE` (a later phase). See `docs/CHARTER_URPS_SSOT.md`.
+* **Docs.** New producer-provenance charter `docs/CHARTER_URPS_SSOT.md`; corrected
+  stale v2.1.0 / retired-cell (1332/1329) framing in the `handoff/` material and a
+  package comment.
+
 # mufflyaccess 0.8.1
 
 * **Machine-readable provenance in the share package.** The ACS/Sheps generator

@@ -32,6 +32,9 @@ published statistic.
 \code{\link[=urps_retired_values]{urps_retired_values()}}, \code{\link[=use_urps_artifact]{use_urps_artifact()}}, \code{\link[=validate_urps_artifact]{validate_urps_artifact()}},
 \code{\link[=validate_urps_ssot]{validate_urps_ssot()}}, \code{\link[=compare_urps_artifacts]{compare_urps_artifacts()}}; the deprecated
 \link{URPS_COUNT_ABOG_ONLY_2025} / \link{URPS_COUNT_ABOG_PLUS_ABU_2025} constants
+\item \strong{URPS scenario dictionary} — \code{\link[=urps_scenarios]{urps_scenarios()}}, \code{\link[=urps_scenario]{urps_scenario()}},
+\code{\link[=urps_scenario_ids]{urps_scenario_ids()}}, \code{\link[=is_urps_scenario]{is_urps_scenario()}}, \code{\link[=validate_urps_scenarios]{validate_urps_scenarios()}},
+\link{URPS_SCENARIO_REGISTRY_VERSION}
 \item \strong{Accessibility statistics} — \code{\link[=weighted_mean_all]{weighted_mean_all()}}, \code{\link[=zero_access_share]{zero_access_share()}},
 \code{\link[=mc_weighted_ci]{mc_weighted_ci()}}, \code{\link[=annual_trend]{annual_trend()}}, \code{\link[=tract_vintage_of]{tract_vintage_of()}}, \code{\link[=acs_year_of]{acs_year_of()}}
 \item \strong{Safe division} — \code{\link[=safe_divide]{safe_divide()}} and its family
@@ -46,6 +49,13 @@ themselves. The served contract is v3.0.0: the canonical 2023 estimand is
 \code{board_certified_active / national} = \strong{1306} (CONUS 1303), \strong{1339} is the
 2025 \code{roster_snapshot}, and the retired v2.1.0 cells (1332 / 1329) are surfaced
 only via \code{\link[=urps_lineage]{urps_lineage()}} / \code{\link[=urps_retired_values]{urps_retired_values()}}. See \code{ARCHITECTURE.md}.
+
+mufflyaccess also owns the \strong{scenario dictionary} (\code{\link[=urps_scenarios]{urps_scenarios()}}): the
+single versioned vocabulary of named forward-projection scenarios (baseline,
+earlier/later retirement, fellowship expansion/constraint, reduced late-career
+FTE, and composites). It fixes each scenario's \emph{lever values} -- the definition
+every repo agrees on and the enum a projection table keys on -- but never the
+projection model, which stays in cliff.
 }
 
 \section{Design}{
