@@ -28,6 +28,9 @@
 #' * **URPS scenario dictionary** — [urps_scenarios()], [urps_scenario()],
 #'   [urps_scenario_ids()], [is_urps_scenario()], [validate_urps_scenarios()],
 #'   [URPS_SCENARIO_REGISTRY_VERSION]
+#' * **URPS projection contract** — [urps_projection_schema()],
+#'   [validate_urps_projection()], [read_urps_projection()],
+#'   [URPS_PROJECTION_CONTRACT_VERSION]
 #' * **Accessibility statistics** — [weighted_mean_all()], [zero_access_share()],
 #'   [mc_weighted_ci()], [annual_trend()], [tract_vintage_of()], [acs_year_of()]
 #' * **Safe division** — [safe_divide()] and its family
@@ -46,6 +49,14 @@
 #' FTE, and composites). It fixes each scenario's *lever values* -- the definition
 #' every repo agrees on and the enum a projection table keys on -- but never the
 #' projection model, which stays in cliff.
+#'
+#' The **projection contract** ([validate_urps_projection()]) is the second
+#' producer -> SSOT contract, mirroring the count artifact: cliff runs the
+#' workforce projection engine and emits a long table keyed on `scenario_id`;
+#' mufflyaccess validates its schema, that every scenario is registered, its
+#' internal consistency (95% bounds, the `entrants - exits` flow identity), and a
+#' tie of the baseline-year starting stock back to [urps_count()]. mufflyaccess
+#' owns the contract and the checks, never the projection model.
 #'
 #' @section Design:
 #' Values that must agree are *derived* from one another (never duplicated), each

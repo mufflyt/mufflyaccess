@@ -1,0 +1,13 @@
+year,scenario_id,specialty,certification_pathway,geography_type,geography_id,supply_headcount,supply_clinical_fte,lower_95,upper_95,entrants,exits,net_change
+2025,baseline,URPS,ABOG_PLUS_ABU,national,US,1339,NA,NA,NA,NA,NA,NA
+2026,baseline,URPS,ABOG_PLUS_ABU,national,US,1324,NA,1300,1348,45,60,-15
+2027,baseline,URPS,ABOG_PLUS_ABU,national,US,1307,NA,1281,1333,45,62,-17
+2028,baseline,URPS,ABOG_PLUS_ABU,national,US,1289,NA,1261,1317,45,63,-18
+2025,retire_2yr_earlier,URPS,ABOG_PLUS_ABU,national,US,1339,NA,NA,NA,NA,NA,NA
+2026,retire_2yr_earlier,URPS,ABOG_PLUS_ABU,national,US,1312,NA,1287,1337,45,72,-27
+2027,retire_2yr_earlier,URPS,ABOG_PLUS_ABU,national,US,1283,NA,1256,1310,45,74,-29
+2028,retire_2yr_earlier,URPS,ABOG_PLUS_ABU,national,US,1253,NA,1224,1282,45,75,-30
+2025,fellowship_plus_10pct,URPS,ABOG_PLUS_ABU,national,US,1339,NA,NA,NA,NA,NA,NA
+2026,fellowship_plus_10pct,URPS,ABOG_PLUS_ABU,national,US,1329,NA,1305,1353,50,60,-10
+2027,fellowship_plus_10pct,URPS,ABOG_PLUS_ABU,national,US,1317,NA,1291,1343,50,62,-12
+2028,fellowship_plus_10pct,URPS,ABOG_PLUS_ABU,national,US,1304,NA,1276,1332,50,63,-13

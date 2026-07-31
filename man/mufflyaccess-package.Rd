@@ -35,6 +35,9 @@ published statistic.
 \item \strong{URPS scenario dictionary} — \code{\link[=urps_scenarios]{urps_scenarios()}}, \code{\link[=urps_scenario]{urps_scenario()}},
 \code{\link[=urps_scenario_ids]{urps_scenario_ids()}}, \code{\link[=is_urps_scenario]{is_urps_scenario()}}, \code{\link[=validate_urps_scenarios]{validate_urps_scenarios()}},
 \link{URPS_SCENARIO_REGISTRY_VERSION}
+\item \strong{URPS projection contract} — \code{\link[=urps_projection_schema]{urps_projection_schema()}},
+\code{\link[=validate_urps_projection]{validate_urps_projection()}}, \code{\link[=read_urps_projection]{read_urps_projection()}},
+\link{URPS_PROJECTION_CONTRACT_VERSION}
 \item \strong{Accessibility statistics} — \code{\link[=weighted_mean_all]{weighted_mean_all()}}, \code{\link[=zero_access_share]{zero_access_share()}},
 \code{\link[=mc_weighted_ci]{mc_weighted_ci()}}, \code{\link[=annual_trend]{annual_trend()}}, \code{\link[=tract_vintage_of]{tract_vintage_of()}}, \code{\link[=acs_year_of]{acs_year_of()}}
 \item \strong{Safe division} — \code{\link[=safe_divide]{safe_divide()}} and its family
@@ -56,6 +59,14 @@ earlier/later retirement, fellowship expansion/constraint, reduced late-career
 FTE, and composites). It fixes each scenario's \emph{lever values} -- the definition
 every repo agrees on and the enum a projection table keys on -- but never the
 projection model, which stays in cliff.
+
+The \strong{projection contract} (\code{\link[=validate_urps_projection]{validate_urps_projection()}}) is the second
+producer -> SSOT contract, mirroring the count artifact: cliff runs the
+workforce projection engine and emits a long table keyed on \code{scenario_id};
+mufflyaccess validates its schema, that every scenario is registered, its
+internal consistency (95\% bounds, the \code{entrants - exits} flow identity), and a
+tie of the baseline-year starting stock back to \code{\link[=urps_count]{urps_count()}}. mufflyaccess
+owns the contract and the checks, never the projection model.
 }
 
 \section{Design}{
