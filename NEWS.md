@@ -1,3 +1,24 @@
+# mufflyaccess 0.10.0
+
+* **URPS projection contract (new).** The second producer -> SSOT contract,
+  mirroring the isochrones count artifact: cliff runs the workforce projection
+  engine and emits a long projection table; mufflyaccess validates and can serve
+  it, but never runs the model. New API: `urps_projection_schema()` (the canonical
+  long-table column spec), `validate_urps_projection()` (fail-loud: required
+  columns, every `scenario_id` registered in `urps_scenarios()`, the `baseline`
+  scenario present, `certification_pathway` / `geography_type` in the count-contract
+  vocabularies, no duplicate series keys, non-negative counts, 95% bounds bracket
+  the point estimate, and the `net_change == entrants - exits` flow identity),
+  `read_urps_projection()` (typed read + validate), and
+  `URPS_PROJECTION_CONTRACT_VERSION`. `validate_urps_projection(..., baseline_tie=)`
+  ties the baseline-year starting stock back to `urps_count()`, so a projection can
+  never silently start from a number the SSOT does not serve. The table is long
+  (one row per year x scenario_id x specialty x pathway x geography), so a new
+  scenario/year/pathway/geography is a row, not a schema change;
+  `supply_clinical_fte` is a contract column but stays `NA` until the FTE model
+  (Phase 3). A conforming example ships at
+  `inst/extdata/urps_projection_example.csv`.
+
 # mufflyaccess 0.9.0
 
 * **URPS scenario dictionary (new).** A single, versioned vocabulary of named

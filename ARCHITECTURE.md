@@ -14,7 +14,7 @@ isochrones
 mufflyaccess
   Owns definitions and stable analytical interfaces
   Owns the scenario dictionary (named scenarios + lever values), not the model
-  Validates the supplied snapshot
+  Owns the count + projection contracts; validates producer artifacts
   Returns counts, metadata, and provenance
   Contains no alternative provider-cleaning pipeline
 
@@ -46,7 +46,11 @@ shared **scenario dictionary** ([`urps_scenarios()`]) — one vocabulary, not a
 per-repo set — and a projection table's `scenario_id` column is validated against
 it ([`validate_urps_scenarios()`]). mufflyaccess fixes what each scenario *is* (its
 lever values: entrant multiplier, retirement-hazard shift, late-career FTE factor);
-cliff owns what the levers *do* (the projection engine).
+cliff owns what the levers *do* (the projection engine). cliff then emits its
+projection as a long table keyed on `scenario_id`, and mufflyaccess validates it
+([`validate_urps_projection()`]) — schema, registered scenarios, the
+`entrants - exits` flow identity, and a tie of the baseline-year starting stock
+back to [`urps_count()`] — exactly as it validates the isochrones count artifact.
 
 ---
 
