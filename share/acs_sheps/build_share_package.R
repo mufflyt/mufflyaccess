@@ -77,6 +77,16 @@ pv <- c(
   strwrap(prov$source_description, width = 78, prefix = "  "))
 writeLines(pv, file.path(out, "urps_provenance.txt"))
 
+## ---- 3b. provenance as JSON (machine-readable, for pipelines) ----------------
+# The full source->artifact chain from urps_provenance(detailed = TRUE), including
+# a live SHA-256 integrity check of the served bytes. `artifact_dir` is the only
+# machine-specific field (an absolute path) -- drop it so the emitted JSON stays
+# byte-for-byte deterministic and the CI drift guard (git diff --exit-code) holds.
+pj <- urps_provenance(detailed = TRUE)
+pj$detail$artifact_dir <- NULL
+jsonlite::write_json(pj, file.path(out, "urps_provenance.json"),
+                     auto_unbox = TRUE, pretty = TRUE, null = "null", na = "null")
+
 ## ---- 4. validation report ---------------------------------------------------
 chk <- function(label, expr)
   sprintf("[%s] %s", tryCatch({ expr; "PASS" }, error = function(e) paste0("FAIL: ", conditionMessage(e))), label)
