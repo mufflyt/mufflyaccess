@@ -1,13 +1,14 @@
 {
   "_comment": "Temporary hand-off tracker. handoff/ holds ready-to-apply patches for upstream repos while they are still files here rather than merged PRs. When an upstream repo applies its patch, record the receiving commit SHA below, note it in handoff/README.md, and archive/remove the applied copy. handoff/ is retired once every entry below is 'applied'.",
-  "contract_version": "2.1.0",
+  "contract_version": "3.0.0",
   "isochrones": {
-    "status": "released",
+    "status": "released; v3.0.0 producer NOT yet committed in isochrones",
     "artifacts_released": true,
-    "artifact_commit": "91104c777905c00ac7ac6be87a838b8b40de6d93",
-    "source_commit": "565755b2a9e2295855edae541db47516c973b27b",
+    "artifact_commit": "cf7222df2dba8a75831b372b7787af379a9b799d",
+    "source_commit": "74085a9e695eec5350275a29d8655512ad57422b",
     "artifact_path": "artifacts/workforce/",
-    "notes": "isochrones published the v2.1.0 URPS workforce artifact set (urps_counts_by_year.csv with measure x geography, urps_manifest.json, urps_provider_snapshot.parquet, urps_release_contract.json). mufflyaccess reads + validates it via use_urps_artifact() and pins it in the isochrones-integration CI job. The v2.1.0 bytes are also bundled as the bootstrap (canonical_release=false) so the default serves the corrected numbers."
+    "producer_status": "OPEN: the real v3.0.0 producer (subspecialty-cert basis, measure x geography, roster_snapshot) is not committed in isochrones. handoff/isochrones/build_urps_workforce_artifacts.R is a STALE v1.0.0 reference (fused-geography, primary-cert/retired-1332 basis) and must NOT be used to regenerate v3.0.0. See docs/CHARTER_URPS_SSOT.md.",
+    "notes": "isochrones published the v3.0.0 URPS workforce artifact set (urps_counts_by_year.csv with measure x geography, urps_manifest.json, urps_provider_snapshot.parquet, urps_release_contract.json) at artifact commit cf7222df / source 74085a9e6. Canonical 2023 national board_certified_active = 1306 (CONUS 1303), keyed on urps_subspecialty_cert_year; 1332/1329 are retired v2.1.0 cells. mufflyaccess reads + validates it via use_urps_artifact() and pins it in the isochrones-integration CI job. The same bytes are bundled as the bootstrap so the default serves the canonical numbers. The enriched source rosters are now git-tracked in cliff/data/ (the manifest's 'UNTRACKED' known-limitation is stale)."
   },
   "cliff": {
     "status": "migrated + pinned to 0.7.0 (branch pushed, not merged)",
@@ -23,6 +24,6 @@
   },
   "shared_guard": {
     "path": "handoff/_shared/test-no-unqualified-urps-baseline.R",
-    "notes": "Copy into each consumer's tests/testthat/. Flags 1332/1329/1339/1336 used as an unqualified baseline in production code; allows them in tests/docs/historical tables and exempts urps_count() / '# ssot-ok' lines."
+    "notes": "Copy into each consumer's tests/testthat/. Flags canonical URPS workforce totals (current 1306/1303, roster 1339/1336, retired 1332/1329, and the legacy frozen 1295) used as an unqualified baseline in production code; allows them in tests/docs/historical tables and exempts urps_count() / '# ssot-ok' lines."
   }
 }

@@ -28,6 +28,6 @@ urps_workforce_n <- function(geography, include_urology = TRUE, year = 2023L,
 # The geography passed here must be the SAME geography used for the population
 # denominator and the isochrone access bands -- do not mix a CONUS access surface
 # with a national workforce total. E.g. a contiguous-US access run uses:
-#   urps_workforce_n("conus", include_urology = TRUE)   # 1329 (2023 active)
+#   urps_workforce_n("conus", include_urology = TRUE)   # 1303 (2023 active, v3.0.0)
 # and a national run uses:
-#   urps_workforce_n("national", include_urology = TRUE) # 1332 (2023 active)
+#   urps_workforce_n("national", include_urology = TRUE) # 1306 (2023 active, v3.0.0)
