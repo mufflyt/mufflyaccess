@@ -7,30 +7,32 @@
 urps_counts_long()
 }
 \value{
-A \code{data.frame} with columns \code{year}, \code{measure}, \code{geography},
-\code{board_pathway}, \code{n_active}, \code{n_ever_certified}, \code{n_retired},
-\code{snapshot_date}, \code{source_sha256}, \code{method_version}.
+A \code{data.frame} with columns \verb{year, measure, geography, board_pathway, n_active, n_ever_certified, n_retired, snapshot_date, source_sha256, method_version}, plus \code{retirement_status}. When retirement is not observed
+(see \code{\link[=urps_retirement_status]{urps_retirement_status()}}), \code{n_retired} is served as \code{NA_integer_}
+rather than the artifact's placeholder \code{0}, so an unavailable count can never
+be mistaken for zero departures.
 }
 \description{
-The full served artifact as a tidy long table -- every
-\verb{year x measure x geography x board_pathway} cell -- for callers that want to
-filter or pivot themselves. \code{\link[=urps_counts]{urps_counts()}} returns a convenient wide slice
-and \code{\link[=urps_count]{urps_count()}} a single value.
+The complete long URPS workforce table (all measures x geographies)
 }
 \examples{
 d <- urps_counts_long()
 d[d$year == 2023 & d$geography == "national", c("measure", "board_pathway", "n_active")]
 }
 \seealso{
-\code{\link[=urps_counts]{urps_counts()}}, \code{\link[=urps_count]{urps_count()}}, \code{\link[=urps_provenance]{urps_provenance()}}
+\code{\link[=urps_counts]{urps_counts()}}, \code{\link[=urps_count]{urps_count()}}, \code{\link[=urps_retirement_status]{urps_retirement_status()}}
 
 Other URPS workforce: 
 \code{\link{compare_urps_artifacts}()},
 \code{\link{urps_count}()},
 \code{\link{urps_counts}()},
+\code{\link{urps_entrants}()},
+\code{\link{urps_entry_counts}()},
 \code{\link{urps_lineage}()},
 \code{\link{urps_provenance}()},
+\code{\link{urps_require_retirement_ascertained}()},
 \code{\link{urps_retired_values}()},
+\code{\link{urps_retirement_status}()},
 \code{\link{use_urps_artifact}()},
 \code{\link{validate_urps_artifact}()},
 \code{\link{validate_urps_ssot}()}
