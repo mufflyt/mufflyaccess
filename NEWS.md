@@ -1,3 +1,22 @@
+# mufflyaccess (development)
+Corrective release: separate *observed historical facts* from *unavailable* ones,
+and expose certification-year entrants. No canonical count changed.
+
+* **Retirement is not a numeric zero.** The artifact ships `n_retired = 0` as a
+  PLACEHOLDER (the pre-2023 series is a survivorship-biased certification build-up;
+  a true entries-and-exits panel is delegated to cliff). `urps_counts_long()` now
+  serves `n_retired` as `NA_integer_` when retirement is not observed, and adds a
+  `retirement_status` column. New `urps_retirement_status()` returns
+  `observed` / `partially_observed` / `not_ascertained` (never `modeled` --
+  modeled retirement belongs in cliff). New `urps_require_retirement_ascertained()`
+  is a fail-loud guard so a consumer can never read "unknown retirement" as "zero
+  departures." `validate_urps_artifact()` gained a matching ascertainment guard.
+* **Entrants from certification year.** New `urps_entry_counts()` and
+  `urps_entrants()` derive entry into the board-certified URPS stock from
+  `urps_subspecialty_cert_year`. These are entry into the certified stock, NOT
+  fellowship graduation year, first year of clinical practice, or net workforce
+  growth. mufflyaccess still never manufactures future entrants (that is cliff).
+
 # mufflyaccess 0.10.0
 
 * **URPS projection contract (new).** The second producer -> SSOT contract,
