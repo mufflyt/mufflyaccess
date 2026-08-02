@@ -110,10 +110,21 @@ mutate_future_provider_activity <- function(path, active) {
   testthat::skip_if_not(have_arrow(), "arrow required to mutate the provider parquet")
   pq <- file.path(path, "urps_provider_snapshot.parquet")
   d <- as.data.frame(arrow::read_parquet(pq))
-  fut <- !is.na(d$certification_year) & d$certification_year >= 2024L
-  if (isTRUE(active)) {
-    d$certification_year[fut] <- 2023L
-    if ("active_2023" %in% names(d)) d$active_2023[fut] <- TRUE
+  # v3.0.0 reconstructs "active in 2023" from the URPS SUBSPECIALTY cert year
+  # (urps_subspecialty_cert_year); v2.x used the primary certification_year. Key
+  # the mutation off whichever column the validator reconstructs from, and force
+  # BOTH cert columns + active_2023 so a genuinely future-certified provider is
+  # made active-in-2023 regardless of the keying column (mutating only the primary
+  # certification_year is inert under v3.0.0 and the rejection never fires).
+  cert_col <- if ("urps_subspecialty_cert_year" %in% names(d)) "urps_subspecialty_cert_year"
+              else "certification_year"
+  cy  <- suppressWarnings(as.integer(d[[cert_col]]))
+  fut <- !is.na(cy) & cy >= 2024L
+  if (isTRUE(active) && any(fut)) {
+    for (col in intersect(c("urps_subspecialty_cert_year", "certification_year"), names(d)))
+      d[[col]][fut] <- 2023L
+    if ("active_2023"     %in% names(d)) d$active_2023[fut]     <- TRUE
+    if ("retirement_year" %in% names(d)) d$retirement_year[fut] <- NA  # ensure counted active
   }
   arrow::write_parquet(d, pq)
   invisible(path)
@@ -122,7 +133,14 @@ mark_unknown_provider_conus <- function(path) {
   testthat::skip_if_not(have_arrow(), "arrow required to mutate the provider parquet")
   pq <- file.path(path, "urps_provider_snapshot.parquet")
   d <- as.data.frame(arrow::read_parquet(pq))
-  if ("is_conus" %in% names(d)) d$is_conus[!isTRUE(d$is_conus)][1] <- TRUE
+  # BUG (fixed): `!isTRUE(d$is_conus)` collapses a vector to a single FALSE, so the
+  # old `d$is_conus[!isTRUE(d$is_conus)][1] <- TRUE` just re-set row 1 (already
+  # CONUS) -- a no-op that never triggered the reconstruction mismatch. Select the
+  # first GENUINELY non-CONUS provider and mislabel it CONUS.
+  if ("is_conus" %in% names(d)) {
+    idx <- which(!as.logical(d$is_conus))[1]
+    if (!is.na(idx)) d$is_conus[idx] <- TRUE
+  }
   arrow::write_parquet(d, pq)
   invisible(path)
 }
