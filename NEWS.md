@@ -1,4 +1,13 @@
 # mufflyaccess (development)
+
+* **URPS clinical-FTE model (Phase 3).** Fills the `supply_clinical_fte` column the
+  projection contract (0.10.0) reserves. New API: `URPS_FTE_PATHWAY_CLINICAL_TIME`
+  (ABOG 1.0 / ABU 0.70), `urps_fte_age_curve()`, `urps_fte_weight()` (age productivity
+  x pathway clinical time x optional late-career factor), `urps_effective_fte()`, and
+  `urps_fte_scale()` (anchor a reference cohort's effective FTE to its headcount so FTE
+  is additive across pathway/geography slices). The late-career FTE lever is read from
+  the scenario registry (`urps_scenario()$late_career_fte_factor` / `_onset_age`), not
+  redefined here. `supply_clinical_fte` is a normalized capacity index, not hours.
 Corrective release: separate *observed historical facts* from *unavailable* ones,
 and expose certification-year entrants. No canonical count changed.
 
