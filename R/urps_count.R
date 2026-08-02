@@ -437,20 +437,28 @@ urps_counts <- function(measure = "board_certified_active", geography = "nationa
 
 #' The complete long URPS workforce table (all measures x geographies)
 #'
-#' @description The full served artifact as a tidy long table -- every
-#'   `year x measure x geography x board_pathway` cell -- for callers that want to
-#'   filter or pivot themselves. [urps_counts()] returns a convenient wide slice
-#'   and [urps_count()] a single value.
-#' @return A `data.frame` with columns `year`, `measure`, `geography`,
-#'   `board_pathway`, `n_active`, `n_ever_certified`, `n_retired`,
-#'   `snapshot_date`, `source_sha256`, `method_version`.
-#' @seealso [urps_counts()], [urps_count()], [urps_provenance()]
+#' @return A `data.frame` with columns `year, measure, geography, board_pathway,
+#'   n_active, n_ever_certified, n_retired, snapshot_date, source_sha256,
+#'   method_version`, plus `retirement_status`. When retirement is not observed
+#'   (see [urps_retirement_status()]), `n_retired` is served as `NA_integer_`
+#'   rather than the artifact's placeholder `0`, so an unavailable count can never
+#'   be mistaken for zero departures.
+#' @seealso [urps_counts()], [urps_count()], [urps_retirement_status()]
 #' @family URPS workforce
 #' @examples
 #' d <- urps_counts_long()
 #' d[d$year == 2023 & d$geography == "national", c("measure", "board_pathway", "n_active")]
 #' @export
-urps_counts_long <- function() .urps_read_long()
+urps_counts_long <- function() {
+  d  <- .urps_read_long()
+  st <- tryCatch(urps_retirement_status(), error = function(e) "not_ascertained")
+  # Unavailable retirement must never be served as a placeholder count (the
+  # artifact ships n_retired = 0). Serve it as NA and attach the explicit status.
+  if (!identical(st, "observed") && "n_retired" %in% names(d))
+    d$n_retired <- NA_integer_
+  d$retirement_status <- st
+  d
+}
 
 #' Provenance / manifest for the URPS workforce SSOT
 #'
@@ -768,6 +776,18 @@ validate_urps_artifact <- function(path) {
   sh <- d$source_sha256[!is.na(d$source_sha256)]
   if (!all(grepl("^[0-9a-f]{64}$", sh)))
     stop("[validate_urps_artifact] malformed source_sha256 (each must be 64-hex).", call. = FALSE)
+
+  # retirement ascertainment: an artifact that claims retirement is OBSERVED must
+  # actually carry retirement counts; an artifact that does NOT observe retirement
+  # must not be presented (post-serving) as a concrete count. This is the guard
+  # that stops an "unknown retirement" from ever being read as zero downstream.
+  ra <- tolower(trimws(as.character(m$retirement_ascertainment %||%
+                                    m$retirement_status %||% "not_ascertained")[1]))
+  if (identical(ra, "observed")) {
+    if (!("n_retired" %in% names(d)) || all(is.na(d$n_retired)))
+      stop("[validate_urps_artifact] retirement_ascertainment='observed' but n_retired is absent/all-NA.",
+           call. = FALSE)
+  }
 
   # release-contract canonical cell must agree with the counts table
   if (!is.null(ct) && !is.null(ct$canonical)) {
