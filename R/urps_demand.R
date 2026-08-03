@@ -319,3 +319,57 @@ urps_demand_clinical_fte <- function(population, visits_per_fte,
   stop("[urps_demand_clinical_fte] calibrated coefficients not yet available. ",
        "See urps_demand_params() calibration_status.", call. = FALSE)
 }
+
+#' Scenario-aware demand FTE: registry lookup + clinical FTE in one call
+#'
+#' @description The demand-side counterpart to [urps_supply_fte_sex()]. Looks up
+#'   the demand lever bundle for a registered scenario via [urps_demand_levers()],
+#'   then calls [urps_demand_clinical_fte()] — so cliff passes a `scenario_id`
+#'   string rather than four raw lever values:
+#'
+#'   ```r
+#'   # Supply side (cliff already does this):
+#'   supply_fte <- mufflyaccess::urps_supply_fte_sex(cohort, baseline_scale,
+#'                   late_from_age = sc$late_career_fte_onset_age,
+#'                   late_factor   = sc$late_career_fte_factor)
+#'
+#'   # Demand side (new — call this once per projection row):
+#'   demand_fte <- mufflyaccess::urps_demand_fte(population, visits_per_fte,
+#'                   scenario_id = scenario_id)
+#'
+#'   # Gap (close the triangle):
+#'   gap_fte <- mufflyaccess::urps_gap_fte(supply_fte, demand_fte)
+#'   ```
+#'
+#'   Returns `NA_real_` for any scenario until `urps_demand_params()` carries
+#'   calibrated coefficients (`calibration_status != "not_calibrated"`). Cliff
+#'   can call this unconditionally — the `NA` propagates to `gap_fte` and the
+#'   contract validator allows `NA` in optional columns.
+#'
+#' @param population A `data.frame` — see [urps_demand_clinical_fte()].
+#' @param visits_per_fte Annual URPS visits per FTE provider. See
+#'   [urps_demand_clinical_fte()].
+#' @param scenario_id A registered scenario id (default `"baseline"`). The
+#'   four demand levers are resolved from the registry; passing raw lever values
+#'   is not required.
+#' @return Length-1 numeric `demand_clinical_fte`, or `NA_real_` until calibrated.
+#' @seealso [urps_demand_clinical_fte()], [urps_demand_levers()],
+#'   [urps_supply_fte_sex()], [urps_gap_fte()]
+#' @family URPS demand
+#' @examples
+#' pop <- data.frame(age = 50, sex = "female", n = 10000)
+#' urps_demand_fte(pop, visits_per_fte = 2000)                           # NA
+#' urps_demand_fte(pop, visits_per_fte = 2000, scenario_id = "baseline") # NA
+#' urps_demand_fte(pop, 2000, scenario_id = "demand_managed_care_increase") # NA
+#' @export
+urps_demand_fte <- function(population, visits_per_fte, scenario_id = "baseline") {
+  lv <- urps_demand_levers(scenario_id)
+  urps_demand_clinical_fte(
+    population,
+    visits_per_fte             = visits_per_fte,
+    obesity_prev_shift         = lv$demand_obesity_prev_shift,
+    insurance_expansion_factor = lv$demand_insurance_expansion_factor,
+    managed_care_factor        = lv$demand_managed_care_factor,
+    retail_clinic_share        = lv$demand_retail_clinic_share
+  )
+}

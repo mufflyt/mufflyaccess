@@ -233,6 +233,49 @@ validate_urps_projection <- function(x, baseline_tie = NULL, tol = 1e-6) {
   invisible(TRUE)
 }
 
+#' Compute gap_fte from supply and demand clinical FTE
+#'
+#' @description Closes the supply/demand/gap triangle:
+#'   `gap_fte = demand_clinical_fte - supply_clinical_fte`.
+#'   Positive = shortage (demand exceeds supply); negative = surplus.
+#'   Returns `NA_real_` if either argument is `NA` (i.e., when the demand model
+#'   is not yet calibrated). This is the value that goes in the `gap_fte` column
+#'   of the projection contract table.
+#'
+#' @details **Typical cliff usage (per projection row):**
+#'   ```r
+#'   supply_fte <- mufflyaccess::urps_supply_fte_sex(cohort, baseline_scale, ...)
+#'   demand_fte <- mufflyaccess::urps_demand_fte(population, visits_per_fte,
+#'                   scenario_id = scenario_id)
+#'   gap_fte    <- mufflyaccess::urps_gap_fte(supply_fte, demand_fte)
+#'   ```
+#'   All three values go directly into the projection contract columns
+#'   `supply_clinical_fte`, `demand_clinical_fte`, and `gap_fte`.
+#'   [validate_urps_projection()] enforces the identity when all three are non-NA.
+#'
+#' @param supply_clinical_fte Length-1 numeric from [urps_supply_fte_sex()] (or
+#'   `NA`).
+#' @param demand_clinical_fte Length-1 numeric from [urps_demand_fte()] (or
+#'   `NA`).
+#' @return Length-1 numeric `gap_fte = demand - supply`, or `NA_real_` if either
+#'   input is `NA`.
+#' @seealso [urps_supply_fte_sex()], [urps_demand_fte()],
+#'   [validate_urps_projection()]
+#' @family URPS projection
+#' @examples
+#' urps_gap_fte(supply_clinical_fte = 1200, demand_clinical_fte = 1450) # +250 shortage
+#' urps_gap_fte(supply_clinical_fte = 1400, demand_clinical_fte = 1200) # -200 surplus
+#' urps_gap_fte(supply_clinical_fte = 1200, demand_clinical_fte = NA)   # NA
+#' @export
+urps_gap_fte <- function(supply_clinical_fte, demand_clinical_fte) {
+  if (!is.numeric(supply_clinical_fte) || length(supply_clinical_fte) != 1L)
+    stop("[urps_gap_fte] `supply_clinical_fte` must be a length-1 numeric.", call. = FALSE)
+  if (!is.numeric(demand_clinical_fte) || length(demand_clinical_fte) != 1L)
+    stop("[urps_gap_fte] `demand_clinical_fte` must be a length-1 numeric.", call. = FALSE)
+  if (is.na(supply_clinical_fte) || is.na(demand_clinical_fte)) return(NA_real_)
+  demand_clinical_fte - supply_clinical_fte
+}
+
 #' Read a URPS projection table (typed), optionally validating it
 #'
 #' @description Read a projection CSV into a typed `data.frame` (coercing `year` to
