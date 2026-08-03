@@ -11,11 +11,53 @@ test_that("the schema is the canonical long-table spec", {
   expect_true(all(c("column", "type", "optional", "description") %in% names(s)))
   expect_true(all(c("year", "scenario_id", "certification_pathway", "geography_type",
                     "supply_headcount", "supply_clinical_fte", "entrants", "exits",
-                    "net_change") %in% s$column))
+                    "net_change", "demand_clinical_fte", "gap_fte") %in% s$column))
   expect_match(URPS_PROJECTION_CONTRACT_VERSION, "^[0-9]+\\.[0-9]+\\.[0-9]+$")
-  # supply_clinical_fte and the CI/flow columns are optional; identity keys are not
+  # supply_clinical_fte, demand, gap, CI/flow columns are all optional
   expect_true(s$optional[s$column == "supply_clinical_fte"])
+  expect_true(s$optional[s$column == "demand_clinical_fte"])
+  expect_true(s$optional[s$column == "gap_fte"])
+  # identity keys are required
   expect_false(s$optional[s$column == "scenario_id"])
+  expect_false(s$optional[s$column == "supply_headcount"])
+})
+
+test_that("demand_clinical_fte and gap_fte NA columns pass validation", {
+  d <- good()
+  d$demand_clinical_fte <- NA_real_
+  d$gap_fte             <- NA_real_
+  expect_true(validate_urps_projection(d))
+})
+
+test_that("gap identity is enforced when all three columns are non-NA", {
+  d <- good()
+  d$supply_clinical_fte <- 100.0
+  d$demand_clinical_fte <- 120.0
+  d$gap_fte             <- 20.0    # correct: 120 - 100
+  expect_true(validate_urps_projection(d))
+  d$gap_fte <- 19.0                # wrong
+  expect_error(validate_urps_projection(d), "gap_fte")
+})
+
+test_that("gap identity only fires when all three are non-NA", {
+  d <- good()
+  d$supply_clinical_fte <- 100.0
+  d$demand_clinical_fte <- NA_real_
+  d$gap_fte             <- NA_real_
+  expect_true(validate_urps_projection(d))   # NA demand -> identity not checked
+})
+
+test_that("read_urps_projection coerces demand and gap columns to double", {
+  # write a temp CSV with demand columns and read back
+  d <- good()
+  d$demand_clinical_fte <- c(120.0, rep(NA_real_, nrow(d) - 1))
+  d$gap_fte             <- NA_real_
+  tmp <- tempfile(fileext = ".csv")
+  on.exit(unlink(tmp))
+  utils::write.csv(d, tmp, row.names = FALSE)
+  d2 <- read_urps_projection(tmp, validate = FALSE)
+  expect_type(d2$demand_clinical_fte, "double")
+  expect_type(d2$gap_fte,             "double")
 })
 
 test_that("the bundled example conforms and ties to the served count", {

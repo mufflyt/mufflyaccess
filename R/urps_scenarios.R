@@ -20,9 +20,9 @@
 # registry's declared, versioned policy definitions; revise via a registry bump.
 # ==============================================================================
 
-.URPS_SCENARIO_REGISTRY_VERSION <- "1.0.0"
+.URPS_SCENARIO_REGISTRY_VERSION <- "1.1.0"
 
-.urps_scenario_families <- c("reference", "retirement", "entry", "fte", "composite")
+.urps_scenario_families <- c("reference", "retirement", "entry", "fte", "demand", "composite")
 
 # composites are defined as an ordered set of single-lever component scenarios;
 # their lever values are RECONSTRUCTED from the components at load and cross-checked
@@ -37,10 +37,13 @@
     scenario_id = c(
       "baseline", "retire_2yr_earlier", "retire_5yr_earlier", "retire_2yr_later",
       "fellowship_plus_10pct", "fellowship_constrained", "lower_late_career_fte",
+      "demand_insurance_expansion", "demand_obesity_increase", "demand_equity",
       "combined_pessimistic", "combined_investment"),
     family = c(
       "reference", "retirement", "retirement", "retirement",
-      "entry", "entry", "fte", "composite", "composite"),
+      "entry", "entry", "fte",
+      "demand", "demand", "demand",
+      "composite", "composite"),
     label = c(
       "Baseline",
       "Retirement 2 years earlier",
@@ -49,21 +52,30 @@
       "Fellowship output +10%",
       "Fellowship output constrained (-10%)",
       "Reduced late-career clinical FTE",
+      "Increased insurance coverage (+10pp uninsured -> insured)",
+      "Increased obesity prevalence (+5 percentage points by 2035)",
+      "Reduced access barriers (equity: income + race + insurance convergence)",
       "Combined pessimistic",
       "Combined workforce investment"),
-    entrant_multiplier        = c(1.00, 1.00, 1.00, 1.00, 1.10, 0.90, 1.00, 0.90, 1.10),
-    retirement_shift_years    = c(0L,  -2L,  -5L,   2L,   0L,   0L,   0L,  -2L,   2L),
-    late_career_fte_factor    = c(1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 0.75, 0.75, 1.00),
-    late_career_fte_onset_age = c(NA,   NA,   NA,   NA,   NA,   NA,   60L,  60L,   NA),
-    requires_fte_model = c(FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, TRUE, TRUE, FALSE),
+    entrant_multiplier        = c(1.00, 1.00, 1.00, 1.00, 1.10, 0.90, 1.00, 1.00, 1.00, 1.00, 0.90, 1.10),
+    retirement_shift_years    = c(0L,  -2L,  -5L,   2L,   0L,   0L,   0L,   0L,   0L,   0L,  -2L,   2L),
+    late_career_fte_factor    = c(1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 0.75, 1.00, 1.00, 1.00, 0.75, 1.00),
+    late_career_fte_onset_age = c(NA,   NA,   NA,   NA,   NA,   NA,   60L,  NA,   NA,   NA,   60L,  NA),
+    demand_obesity_prev_shift     = c(0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  5.0,  0.0,  0.0,  0.0),
+    demand_insurance_expansion_factor = c(1.0, 1.0,  1.0,  1.0,  1.0,  1.0,  1.0,  1.2,  1.0,  1.1,  1.0,  1.0),
+    requires_fte_model    = c(FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, TRUE,  FALSE, FALSE, FALSE, TRUE,  FALSE),
+    requires_demand_model = c(FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, TRUE,  TRUE,  TRUE,  FALSE, FALSE),
     description = c(
-      "Reference projection: observed retirement hazards, entrants held at the modelled rate, and no late-career FTE adjustment. Every other scenario is stated as a perturbation of this origin.",
+      "Reference projection: observed retirement hazards, entrants held at the modelled rate, and no late-career FTE or demand adjustment. Every other scenario is stated as a perturbation of this origin.",
       "Retirement-hazard curve shifted 2 years earlier (physicians exit sooner).",
       "Retirement-hazard curve shifted 5 years earlier (a stress test on exit timing).",
       "Retirement-hazard curve shifted 2 years later (physicians work longer).",
       "Annual entrants scaled by 1.10 -- a 10% expansion of fellowship output.",
       "Annual entrants scaled by 0.90 -- a 10% contraction of fellowship output.",
       "Clinical FTE multiplied by 0.75 from age 60 onward, layered on top of headcount (requires the age-specific clinical-FTE model; see Phase 3 / CHARTER).",
+      "Demand scenario: insurance_expansion_factor = 1.2, representing a 10pp shift from uninsured to insured status in the URPS-relevant population. Requires calibrated demand equations.",
+      "Demand scenario: obesity_prev_shift = +5 percentage points above baseline by 2035, increasing pelvic floor disorder prevalence and visit rates. Requires calibrated demand equations.",
+      "Demand scenario: equity convergence -- income, race, and insurance barriers reduced toward population mean (insurance_expansion_factor = 1.1). Requires calibrated demand equations.",
       "Combined pessimistic: retirement 2 years earlier AND fellowship constrained AND reduced late-career FTE.",
       "Combined workforce investment: retirement 2 years later AND fellowship output +10%."),
     stringsAsFactors = FALSE)
@@ -72,8 +84,10 @@
 # ---- load-time validation (fail loud, mirrors geography.R) -------------------
 local({
   d <- .urps_scenarios_df()
-  lever_cols <- c("entrant_multiplier", "retirement_shift_years",
-                  "late_career_fte_factor", "late_career_fte_onset_age")
+  supply_lever_cols <- c("entrant_multiplier", "retirement_shift_years",
+                         "late_career_fte_factor", "late_career_fte_onset_age")
+  demand_lever_cols <- c("demand_obesity_prev_shift", "demand_insurance_expansion_factor")
+  b <- d[d$scenario_id == "baseline", ]
   stopifnot(
     "scenario_id must be unique, non-empty" =
       !anyDuplicated(d$scenario_id) && all(nzchar(d$scenario_id)),
@@ -81,22 +95,27 @@ local({
       all(d$family %in% .urps_scenario_families),
     "exactly one 'reference' (baseline) scenario" =
       sum(d$family == "reference") == 1L && d$scenario_id[d$family == "reference"] == "baseline",
-    "baseline must be the neutral lever origin" =
-      with(d[d$scenario_id == "baseline", ],
-           entrant_multiplier == 1 && retirement_shift_years == 0L &&
-           late_career_fte_factor == 1 && is.na(late_career_fte_onset_age)),
-    "entrant_multiplier and late_career_fte_factor must be positive" =
-      all(d$entrant_multiplier > 0) && all(d$late_career_fte_factor > 0),
+    "baseline must be the neutral supply lever origin" =
+      b$entrant_multiplier == 1 && b$retirement_shift_years == 0L &&
+      b$late_career_fte_factor == 1 && is.na(b$late_career_fte_onset_age),
+    "baseline must be the neutral demand lever origin" =
+      b$demand_obesity_prev_shift == 0.0 && b$demand_insurance_expansion_factor == 1.0,
+    "entrant_multiplier, late_career_fte_factor, and demand_insurance_expansion_factor must be positive" =
+      all(d$entrant_multiplier > 0) && all(d$late_career_fte_factor > 0) &&
+      all(d$demand_insurance_expansion_factor > 0),
     "an FTE adjustment (factor != 1) needs an onset age, and vice versa" =
       all((d$late_career_fte_factor != 1) == !is.na(d$late_career_fte_onset_age)),
     "requires_fte_model iff the scenario adjusts FTE" =
       all(d$requires_fte_model == (d$late_career_fte_factor != 1)),
+    "requires_demand_model iff the scenario uses a demand lever" =
+      all(d$requires_demand_model == (
+        d$demand_obesity_prev_shift != 0 | d$demand_insurance_expansion_factor != 1.0)),
+    "demand scenarios must belong to the 'demand' family" =
+      all(d$family[d$requires_demand_model] == "demand"),
     "composite family iff the scenario has registered components" =
       setequal(d$scenario_id[d$family == "composite"], names(.urps_scenario_components))
   )
-  # composites must reconstruct from their components: entrant & FTE multipliers
-  # compose multiplicatively, the year shift additively, the onset as the earliest,
-  # and requires_fte_model as any(). This makes the composite rows un-driftable.
+  # composites must reconstruct from their components (demand levers neutral in current composites)
   for (cid in names(.urps_scenario_components)) {
     comp <- .urps_scenario_components[[cid]]
     if (!all(comp %in% d$scenario_id))
@@ -108,7 +127,9 @@ local({
       entrant_multiplier        = prod(cr$entrant_multiplier),
       retirement_shift_years    = as.integer(sum(cr$retirement_shift_years)),
       late_career_fte_factor    = prod(cr$late_career_fte_factor),
-      late_career_fte_onset_age = if (length(onset)) as.integer(min(onset)) else NA_integer_)
+      late_career_fte_onset_age = if (length(onset)) as.integer(min(onset)) else NA_integer_,
+      demand_obesity_prev_shift          = sum(cr$demand_obesity_prev_shift),
+      demand_insurance_expansion_factor  = prod(cr$demand_insurance_expansion_factor))
     got <- d[d$scenario_id == cid, names(expect)]
     if (!isTRUE(all.equal(as.list(got), as.list(expect))))
       stop(sprintf("[urps_scenarios] composite '%s' lever values disagree with its components %s.",

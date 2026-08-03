@@ -6,14 +6,16 @@ test_that("the registry is a well-formed, versioned dictionary", {
   expect_s3_class(d, "data.frame")
   req <- c("scenario_id", "family", "label", "entrant_multiplier",
            "retirement_shift_years", "late_career_fte_factor",
-           "late_career_fte_onset_age", "requires_fte_model", "description")
+           "late_career_fte_onset_age",
+           "demand_obesity_prev_shift", "demand_insurance_expansion_factor",
+           "requires_fte_model", "requires_demand_model", "description")
   expect_true(all(req %in% names(d)))
   expect_false(anyDuplicated(d$scenario_id) > 0)
   expect_match(URPS_SCENARIO_REGISTRY_VERSION, "^[0-9]+\\.[0-9]+\\.[0-9]+$")
   expect_setequal(urps_scenario_ids(), d$scenario_id)
 })
 
-test_that("baseline is the neutral lever origin", {
+test_that("baseline is the neutral lever origin (supply and demand)", {
   b <- urps_scenario("baseline")
   expect_identical(b$family, "reference")
   expect_equal(b$entrant_multiplier, 1)
@@ -21,6 +23,9 @@ test_that("baseline is the neutral lever origin", {
   expect_equal(b$late_career_fte_factor, 1)
   expect_true(is.na(b$late_career_fte_onset_age))
   expect_false(b$requires_fte_model)
+  expect_false(b$requires_demand_model)
+  expect_equal(b$demand_obesity_prev_shift, 0.0)
+  expect_equal(b$demand_insurance_expansion_factor, 1.0)
   expect_null(b$components)
 })
 
@@ -61,6 +66,70 @@ test_that("requires_fte_model iff an FTE adjustment is present", {
   expect_equal(d$requires_fte_model, d$late_career_fte_factor != 1)
   # an FTE adjustment must carry an onset age, and none otherwise
   expect_equal(!is.na(d$late_career_fte_onset_age), d$late_career_fte_factor != 1)
+})
+
+test_that("demand scenario lever definitions match the named scenarios", {
+  ins <- urps_scenario("demand_insurance_expansion")
+  expect_identical(ins$family, "demand")
+  expect_equal(ins$demand_insurance_expansion_factor, 1.2)
+  expect_equal(ins$demand_obesity_prev_shift, 0.0)
+  expect_true(ins$requires_demand_model)
+  expect_false(ins$requires_fte_model)
+
+  obs <- urps_scenario("demand_obesity_increase")
+  expect_identical(obs$family, "demand")
+  expect_equal(obs$demand_obesity_prev_shift, 5.0)
+  expect_equal(obs$demand_insurance_expansion_factor, 1.0)
+  expect_true(obs$requires_demand_model)
+
+  eq <- urps_scenario("demand_equity")
+  expect_identical(eq$family, "demand")
+  expect_equal(eq$demand_insurance_expansion_factor, 1.1)
+  expect_true(eq$requires_demand_model)
+})
+
+test_that("requires_demand_model iff a demand lever is active", {
+  d <- urps_scenarios()
+  active <- d$demand_obesity_prev_shift != 0 | d$demand_insurance_expansion_factor != 1.0
+  expect_equal(d$requires_demand_model, active)
+})
+
+test_that("all demand scenarios belong to the 'demand' family", {
+  d <- urps_scenarios()
+  expect_true(all(d$family[d$requires_demand_model] == "demand"))
+})
+
+test_that("supply-only scenarios have neutral demand levers", {
+  supply_ids <- c("retire_2yr_earlier", "retire_5yr_earlier", "retire_2yr_later",
+                  "fellowship_plus_10pct", "fellowship_constrained", "lower_late_career_fte")
+  d <- urps_scenarios()
+  for (id in supply_ids) {
+    r <- d[d$scenario_id == id, ]
+    expect_equal(r$demand_obesity_prev_shift, 0.0,
+      label = paste("obesity shift == 0 for", id))
+    expect_equal(r$demand_insurance_expansion_factor, 1.0,
+      label = paste("insurance factor == 1 for", id))
+    expect_false(r$requires_demand_model,
+      label = paste("requires_demand_model FALSE for", id))
+  }
+})
+
+test_that("composite scenarios have neutral demand levers (not demand-model-dependent)", {
+  for (cid in c("combined_pessimistic", "combined_investment")) {
+    sc <- urps_scenario(cid)
+    expect_equal(sc$demand_obesity_prev_shift, 0.0)
+    expect_equal(sc$demand_insurance_expansion_factor, 1.0)
+    expect_false(sc$requires_demand_model)
+  }
+})
+
+test_that("executable-today filter excludes demand and FTE scenarios", {
+  d <- urps_scenarios()
+  executable <- d[!d$requires_fte_model & !d$requires_demand_model, ]
+  expect_true("baseline" %in% executable$scenario_id)
+  expect_false(any(executable$scenario_id %in%
+    c("lower_late_career_fte", "combined_pessimistic",
+      "demand_insurance_expansion", "demand_obesity_increase", "demand_equity")))
 })
 
 test_that("urps_scenario() is a fail-loud single lookup", {
