@@ -1,0 +1,246 @@
+# ==============================================================================
+# URPS healthcare use prediction equation parameter skeleton.
+#
+# Mirrors the IHS Markit HWMM approach (v5.19.20):
+#   - Negative binomial regression for count outcomes (office visits,
+#     outpatient visits, home health visits)
+#   - Logistic regression for binary outcomes (hospitalization probability,
+#     ED visit probability, by ICD diagnosis category)
+#   - Poisson regression for hospital length of stay
+#
+# Covariates per HWMM Exhibits 14-16:
+#   age, sex, race/ethnicity, BMI, smoking, income (FPL category),
+#   insurance type, managed care enrollment, chronic condition count,
+#   urban-rural status
+#
+# Data source: MEPS 2013-2017 (~170k persons), calibrated against
+# NAMCS / NHAMCS / NIS national totals via multiplicative scalars
+# (see urps_demand_scalars()).
+#
+# CURRENT STATUS: calibration_status = "not_calibrated"
+#   All regression coefficients are NA_real_. The table structure matches the
+#   HWMM specification so cliff can wire demand_clinical_fte into the
+#   projection contract now; the coefficients slot in when MEPS or NAMCS data
+#   are fitted for URPS / FPMRS services.
+#
+# Data acquisition path to calibrate:
+#   1. NAMCS/NHAMCS restricted-use files filtered to URPS specialty codes
+#   2. MEPS 2013-2017 individual-level survey data (AHRQ Data Center)
+#   3. Fit NB/logistic/Poisson models with survey weights (survey::svyglm)
+#   4. Apply NAMCS/NHAMCS/NIS calibration scalars (urps_demand_scalars())
+#
+# Reference encoding (same as HWMM):
+#   sex:       female = 0, male = 1
+#   race:      non-Hispanic white = reference
+#   income:    >= 400% FPL = reference
+#   insurance: private = reference
+#
+# URPS-specific note: MEPS does not contain FPMRS procedure codes directly.
+# Until NAMCS data arrive, b_* columns remain NA and demand_clinical_fte
+# in the projection contract is NA (allowed by the contract schema).
+# ==============================================================================
+
+.URPS_DEMAND_VERSION <- "0.1.0"   # pre-calibration; bump to 1.0.0 on first fit
+
+.urps_demand_params_df <- function() {
+  service_types <- c(
+    "office_visit",
+    "outpatient_visit",
+    "home_health_visit",
+    "hospitalization_prob",
+    "ed_visit_prob",
+    "hospital_los"
+  )
+  model_forms <- c(
+    "negative_binomial",  # office_visit
+    "negative_binomial",  # outpatient_visit
+    "negative_binomial",  # home_health_visit
+    "logistic",           # hospitalization_prob
+    "logistic",           # ed_visit_prob
+    "poisson"             # hospital_los
+  )
+  outcome_units <- c(
+    "annual_visit_count",          # office_visit
+    "annual_visit_count",          # outpatient_visit
+    "annual_visit_count",          # home_health_visit
+    "probability_0_1",             # hospitalization_prob
+    "probability_0_1",             # ed_visit_prob
+    "days_per_admission"           # hospital_los
+  )
+  n <- length(service_types)
+  data.frame(
+    service_type               = service_types,
+    model_form                 = model_forms,
+    outcome_units              = outcome_units,
+    # ---- regression coefficients (all NA until MEPS/NAMCS fit) ---------------
+    intercept                  = rep(NA_real_, n),
+    b_age                      = rep(NA_real_, n),  # continuous, per year
+    b_sex_male                 = rep(NA_real_, n),  # ref: female
+    b_race_black               = rep(NA_real_, n),  # ref: non-Hispanic white
+    b_race_hispanic            = rep(NA_real_, n),
+    b_race_other               = rep(NA_real_, n),
+    b_bmi                      = rep(NA_real_, n),  # continuous, per unit
+    b_smoking_current          = rep(NA_real_, n),  # ref: never/former
+    b_income_low               = rep(NA_real_, n),  # < 100% FPL; ref: >= 400% FPL
+    b_income_mid               = rep(NA_real_, n),  # 100-399% FPL
+    b_insurance_medicaid       = rep(NA_real_, n),  # ref: private
+    b_insurance_medicare       = rep(NA_real_, n),
+    b_insurance_uninsured      = rep(NA_real_, n),
+    b_managed_care             = rep(NA_real_, n),  # 1 = in managed care plan
+    b_chronic_count            = rep(NA_real_, n),  # count of chronic conditions
+    b_urban                    = rep(NA_real_, n),  # 1 = urban; ref: rural
+    # ---- dispersion parameter (negative binomial only; NA otherwise) ----------
+    nb_theta                   = rep(NA_real_, n),
+    # ---- calibration scalar slot (see urps_demand_scalars()) ------------------
+    calibration_scalar         = rep(1.0, n),       # placeholder; overwritten at fit
+    # ---- provenance -----------------------------------------------------------
+    data_source                = "MEPS_2013_2017",
+    calibration_status         = "not_calibrated",
+    stringsAsFactors           = FALSE
+  )
+}
+
+# Load-time validation — structural guarantees that survive a future
+# accidental edit, even before any betas are filled in.
+local({
+  d <- .urps_demand_params_df()
+  expected_services <- c(
+    "office_visit", "outpatient_visit", "home_health_visit",
+    "hospitalization_prob", "ed_visit_prob", "hospital_los")
+  expected_forms <- c(
+    "negative_binomial", "negative_binomial", "negative_binomial",
+    "logistic", "logistic", "poisson")
+  beta_cols <- c(
+    "intercept", "b_age", "b_sex_male",
+    "b_race_black", "b_race_hispanic", "b_race_other",
+    "b_bmi", "b_smoking_current",
+    "b_income_low", "b_income_mid",
+    "b_insurance_medicaid", "b_insurance_medicare", "b_insurance_uninsured",
+    "b_managed_care", "b_chronic_count", "b_urban")
+  stopifnot(
+    "demand params must have exactly 6 rows" =
+      nrow(d) == 6L,
+    "service_type must be unique" =
+      !anyDuplicated(d$service_type),
+    "service_types must be the expected set" =
+      setequal(d$service_type, expected_services),
+    "model forms match service types" =
+      identical(d$model_form[match(expected_services, d$service_type)], expected_forms),
+    "all required covariate columns present" =
+      all(beta_cols %in% names(d)),
+    "calibration_status must be 'not_calibrated' (skeleton)" =
+      all(d$calibration_status == "not_calibrated"),
+    "all beta columns must be NA_real_ in the skeleton" =
+      all(vapply(beta_cols, function(col) all(is.na(d[[col]])), logical(1))),
+    "nb_theta must be NA for logistic and Poisson models" = {
+      is_nb <- d$model_form == "negative_binomial"
+      all(is.na(d$nb_theta[!is_nb]))
+    },
+    "calibration_scalar must be positive" =
+      all(d$calibration_scalar > 0),
+    "demand version must be semver" =
+      grepl("^[0-9]+\\.[0-9]+\\.[0-9]+$", .URPS_DEMAND_VERSION)
+  )
+})
+
+#' Version of the URPS demand prediction equation skeleton
+#'
+#' @description Pre-calibration version `"0.1.0"` — structure matches the HWMM
+#'   specification but all regression coefficients are `NA`. Bump to `"1.0.0"` on
+#'   first MEPS/NAMCS fit.
+#' @format Length-1 character string.
+#' @seealso [urps_demand_params()], [urps_demand_scalars()]
+#' @family URPS demand
+#' @examples
+#' URPS_DEMAND_VERSION
+#' @export
+URPS_DEMAND_VERSION <- .URPS_DEMAND_VERSION
+
+#' URPS healthcare use prediction equation parameters (skeleton)
+#'
+#' @description The regression parameter skeleton for six URPS-relevant service
+#'   types following the IHS Markit HWMM specification:
+#'
+#'   | Service | Model | Outcome |
+#'   |---|---|---|
+#'   | Office visits | Negative binomial | Annual count |
+#'   | Outpatient visits | Negative binomial | Annual count |
+#'   | Home health visits | Negative binomial | Annual count |
+#'   | Hospitalization probability | Logistic | Probability |
+#'   | ED visit probability | Logistic | Probability |
+#'   | Hospital length of stay | Poisson | Days/admission |
+#'
+#'   **Status:** `calibration_status = "not_calibrated"` — all beta columns are
+#'   `NA_real_`. The structure exists so cliff can wire [urps_demand_clinical_fte()]
+#'   into the projection contract today. Coefficients populate when MEPS 2013-2017
+#'   or NAMCS restricted-use data are fitted for URPS / FPMRS services.
+#'
+#'   **Covariates (columns `b_*`):** age, sex, race/ethnicity, BMI, smoking,
+#'   income (FPL category), insurance type, managed care enrollment, chronic
+#'   condition count, urban-rural. Reference encoding follows HWMM:
+#'   female = reference sex, non-Hispanic white = reference race,
+#'   >= 400% FPL = reference income, private insurance = reference.
+#'
+#' @return A `data.frame` with columns `service_type`, `model_form`,
+#'   `outcome_units`, covariate beta columns (`b_*`), `nb_theta`,
+#'   `calibration_scalar`, `data_source`, and `calibration_status`. Carries
+#'   attributes `source`, `formula_note`, and `covariate_reference`.
+#' @seealso [urps_demand_scalars()], [urps_demand_clinical_fte()],
+#'   [URPS_DEMAND_VERSION]
+#' @family URPS demand
+#' @examples
+#' urps_demand_params()
+#' urps_demand_params()[, c("service_type", "model_form", "calibration_status")]
+#' @export
+urps_demand_params <- function() {
+  d <- .urps_demand_params_df()
+  attr(d, "source") <- paste(
+    "IHS Markit HWMM v5.19.20 (model structure, covariate list, Exhibits 14-16);",
+    "MEPS 2013-2017 (~170k persons, AHRQ Data Center) — fitting dataset;",
+    "NAMCS/NHAMCS/NIS — calibration totals for specialty x setting scalars.",
+    "URPS-specific fit pending; see urps_demand_scalars() for scalar skeleton.")
+  attr(d, "formula_note") <- paste(
+    "NB: E[visits] = exp(intercept + b_age*age + ... + b_urban*urban);",
+    "Logistic: logit(P) = intercept + b_age*age + ...;",
+    "Poisson: E[LOS] = exp(intercept + b_age*age + ...)")
+  attr(d, "covariate_reference") <- paste(
+    "Reference levels: sex=female, race=non-Hispanic white,",
+    "income >= 400% FPL, insurance=private.")
+  d
+}
+
+#' Compute demand_clinical_fte from a patient population and the fitted equations
+#'
+#' @description **Stub — returns `NA` until calibrated.** Once
+#'   `urps_demand_params()` carries fitted coefficients, this function will
+#'   evaluate predicted visit counts per person, sum over the population, and
+#'   convert to clinical FTE using a visits-to-FTE conversion factor.
+#'
+#' @details The full pipeline (to be implemented when calibrated):
+#'   1. For each service type, evaluate the regression at each person's covariate
+#'      vector to get predicted visit rate.
+#'   2. Multiply by person count → expected visits.
+#'   3. Multiply by specialty × setting calibration scalar
+#'      (`urps_demand_scalars()`).
+#'   4. Divide by annual visit capacity per FTE to get `demand_clinical_fte`.
+#'
+#' @param population A `data.frame` with columns matching the `b_*` covariate
+#'   names in [urps_demand_params()] (age, sex, race, bmi, etc.) and a column
+#'   `n` (population count per row).
+#' @param visits_per_fte Annual URPS visits per full-time-equivalent provider
+#'   (used for the visits → FTE conversion). No default; must be supplied.
+#' @return `NA_real_` (stub). When calibrated, returns a length-1 numeric
+#'   `demand_clinical_fte`.
+#' @seealso [urps_demand_params()], [urps_demand_scalars()]
+#' @family URPS demand
+#' @examples
+#' urps_demand_clinical_fte(data.frame(age = 50, sex = "female", n = 1000),
+#'   visits_per_fte = 2000)  # NA_real_ until calibrated
+#' @export
+urps_demand_clinical_fte <- function(population, visits_per_fte) {
+  params <- urps_demand_params()
+  if (all(is.na(params$intercept)))
+    return(NA_real_)
+  stop("[urps_demand_clinical_fte] calibrated coefficients not yet available. ",
+       "See urps_demand_params() calibration_status.", call. = FALSE)
+}

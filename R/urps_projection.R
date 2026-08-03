@@ -14,7 +14,7 @@
 # so a projection can never silently start from a number the SSOT does not serve.
 # ==============================================================================
 
-.URPS_PROJECTION_CONTRACT_VERSION <- "1.0.0"
+.URPS_PROJECTION_CONTRACT_VERSION <- "1.1.0"
 
 # the required long-table columns, in canonical order, with types + meaning
 .urps_projection_schema <- function() {
@@ -22,15 +22,18 @@
     column = c(
       "year", "scenario_id", "specialty", "certification_pathway",
       "geography_type", "geography_id", "supply_headcount", "supply_clinical_fte",
-      "lower_95", "upper_95", "entrants", "exits", "net_change"),
+      "lower_95", "upper_95", "entrants", "exits", "net_change",
+      "demand_clinical_fte", "gap_fte"),
     type = c(
       "integer", "character", "character", "character",
       "character", "character", "double", "double",
-      "double", "double", "double", "double", "double"),
+      "double", "double", "double", "double", "double",
+      "double", "double"),
     optional = c(
       FALSE, FALSE, FALSE, FALSE,
       FALSE, FALSE, FALSE, TRUE,
-      TRUE, TRUE, TRUE, TRUE, TRUE),
+      TRUE, TRUE, TRUE, TRUE, TRUE,
+      TRUE, TRUE),
     description = c(
       "projection year",
       "scenario id (must be registered in urps_scenarios())",
@@ -44,7 +47,9 @@
       "upper 95% bound on supply_headcount (NA if deterministic)",
       "entrants into the stock during the year",
       "exits from the stock during the year",
-      "net change in the stock during the year (defined as entrants - exits)"),
+      "net change in the stock during the year (defined as entrants - exits)",
+      "projected demand in clinical FTE units (NA until demand equations calibrated; see urps_demand_params())",
+      "gap_fte = demand_clinical_fte - supply_clinical_fte; negative = surplus, positive = shortage (NA unless both demand and supply FTE present)"),
     stringsAsFactors = FALSE)
 }
 
@@ -193,6 +198,17 @@ validate_urps_projection <- function(x, baseline_tie = NULL, tol = 1e-6) {
            call. = FALSE)
   }
 
+  # gap identity: gap_fte == demand_clinical_fte - supply_clinical_fte (where all present)
+  if (all(c("demand_clinical_fte", "supply_clinical_fte", "gap_fte") %in% names(d))) {
+    dem <- suppressWarnings(as.numeric(d$demand_clinical_fte))
+    sup <- suppressWarnings(as.numeric(d$supply_clinical_fte))
+    gap <- suppressWarnings(as.numeric(d$gap_fte))
+    have_all <- !is.na(dem) & !is.na(sup) & !is.na(gap)
+    if (any(have_all & abs(gap - (dem - sup)) > tol))
+      stop("[validate_urps_projection] gap_fte must equal demand_clinical_fte - supply_clinical_fte.",
+           call. = FALSE)
+  }
+
   # baseline-year tie back to the served count SSOT
   if (!is.null(baseline_tie)) {
     bt <- baseline_tie
@@ -239,7 +255,7 @@ read_urps_projection <- function(path, validate = TRUE, ...) {
   d <- utils::read.csv(path, stringsAsFactors = FALSE, na.strings = c("", "NA"))
   if ("year" %in% names(d)) d$year <- as.integer(d$year)
   num <- c("supply_headcount", "supply_clinical_fte", "lower_95", "upper_95",
-           "entrants", "exits", "net_change")
+           "entrants", "exits", "net_change", "demand_clinical_fte", "gap_fte")
   for (col in intersect(num, names(d))) d[[col]] <- suppressWarnings(as.numeric(d[[col]]))
   if (isTRUE(validate)) validate_urps_projection(d, ...)
   d
