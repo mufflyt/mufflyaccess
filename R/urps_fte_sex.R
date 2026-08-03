@@ -385,3 +385,65 @@ urps_fte_scale_sex <- function(reference_counts,
          call. = FALSE)
   as.numeric(target_headcount) / raw
 }
+
+#' Full supply pipeline: certified headcount -> supply_clinical_fte (sex-stratified)
+#'
+#' @description Composes the three supply-side adjustments in the correct order:
+#'
+#'   1. **LFP** (`urps_p_active`): `certified_n → practicing_n`
+#'   2. **FTE weight** (`urps_fte_weight_sex`): hours/40 × pathway clinical time × late_factor
+#'   3. **Scale** (`baseline_scale`): anchors FTE to the 2023 baseline headcount
+#'
+#'   Equivalent to:
+#'   ```r
+#'   cohort <- urps_apply_lfp(cohort)   # adds practicing_n
+#'   urps_effective_fte_sex(
+#'     data.frame(age=cohort$age, sex=cohort$sex,
+#'                pathway=cohort$pathway, n=cohort$practicing_n),
+#'     scale = baseline_scale, ...)
+#'   ```
+#'   Use this function when cliff passes certified headcount per cohort cell.
+#'   If practicing headcount is already known (e.g. from survey direct-count),
+#'   call [urps_effective_fte_sex()] directly.
+#'
+#' @param cohort A `data.frame` with columns `age`, `sex`, `pathway`, and
+#'   `certified_n`. The `n` column (if present) is ignored; `certified_n` is used.
+#' @param baseline_scale Scale from [urps_fte_scale_sex()] computed on the 2023
+#'   baseline certified cohort. Must be computed ONCE and reused across years.
+#' @param late_from_age,late_factor Late-career FTE lever — pass values from
+#'   `urps_scenario(id)$late_career_fte_onset_age` and
+#'   `urps_scenario(id)$late_career_fte_factor`. Defaults leave weight unchanged.
+#' @return Length-1 numeric: `supply_clinical_fte` for this cohort row.
+#' @seealso [urps_apply_lfp()], [urps_effective_fte_sex()], [urps_fte_scale_sex()],
+#'   [urps_p_active()], [urps_fte_weight_sex()]
+#' @family URPS FTE sex
+#' @examples
+#' cohort <- data.frame(
+#'   age = c(45L, 62L, 45L, 62L),
+#'   sex = c("female", "female", "male", "male"),
+#'   pathway = c("ABOG", "ABOG", "ABU", "ABU"),
+#'   certified_n = c(350, 150, 100, 40))
+#' scale <- urps_fte_scale_sex(
+#'   cbind(cohort, n = cohort$certified_n *
+#'     urps_p_active(cohort$age, cohort$sex)))
+#' urps_supply_fte_sex(cohort, scale)
+#' @export
+urps_supply_fte_sex <- function(cohort, baseline_scale,
+                                 late_from_age = NULL, late_factor = 1) {
+  need <- c("age", "sex", "pathway", "certified_n")
+  miss <- setdiff(need, names(cohort))
+  if (length(miss))
+    stop(sprintf("[urps_supply_fte_sex] missing required column(s): %s.",
+                 paste(miss, collapse = ", ")), call. = FALSE)
+  practicing <- urps_apply_lfp(cohort)
+  urps_effective_fte_sex(
+    data.frame(age     = practicing$age,
+               sex     = practicing$sex,
+               pathway = practicing$pathway,
+               n       = practicing$practicing_n,
+               stringsAsFactors = FALSE),
+    scale         = baseline_scale,
+    late_from_age = late_from_age,
+    late_factor   = late_factor
+  )
+}

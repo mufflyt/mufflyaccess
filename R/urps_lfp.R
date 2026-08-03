@@ -231,3 +231,44 @@ urps_lfp_curve <- function(sex, age_range = 35:80) {
     stringsAsFactors = FALSE
   )
 }
+
+#' Apply LFP to a certified cohort to obtain the practicing headcount
+#'
+#' @description Multiplies `certified_n` by `urps_p_active(age, sex)` to produce
+#'   `practicing_n` — the expected number of providers actively practicing in a
+#'   given year conditional on still holding certification. This is the first step
+#'   of the supply pipeline before applying the FTE weight:
+#'
+#'   ```
+#'   cohort <- urps_apply_lfp(cohort)   # certified_n -> practicing_n
+#'   fte    <- urps_effective_fte_sex(   # practicing_n -> supply_clinical_fte
+#'               data.frame(..., n = cohort$practicing_n), scale)
+#'   ```
+#'
+#'   Or call [urps_supply_fte_sex()] to do both steps in one call.
+#'
+#' @param cohort A `data.frame` with columns `age` (numeric/integer), `sex`
+#'   (`"female"` / `"male"`), and `certified_n` (numeric). Other columns are
+#'   passed through unchanged.
+#' @return The same `data.frame` with a new column `practicing_n` =
+#'   `certified_n * urps_p_active(age, sex)`. Any existing `practicing_n`
+#'   column is overwritten.
+#' @seealso [urps_p_active()], [urps_supply_fte_sex()], [urps_effective_fte_sex()]
+#' @family URPS LFP
+#' @examples
+#' cohort <- data.frame(
+#'   age = c(45L, 62L, 45L, 62L),
+#'   sex = c("female", "female", "male", "male"),
+#'   pathway = c("ABOG", "ABOG", "ABU", "ABU"),
+#'   certified_n = c(350, 150, 100, 40))
+#' urps_apply_lfp(cohort)
+#' @export
+urps_apply_lfp <- function(cohort) {
+  need <- c("age", "sex", "certified_n")
+  miss <- setdiff(need, names(cohort))
+  if (length(miss))
+    stop(sprintf("[urps_apply_lfp] missing required column(s): %s.",
+                 paste(miss, collapse = ", ")), call. = FALSE)
+  cohort$practicing_n <- cohort$certified_n * urps_p_active(cohort$age, cohort$sex)
+  cohort
+}
