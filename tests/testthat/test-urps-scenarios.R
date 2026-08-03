@@ -90,7 +90,10 @@ test_that("demand scenario lever definitions match the named scenarios", {
 
 test_that("requires_demand_model iff a demand lever is active", {
   d <- urps_scenarios()
-  active <- d$demand_obesity_prev_shift != 0 | d$demand_insurance_expansion_factor != 1.0
+  active <- d$demand_obesity_prev_shift != 0 |
+            d$demand_insurance_expansion_factor != 1.0 |
+            d$demand_managed_care_factor != 1.0 |
+            d$demand_retail_clinic_share != 0.0
   expect_equal(d$requires_demand_model, active)
 })
 
@@ -105,12 +108,11 @@ test_that("supply-only scenarios have neutral demand levers", {
   d <- urps_scenarios()
   for (id in supply_ids) {
     r <- d[d$scenario_id == id, ]
-    expect_equal(r$demand_obesity_prev_shift, 0.0,
-      label = paste("obesity shift == 0 for", id))
-    expect_equal(r$demand_insurance_expansion_factor, 1.0,
-      label = paste("insurance factor == 1 for", id))
-    expect_false(r$requires_demand_model,
-      label = paste("requires_demand_model FALSE for", id))
+    expect_equal(r$demand_obesity_prev_shift,         0.0, label = paste("obesity shift == 0 for",    id))
+    expect_equal(r$demand_insurance_expansion_factor, 1.0, label = paste("insurance factor == 1 for", id))
+    expect_equal(r$demand_managed_care_factor,        1.0, label = paste("managed care factor == 1 for", id))
+    expect_equal(r$demand_retail_clinic_share,        0.0, label = paste("retail clinic share == 0 for", id))
+    expect_false(r$requires_demand_model,                  label = paste("requires_demand_model FALSE for", id))
   }
 })
 
@@ -123,13 +125,50 @@ test_that("composite scenarios have neutral demand levers (not demand-model-depe
   }
 })
 
+test_that("demand_managed_care_increase and demand_retail_clinic_shift lever definitions", {
+  mc <- urps_scenario("demand_managed_care_increase")
+  expect_identical(mc$family, "demand")
+  expect_equal(mc$demand_managed_care_factor, 0.85)
+  expect_equal(mc$demand_retail_clinic_share, 0.0)
+  expect_true(mc$requires_demand_model)
+  expect_false(mc$requires_fte_model)
+
+  rc <- urps_scenario("demand_retail_clinic_shift")
+  expect_identical(rc$family, "demand")
+  expect_equal(rc$demand_retail_clinic_share, 0.10)
+  expect_equal(rc$demand_managed_care_factor, 1.0)
+  expect_true(rc$requires_demand_model)
+  expect_false(rc$requires_fte_model)
+})
+
+test_that("demand_managed_care_factor is in (0, 1] for managed_care_increase scenario", {
+  mc <- urps_scenario("demand_managed_care_increase")
+  expect_gt(mc$demand_managed_care_factor, 0.0)
+  expect_lte(mc$demand_managed_care_factor, 1.0)
+})
+
+test_that("demand_retail_clinic_share is in [0, 1) for retail_clinic_shift scenario", {
+  rc <- urps_scenario("demand_retail_clinic_shift")
+  expect_gte(rc$demand_retail_clinic_share, 0.0)
+  expect_lt(rc$demand_retail_clinic_share, 1.0)
+})
+
+test_that("composite scenarios have neutral managed_care and retail_clinic levers", {
+  for (cid in c("combined_pessimistic", "combined_investment")) {
+    sc <- urps_scenario(cid)
+    expect_equal(sc$demand_managed_care_factor, 1.0)
+    expect_equal(sc$demand_retail_clinic_share, 0.0)
+  }
+})
+
 test_that("executable-today filter excludes demand and FTE scenarios", {
   d <- urps_scenarios()
   executable <- d[!d$requires_fte_model & !d$requires_demand_model, ]
   expect_true("baseline" %in% executable$scenario_id)
   expect_false(any(executable$scenario_id %in%
     c("lower_late_career_fte", "combined_pessimistic",
-      "demand_insurance_expansion", "demand_obesity_increase", "demand_equity")))
+      "demand_insurance_expansion", "demand_obesity_increase", "demand_equity",
+      "demand_managed_care_increase", "demand_retail_clinic_shift")))
 })
 
 test_that("urps_scenario() is a fail-loud single lookup", {

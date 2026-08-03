@@ -82,6 +82,43 @@ test_that("params table carries source, formula_note, and covariate_reference at
   expect_match(attr(d, "covariate_reference"), "female")
 })
 
+# ---- urps_demand_levers ------------------------------------------------------
+
+test_that("urps_demand_levers returns a named list with all four demand levers", {
+  lv <- urps_demand_levers("baseline")
+  expect_type(lv, "list")
+  expect_true(all(c("demand_obesity_prev_shift", "demand_insurance_expansion_factor",
+                    "demand_managed_care_factor", "demand_retail_clinic_share",
+                    "requires_demand_model", "registry_version") %in% names(lv)))
+})
+
+test_that("baseline demand levers are all neutral", {
+  lv <- urps_demand_levers("baseline")
+  expect_equal(lv$demand_obesity_prev_shift,         0.0)
+  expect_equal(lv$demand_insurance_expansion_factor, 1.0)
+  expect_equal(lv$demand_managed_care_factor,        1.0)
+  expect_equal(lv$demand_retail_clinic_share,        0.0)
+  expect_false(lv$requires_demand_model)
+})
+
+test_that("managed_care_increase levers are correctly retrieved", {
+  lv <- urps_demand_levers("demand_managed_care_increase")
+  expect_equal(lv$demand_managed_care_factor, 0.85)
+  expect_equal(lv$demand_retail_clinic_share, 0.0)
+  expect_true(lv$requires_demand_model)
+})
+
+test_that("retail_clinic_shift levers are correctly retrieved", {
+  lv <- urps_demand_levers("demand_retail_clinic_shift")
+  expect_equal(lv$demand_retail_clinic_share, 0.10)
+  expect_equal(lv$demand_managed_care_factor, 1.0)
+  expect_true(lv$requires_demand_model)
+})
+
+test_that("urps_demand_levers fails loud on unknown scenario", {
+  expect_error(urps_demand_levers("no_such_scenario"), "unknown scenario_id")
+})
+
 # ---- urps_demand_clinical_fte ------------------------------------------------
 
 test_that("urps_demand_clinical_fte returns NA_real_ when not calibrated", {
@@ -94,4 +131,34 @@ test_that("urps_demand_clinical_fte returns NA_real_ when not calibrated", {
 test_that("urps_demand_clinical_fte NA result is length 1", {
   pop <- data.frame(age = 50:60, sex = "female", n = rep(100, 11))
   expect_length(urps_demand_clinical_fte(pop, visits_per_fte = 2000), 1L)
+})
+
+test_that("urps_demand_clinical_fte accepts demand lever arguments without error", {
+  pop <- data.frame(age = 50, sex = "female", n = 1000)
+  lv  <- urps_demand_levers("demand_managed_care_increase")
+  result <- urps_demand_clinical_fte(pop, visits_per_fte = 2000,
+    managed_care_factor = lv$demand_managed_care_factor,
+    retail_clinic_share = lv$demand_retail_clinic_share)
+  expect_true(is.na(result))
+})
+
+test_that("urps_demand_clinical_fte fails loud on invalid lever values", {
+  pop <- data.frame(age = 50, sex = "female", n = 1000)
+  expect_error(urps_demand_clinical_fte(pop, 2000, managed_care_factor = 0),  "positive")
+  expect_error(urps_demand_clinical_fte(pop, 2000, managed_care_factor = -1), "positive")
+  expect_error(urps_demand_clinical_fte(pop, 2000, retail_clinic_share = 1),  "\\[0, 1\\)")
+  expect_error(urps_demand_clinical_fte(pop, 2000, retail_clinic_share = -0.1), "\\[0, 1\\)")
+})
+
+test_that("urps_demand_levers output plugs directly into urps_demand_clinical_fte", {
+  pop <- data.frame(age = 50, sex = "female", n = 1000)
+  for (id in c("baseline", "demand_managed_care_increase", "demand_retail_clinic_shift")) {
+    lv <- urps_demand_levers(id)
+    result <- urps_demand_clinical_fte(pop, visits_per_fte = 2000,
+      obesity_prev_shift         = lv$demand_obesity_prev_shift,
+      insurance_expansion_factor = lv$demand_insurance_expansion_factor,
+      managed_care_factor        = lv$demand_managed_care_factor,
+      retail_clinic_share        = lv$demand_retail_clinic_share)
+    expect_true(is.na(result), label = paste("NA for", id))
+  }
 })

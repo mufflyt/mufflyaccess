@@ -11,19 +11,31 @@ test_that("URPS_DEMAND_SCALARS_VERSION is semver and pre-calibration", {
 
 # ---- scalar table ------------------------------------------------------------
 
-test_that("scalar table has exactly 5 rows with required columns", {
+test_that("scalar table has exactly 6 rows with required columns", {
   d <- urps_demand_scalars()
   expect_s3_class(d, "data.frame")
-  expect_equal(nrow(d), 5L)
+  expect_equal(nrow(d), 6L)
   expect_true(all(c("specialty", "setting", "scalar",
                     "calibration_source", "calibration_status") %in% names(d)))
 })
 
-test_that("settings are unique and cover the expected set", {
+test_that("settings are unique and cover the expected set including retail_clinic", {
   d <- urps_demand_scalars()
-  expected <- c("office", "outpatient", "home_health", "inpatient", "ed")
+  expected <- c("office", "outpatient", "home_health", "inpatient", "ed", "retail_clinic")
   expect_setequal(d$setting, expected)
   expect_equal(anyDuplicated(d$setting), 0L)
+})
+
+test_that("retail_clinic setting has NAMCS calibration source", {
+  d <- urps_demand_scalars()
+  rc <- d[d$setting == "retail_clinic", ]
+  expect_true(grepl("NAMCS", rc$calibration_source))
+  expect_equal(rc$scalar, 1.0)
+  expect_equal(rc$calibration_status, "not_calibrated")
+})
+
+test_that("urps_demand_scalar returns 1.0 for retail_clinic", {
+  expect_equal(urps_demand_scalar("retail_clinic"), 1.0)
 })
 
 test_that("specialty is 'URPS' for all rows", {

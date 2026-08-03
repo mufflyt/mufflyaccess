@@ -209,35 +209,110 @@ urps_demand_params <- function() {
   d
 }
 
+#' Retrieve demand lever settings for a scenario (cliff integration helper)
+#'
+#' @description Returns the four demand lever values for a registered scenario
+#'   as a named list, suitable for passing directly to [urps_demand_clinical_fte()].
+#'   This is the demand-side counterpart to [urps_scenario()]: cliff calls this
+#'   once per scenario to get the full demand lever bundle.
+#'
+#' @details **Lever semantics:**
+#'   \describe{
+#'     \item{`demand_obesity_prev_shift`}{Percentage-point shift in population
+#'       obesity prevalence applied on top of baseline trends. Positive = higher
+#'       obesity, increasing PFD incidence and visit rates.}
+#'     \item{`demand_insurance_expansion_factor`}{Multiplier on the utilization
+#'       contribution of previously uninsured / underinsured persons. > 1 means
+#'       more demand from insurance expansion.}
+#'     \item{`demand_managed_care_factor`}{Multiplier on total physician demand
+#'       from changes in HMO/ACO gatekeeping intensity. < 1 means managed care
+#'       reduces specialist referrals and direct access.}
+#'     \item{`demand_retail_clinic_share`}{Fraction of office-visit demand
+#'       shifted to retail health clinics (staffed by APRNs/PAs for lower-acuity
+#'       conditions). Reduces URPS physician demand proportionally.}
+#'   }
+#'
+#' @param scenario_id A registered scenario id (see [urps_scenario_ids()]).
+#' @return A named list with elements `demand_obesity_prev_shift`,
+#'   `demand_insurance_expansion_factor`, `demand_managed_care_factor`, and
+#'   `demand_retail_clinic_share`. Also carries `scenario_id`,
+#'   `requires_demand_model`, and `registry_version`.
+#' @seealso [urps_scenario()], [urps_demand_clinical_fte()], [urps_demand_params()]
+#' @family URPS demand
+#' @examples
+#' urps_demand_levers("baseline")
+#' urps_demand_levers("demand_managed_care_increase")
+#' urps_demand_levers("demand_retail_clinic_shift")
+#' @export
+urps_demand_levers <- function(scenario_id) {
+  sc <- urps_scenario(scenario_id)
+  list(
+    scenario_id                       = sc$scenario_id,
+    demand_obesity_prev_shift         = sc$demand_obesity_prev_shift,
+    demand_insurance_expansion_factor = sc$demand_insurance_expansion_factor,
+    demand_managed_care_factor        = sc$demand_managed_care_factor,
+    demand_retail_clinic_share        = sc$demand_retail_clinic_share,
+    requires_demand_model             = sc$requires_demand_model,
+    registry_version                  = sc$registry_version
+  )
+}
+
 #' Compute demand_clinical_fte from a patient population and the fitted equations
 #'
-#' @description **Stub — returns `NA` until calibrated.** Once
+#' @description **Stub — returns `NA_real_` until calibrated.** Once
 #'   `urps_demand_params()` carries fitted coefficients, this function will
-#'   evaluate predicted visit counts per person, sum over the population, and
-#'   convert to clinical FTE using a visits-to-FTE conversion factor.
+#'   evaluate predicted visit counts per person, sum over the population,
+#'   apply the scenario demand levers, and convert to clinical FTE.
 #'
 #' @details The full pipeline (to be implemented when calibrated):
 #'   1. For each service type, evaluate the regression at each person's covariate
 #'      vector to get predicted visit rate.
 #'   2. Multiply by person count → expected visits.
-#'   3. Multiply by specialty × setting calibration scalar
-#'      (`urps_demand_scalars()`).
-#'   4. Divide by annual visit capacity per FTE to get `demand_clinical_fte`.
+#'   3. Apply demand scenario levers:
+#'      - `obesity_prev_shift`: adjusts PFD-relevant covariate distribution.
+#'      - `insurance_expansion_factor`: scales visits from newly insured persons.
+#'      - `managed_care_factor`: multiplies total specialist visit demand.
+#'      - `retail_clinic_share`: reduces physician demand by the share of visits
+#'        that shift to retail clinics (`visits_physician = visits_total * (1 - share)`).
+#'   4. Multiply by specialty × setting calibration scalar (`urps_demand_scalars()`).
+#'   5. Divide by `visits_per_fte` → `demand_clinical_fte`.
+#'
+#'   Use [urps_demand_levers()] to retrieve a scenario's lever bundle from the
+#'   registry rather than passing raw numeric values.
 #'
 #' @param population A `data.frame` with columns matching the `b_*` covariate
 #'   names in [urps_demand_params()] (age, sex, race, bmi, etc.) and a column
 #'   `n` (population count per row).
 #' @param visits_per_fte Annual URPS visits per full-time-equivalent provider
-#'   (used for the visits → FTE conversion). No default; must be supplied.
-#' @return `NA_real_` (stub). When calibrated, returns a length-1 numeric
+#'   (visits → FTE conversion denominator). No default; must be supplied.
+#' @param obesity_prev_shift See [urps_demand_levers()]. Default `0`.
+#' @param insurance_expansion_factor See [urps_demand_levers()]. Default `1`.
+#' @param managed_care_factor Multiplier on total physician demand from HMO/ACO
+#'   gatekeeping. Default `1` (no change). See [urps_demand_levers()].
+#' @param retail_clinic_share Fraction of office-visit demand shifted to retail
+#'   clinics, reducing URPS physician demand. Must be in \[0, 1). Default `0`.
+#'   See [urps_demand_levers()].
+#' @return `NA_real_` (stub). When calibrated, a length-1 numeric
 #'   `demand_clinical_fte`.
-#' @seealso [urps_demand_params()], [urps_demand_scalars()]
+#' @seealso [urps_demand_params()], [urps_demand_scalars()], [urps_demand_levers()]
 #' @family URPS demand
 #' @examples
-#' urps_demand_clinical_fte(data.frame(age = 50, sex = "female", n = 1000),
-#'   visits_per_fte = 2000)  # NA_real_ until calibrated
+#' levers <- urps_demand_levers("demand_managed_care_increase")
+#' urps_demand_clinical_fte(
+#'   population      = data.frame(age = 50, sex = "female", n = 1000),
+#'   visits_per_fte  = 2000,
+#'   managed_care_factor   = levers$demand_managed_care_factor,
+#'   retail_clinic_share   = levers$demand_retail_clinic_share)  # NA_real_ until calibrated
 #' @export
-urps_demand_clinical_fte <- function(population, visits_per_fte) {
+urps_demand_clinical_fte <- function(population, visits_per_fte,
+                                      obesity_prev_shift         = 0,
+                                      insurance_expansion_factor = 1,
+                                      managed_care_factor        = 1,
+                                      retail_clinic_share        = 0) {
+  if (!is.numeric(managed_care_factor) || managed_care_factor <= 0)
+    stop("[urps_demand_clinical_fte] `managed_care_factor` must be a positive number.", call. = FALSE)
+  if (!is.numeric(retail_clinic_share) || retail_clinic_share < 0 || retail_clinic_share >= 1)
+    stop("[urps_demand_clinical_fte] `retail_clinic_share` must be in [0, 1).", call. = FALSE)
   params <- urps_demand_params()
   if (all(is.na(params$intercept)))
     return(NA_real_)
