@@ -162,3 +162,72 @@ test_that("urps_demand_levers output plugs directly into urps_demand_clinical_ft
     expect_true(is.na(result), label = paste("NA for", id))
   }
 })
+
+# ---- urps_demand_fte (scenario-aware wrapper) --------------------------------
+
+test_that("urps_demand_fte returns NA_real_ for all scenarios (not yet calibrated)", {
+  pop <- data.frame(age = 50, sex = "female", n = 10000)
+  for (id in urps_scenario_ids()) {
+    result <- urps_demand_fte(pop, visits_per_fte = 2000, scenario_id = id)
+    expect_true(is.na(result), label = paste("NA for", id))
+    expect_type(result, "double")
+  }
+})
+
+test_that("urps_demand_fte defaults to baseline scenario", {
+  pop <- data.frame(age = 50, sex = "female", n = 10000)
+  expect_equal(
+    urps_demand_fte(pop, 2000),
+    urps_demand_fte(pop, 2000, scenario_id = "baseline"))
+})
+
+test_that("urps_demand_fte fails loud on unknown scenario", {
+  pop <- data.frame(age = 50, sex = "female", n = 10000)
+  expect_error(urps_demand_fte(pop, 2000, scenario_id = "no_such"), "unknown scenario_id")
+})
+
+test_that("urps_demand_fte is equivalent to calling urps_demand_clinical_fte with levers", {
+  pop <- data.frame(age = 50, sex = "female", n = 10000)
+  lv  <- urps_demand_levers("demand_managed_care_increase")
+  expect_equal(
+    urps_demand_fte(pop, 2000, "demand_managed_care_increase"),
+    urps_demand_clinical_fte(pop, 2000,
+      obesity_prev_shift         = lv$demand_obesity_prev_shift,
+      insurance_expansion_factor = lv$demand_insurance_expansion_factor,
+      managed_care_factor        = lv$demand_managed_care_factor,
+      retail_clinic_share        = lv$demand_retail_clinic_share))
+})
+
+# ---- urps_gap_fte ------------------------------------------------------------
+
+test_that("urps_gap_fte computes demand minus supply correctly", {
+  expect_equal(urps_gap_fte(1200, 1450),  250)   # shortage
+  expect_equal(urps_gap_fte(1400, 1200), -200)   # surplus
+  expect_equal(urps_gap_fte(1000, 1000),    0)   # balanced
+})
+
+test_that("urps_gap_fte returns NA_real_ when either argument is NA", {
+  expect_true(is.na(urps_gap_fte(1200,    NA_real_)))
+  expect_true(is.na(urps_gap_fte(NA_real_, 1450)))
+  expect_true(is.na(urps_gap_fte(NA_real_, NA_real_)))
+})
+
+test_that("urps_gap_fte is consistent with the projection contract gap identity", {
+  supply <- 1200; demand <- 1450
+  gap    <- urps_gap_fte(supply, demand)
+  expect_equal(gap, demand - supply, tolerance = 1e-9)
+})
+
+test_that("urps_gap_fte fails loud on non-numeric or non-scalar inputs", {
+  expect_error(urps_gap_fte(c(1200, 1300), 1450), "length-1")
+  expect_error(urps_gap_fte(1200, c(1450, 1500)), "length-1")
+  expect_error(urps_gap_fte("a", 1450),            "length-1")
+})
+
+test_that("supply + demand + gap round-trip with urps_demand_fte", {
+  pop    <- data.frame(age = 50, sex = "female", n = 10000)
+  supply <- 1200
+  demand <- urps_demand_fte(pop, 2000, "baseline")  # NA until calibrated
+  gap    <- urps_gap_fte(supply, demand)
+  expect_true(is.na(gap))   # NA propagates correctly
+})
