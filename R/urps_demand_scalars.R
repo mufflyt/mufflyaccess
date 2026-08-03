@@ -27,19 +27,22 @@
 #   NIS:   AHRQ Healthcare Cost and Utilization Project
 # ==============================================================================
 
-.URPS_DEMAND_SCALARS_VERSION <- "0.1.0"  # pre-calibration; bump to 1.0.0 on first fit
+.URPS_DEMAND_SCALARS_VERSION <- "0.2.0"  # pre-calibration; bump to 1.0.0 on first fit
 
 .urps_demand_scalars_df <- function() {
   data.frame(
     specialty            = "URPS",
-    setting              = c("office", "outpatient", "home_health", "inpatient", "ed"),
-    scalar               = c(1.0,      1.0,          1.0,          1.0,         1.0),
+    setting              = c("office", "outpatient", "home_health", "inpatient", "ed",
+                             "retail_clinic"),
+    scalar               = c(1.0,      1.0,          1.0,          1.0,         1.0,
+                             1.0),
     calibration_source   = c(
       "NAMCS",          # office
       "NHAMCS_OPD",     # outpatient
       "MEPS_home",      # home_health
       "NIS",            # inpatient
-      "NHAMCS_ED"       # ed
+      "NHAMCS_ED",      # ed
+      "NAMCS_retail"    # retail_clinic — retail health clinic visits (NAMCS supplement)
     ),
     calibration_status   = "not_calibrated",
     stringsAsFactors     = FALSE
@@ -48,10 +51,11 @@
 
 local({
   d <- .urps_demand_scalars_df()
-  expected_settings <- c("office", "outpatient", "home_health", "inpatient", "ed")
+  expected_settings <- c("office", "outpatient", "home_health", "inpatient", "ed",
+                         "retail_clinic")
   stopifnot(
-    "demand scalars must have exactly 5 rows" =
-      nrow(d) == 5L,
+    "demand scalars must have exactly 6 rows" =
+      nrow(d) == 6L,
     "setting must be unique" =
       !anyDuplicated(d$setting),
     "settings must be the expected set" =
