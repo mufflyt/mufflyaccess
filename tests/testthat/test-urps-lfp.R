@@ -181,3 +181,39 @@ test_that("non-numeric age produces a hard error", {
 test_that("empty age_range in urps_lfp_curve produces a hard error", {
   expect_error(urps_lfp_curve("female", age_range = integer(0)), "non-empty")
 })
+
+# ---- urps_apply_lfp ----------------------------------------------------------
+
+test_that("urps_apply_lfp adds practicing_n = certified_n * p_active", {
+  cohort <- data.frame(
+    age = c(45L, 62L), sex = c("female", "male"),
+    pathway = c("ABOG", "ABU"), certified_n = c(100, 50))
+  out <- urps_apply_lfp(cohort)
+  expect_true("practicing_n" %in% names(out))
+  expect_equal(out$practicing_n,
+    cohort$certified_n * urps_p_active(cohort$age, cohort$sex))
+})
+
+test_that("urps_apply_lfp passes through all original columns unchanged", {
+  cohort <- data.frame(
+    age = 50L, sex = "female", pathway = "ABOG",
+    certified_n = 200, extra_col = "foo")
+  out <- urps_apply_lfp(cohort)
+  expect_equal(out$age,       cohort$age)
+  expect_equal(out$extra_col, cohort$extra_col)
+  expect_equal(out$certified_n, cohort$certified_n)
+})
+
+test_that("urps_apply_lfp practicing_n is strictly less than certified_n (p_active < 1)", {
+  cohort <- data.frame(
+    age = c(40L, 55L, 70L), sex = "female",
+    certified_n = c(300, 200, 100))
+  out <- urps_apply_lfp(cohort)
+  expect_true(all(out$practicing_n < out$certified_n))
+})
+
+test_that("urps_apply_lfp fails loud on missing columns", {
+  expect_error(urps_apply_lfp(data.frame(age = 45L, certified_n = 100)),  "sex")
+  expect_error(urps_apply_lfp(data.frame(age = 45L, sex = "female")),     "certified_n")
+  expect_error(urps_apply_lfp(data.frame(sex = "male", certified_n = 50)), "age")
+})

@@ -269,6 +269,69 @@ test_that("a sex-stratified FTE projection satisfies the projection contract", {
 
 # ---- comparison with existing urps_fte_weight --------------------------------
 
+# ---- urps_supply_fte_sex -----------------------------------------------------
+
+test_that("urps_supply_fte_sex equals urps_effective_fte_sex applied to practicing_n", {
+  cohort <- data.frame(
+    age = c(45L, 62L, 45L, 62L),
+    sex = c("female", "female", "male", "male"),
+    pathway = c("ABOG", "ABOG", "ABU", "ABU"),
+    certified_n = c(350, 150, 100, 40))
+  p_n <- cohort$certified_n * urps_p_active(cohort$age, cohort$sex)
+  ref_counts <- data.frame(
+    age = cohort$age, sex = cohort$sex, pathway = cohort$pathway, n = p_n)
+  scale <- urps_fte_scale_sex(ref_counts)
+  expect_equal(
+    urps_supply_fte_sex(cohort, scale),
+    urps_effective_fte_sex(ref_counts, scale),
+    tolerance = 1e-9)
+})
+
+test_that("urps_supply_fte_sex practicing_n is always <= certified_n (LFP < 1)", {
+  cohort <- data.frame(
+    age = c(40L, 55L, 70L), sex = "female",
+    pathway = "ABOG", certified_n = c(300, 200, 50))
+  out <- urps_apply_lfp(cohort)
+  expect_true(all(out$practicing_n <= out$certified_n))
+})
+
+test_that("urps_supply_fte_sex is strictly less than naive urps_effective_fte_sex(certified)", {
+  cohort <- data.frame(
+    age = c(45L, 62L), sex = c("female", "male"),
+    pathway = c("ABOG", "ABU"), certified_n = c(200, 100))
+  # Build scale from certified (no LFP)
+  cert_counts <- data.frame(
+    age = cohort$age, sex = cohort$sex,
+    pathway = cohort$pathway, n = cohort$certified_n)
+  scale <- urps_fte_scale_sex(cert_counts)
+  fte_certified  <- urps_effective_fte_sex(cert_counts, scale)
+  fte_supply     <- urps_supply_fte_sex(cohort, scale)
+  expect_lt(fte_supply, fte_certified)
+})
+
+test_that("urps_supply_fte_sex late_factor integrates correctly", {
+  cohort <- data.frame(
+    age = 62L, sex = "female", pathway = "ABOG", certified_n = 100)
+  p_n <- 100 * urps_p_active(62L, "female")
+  scale <- urps_fte_scale_sex(
+    data.frame(age = 62L, sex = "female", pathway = "ABOG", n = p_n))
+  sc       <- urps_scenario("lower_late_career_fte")
+  fte_base <- urps_supply_fte_sex(cohort, scale)
+  fte_late <- urps_supply_fte_sex(cohort, scale,
+    late_from_age = sc$late_career_fte_onset_age,
+    late_factor   = sc$late_career_fte_factor)
+  expect_equal(fte_late, fte_base * sc$late_career_fte_factor, tolerance = 1e-9)
+})
+
+test_that("urps_supply_fte_sex fails loud on missing columns", {
+  expect_error(
+    urps_supply_fte_sex(data.frame(age=45L, sex="female", certified_n=100), 1),
+    "pathway")
+  expect_error(
+    urps_supply_fte_sex(data.frame(age=45L, sex="female", pathway="ABOG"), 1),
+    "certified_n")
+})
+
 test_that("urps_fte_weight_sex and urps_fte_weight coexist without conflict", {
   # Both can be called; they are independent models with different normalizations.
   # urps_fte_weight uses rel_to_peak (max=1); urps_fte_weight_sex uses hrs/40 (max>1).
