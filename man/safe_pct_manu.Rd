@@ -30,11 +30,11 @@ safe_pct_manu(1, 0)     # NA_real_ (not 0 -- avoids phantom 0\% artifacts)
 \seealso{
 \code{\link[=safe_percent]{safe_percent()}} (the non-NA-defaulting variant)
 
-Other safe-arithmetic: 
-\code{\link{safe_divide}()},
-\code{\link{safe_divide_manu}()},
-\code{\link{safe_percent}()},
-\code{\link{safe_rate}()},
-\code{\link{safe_ratio}()}
+Other safe-arithmetic:
+\code{\link[=safe_divide]{safe_divide()}},
+\code{\link[=safe_divide_manu]{safe_divide_manu()}},
+\code{\link[=safe_percent]{safe_percent()}},
+\code{\link[=safe_rate]{safe_rate()}},
+\code{\link[=safe_ratio]{safe_ratio()}}
 }
 \concept{safe-arithmetic}

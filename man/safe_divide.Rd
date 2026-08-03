@@ -8,7 +8,7 @@ safe_divide(
   numerator,
   denominator,
   default = NA_real_,
-  zero_threshold = 1e-10,
+  zero_threshold = 0.0000000001,
   on_zero = c("silent", "warning", "error"),
   na_value = NULL
 )
@@ -95,11 +95,11 @@ safe_divide(1, 1e-12)              # NA (denominator below zero_threshold)
 \code{\link[=safe_percent]{safe_percent()}}, \code{\link[=safe_rate]{safe_rate()}}, \code{\link[=safe_ratio]{safe_ratio()}} for rounded
 percentage/rate/ratio wrappers built on this primitive.
 
-Other safe-arithmetic: 
-\code{\link{safe_divide_manu}()},
-\code{\link{safe_pct_manu}()},
-\code{\link{safe_percent}()},
-\code{\link{safe_rate}()},
-\code{\link{safe_ratio}()}
+Other safe-arithmetic:
+\code{\link[=safe_divide_manu]{safe_divide_manu()}},
+\code{\link[=safe_pct_manu]{safe_pct_manu()}},
+\code{\link[=safe_percent]{safe_percent()}},
+\code{\link[=safe_rate]{safe_rate()}},
+\code{\link[=safe_ratio]{safe_ratio()}}
 }
 \concept{safe-arithmetic}

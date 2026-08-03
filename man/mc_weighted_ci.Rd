@@ -49,12 +49,12 @@ mc_weighted_ci(access, est = pop_est, se = pop_moe / ACS_MOE_Z90)
 \seealso{
 \code{\link[=weighted_mean_all]{weighted_mean_all()}}, \code{\link[=zero_access_share]{zero_access_share()}}
 
-Other accessibility-disparity statistics: 
-\code{\link{acs_year_of}()},
-\code{\link{annual_trend}()},
-\code{\link{rurality_from_ruca}()},
-\code{\link{tract_vintage_of}()},
-\code{\link{weighted_mean_all}()},
-\code{\link{zero_access_share}()}
+Other accessibility-disparity statistics:
+\code{\link[=acs_year_of]{acs_year_of()}},
+\code{\link[=annual_trend]{annual_trend()}},
+\code{\link[=rurality_from_ruca]{rurality_from_ruca()}},
+\code{\link[=tract_vintage_of]{tract_vintage_of()}},
+\code{\link[=weighted_mean_all]{weighted_mean_all()}},
+\code{\link[=zero_access_share]{zero_access_share()}}
 }
 \concept{accessibility-disparity statistics}

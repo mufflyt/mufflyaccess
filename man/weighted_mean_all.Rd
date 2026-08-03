@@ -24,12 +24,12 @@ weighted_mean_all(1:3, c(0, 0, 0))    # NA_real_  (zero total weight)
 \seealso{
 \code{\link[=zero_access_share]{zero_access_share()}}, \code{\link[=mc_weighted_ci]{mc_weighted_ci()}}
 
-Other accessibility-disparity statistics: 
-\code{\link{acs_year_of}()},
-\code{\link{annual_trend}()},
-\code{\link{mc_weighted_ci}()},
-\code{\link{rurality_from_ruca}()},
-\code{\link{tract_vintage_of}()},
-\code{\link{zero_access_share}()}
+Other accessibility-disparity statistics:
+\code{\link[=acs_year_of]{acs_year_of()}},
+\code{\link[=annual_trend]{annual_trend()}},
+\code{\link[=mc_weighted_ci]{mc_weighted_ci()}},
+\code{\link[=rurality_from_ruca]{rurality_from_ruca()}},
+\code{\link[=tract_vintage_of]{tract_vintage_of()}},
+\code{\link[=zero_access_share]{zero_access_share()}}
 }
 \concept{accessibility-disparity statistics}

@@ -24,15 +24,15 @@ rurality_from_ruca(c(1, 4, 10, NA))
 \seealso{
 \link{RUCA_NONMETRO_MIN}
 
-Other accessibility-disparity statistics: 
-\code{\link{acs_year_of}()},
-\code{\link{annual_trend}()},
-\code{\link{mc_weighted_ci}()},
-\code{\link{tract_vintage_of}()},
-\code{\link{weighted_mean_all}()},
-\code{\link{zero_access_share}()}
+Other accessibility-disparity statistics:
+\code{\link[=acs_year_of]{acs_year_of()}},
+\code{\link[=annual_trend]{annual_trend()}},
+\code{\link[=mc_weighted_ci]{mc_weighted_ci()}},
+\code{\link[=tract_vintage_of]{tract_vintage_of()}},
+\code{\link[=weighted_mean_all]{weighted_mean_all()}},
+\code{\link[=zero_access_share]{zero_access_share()}}
 
-Other rurality: 
+Other rurality:
 \code{\link{RUCA_NONMETRO_MIN}}
 }
 \concept{accessibility-disparity statistics}

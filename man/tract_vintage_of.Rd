@@ -21,12 +21,12 @@ tract_vintage_of(c(2019, 2020))   # 2010, 2020  (boundary break at 2020)
 \seealso{
 \code{\link[=acs_year_of]{acs_year_of()}}
 
-Other accessibility-disparity statistics: 
-\code{\link{acs_year_of}()},
-\code{\link{annual_trend}()},
-\code{\link{mc_weighted_ci}()},
-\code{\link{rurality_from_ruca}()},
-\code{\link{weighted_mean_all}()},
-\code{\link{zero_access_share}()}
+Other accessibility-disparity statistics:
+\code{\link[=acs_year_of]{acs_year_of()}},
+\code{\link[=annual_trend]{annual_trend()}},
+\code{\link[=mc_weighted_ci]{mc_weighted_ci()}},
+\code{\link[=rurality_from_ruca]{rurality_from_ruca()}},
+\code{\link[=weighted_mean_all]{weighted_mean_all()}},
+\code{\link[=zero_access_share]{zero_access_share()}}
 }
 \concept{accessibility-disparity statistics}

@@ -35,10 +35,10 @@ urps_fte_weight(c(45, 62), c("ABOG", "ABU"), late_from_age = 60, late_factor = 0
 \seealso{
 \code{\link[=urps_effective_fte]{urps_effective_fte()}}, \code{\link[=urps_fte_scale]{urps_fte_scale()}}, \code{\link[=urps_scenarios]{urps_scenarios()}}
 
-Other URPS FTE: 
+Other URPS FTE:
 \code{\link{URPS_FTE_PATHWAY_CLINICAL_TIME}},
-\code{\link{urps_effective_fte}()},
-\code{\link{urps_fte_age_curve}()},
-\code{\link{urps_fte_scale}()}
+\code{\link[=urps_effective_fte]{urps_effective_fte()}},
+\code{\link[=urps_fte_age_curve]{urps_fte_age_curve()}},
+\code{\link[=urps_fte_scale]{urps_fte_scale()}}
 }
 \concept{URPS FTE}

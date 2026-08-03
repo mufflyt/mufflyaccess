@@ -23,9 +23,10 @@ urps_projection_schema()
 \code{\link[=validate_urps_projection]{validate_urps_projection()}}, \code{\link[=read_urps_projection]{read_urps_projection()}},
 \link{URPS_PROJECTION_CONTRACT_VERSION}
 
-Other URPS projection: 
+Other URPS projection:
 \code{\link{URPS_PROJECTION_CONTRACT_VERSION}},
-\code{\link{read_urps_projection}()},
-\code{\link{validate_urps_projection}()}
+\code{\link[=read_urps_projection]{read_urps_projection()}},
+\code{\link[=urps_gap_fte]{urps_gap_fte()}},
+\code{\link[=validate_urps_projection]{validate_urps_projection()}}
 }
 \concept{URPS projection}

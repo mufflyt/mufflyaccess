@@ -31,11 +31,11 @@ safe_percent(1, 0)            # 0 (default)
 \seealso{
 \code{\link[=safe_divide]{safe_divide()}}, \code{\link[=safe_pct_manu]{safe_pct_manu()}}
 
-Other safe-arithmetic: 
-\code{\link{safe_divide}()},
-\code{\link{safe_divide_manu}()},
-\code{\link{safe_pct_manu}()},
-\code{\link{safe_rate}()},
-\code{\link{safe_ratio}()}
+Other safe-arithmetic:
+\code{\link[=safe_divide]{safe_divide()}},
+\code{\link[=safe_divide_manu]{safe_divide_manu()}},
+\code{\link[=safe_pct_manu]{safe_pct_manu()}},
+\code{\link[=safe_rate]{safe_rate()}},
+\code{\link[=safe_ratio]{safe_ratio()}}
 }
 \concept{safe-arithmetic}
