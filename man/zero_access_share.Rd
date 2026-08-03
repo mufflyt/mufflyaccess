@@ -25,12 +25,12 @@ zero_access_share(c(1, 2, 3), c(1, 1, 1))      # 0  (nobody at exactly 0)
 \seealso{
 \code{\link[=weighted_mean_all]{weighted_mean_all()}}, \code{\link[=mc_weighted_ci]{mc_weighted_ci()}}
 
-Other accessibility-disparity statistics: 
-\code{\link{acs_year_of}()},
-\code{\link{annual_trend}()},
-\code{\link{mc_weighted_ci}()},
-\code{\link{rurality_from_ruca}()},
-\code{\link{tract_vintage_of}()},
-\code{\link{weighted_mean_all}()}
+Other accessibility-disparity statistics:
+\code{\link[=acs_year_of]{acs_year_of()}},
+\code{\link[=annual_trend]{annual_trend()}},
+\code{\link[=mc_weighted_ci]{mc_weighted_ci()}},
+\code{\link[=rurality_from_ruca]{rurality_from_ruca()}},
+\code{\link[=tract_vintage_of]{tract_vintage_of()}},
+\code{\link[=weighted_mean_all]{weighted_mean_all()}}
 }
 \concept{accessibility-disparity statistics}

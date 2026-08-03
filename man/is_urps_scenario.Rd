@@ -22,11 +22,11 @@ is_urps_scenario(c("baseline", "typo", NA))  # TRUE FALSE FALSE
 \seealso{
 \code{\link[=validate_urps_scenarios]{validate_urps_scenarios()}}, \code{\link[=urps_scenario_ids]{urps_scenario_ids()}}
 
-Other URPS scenarios: 
+Other URPS scenarios:
 \code{\link{URPS_SCENARIO_REGISTRY_VERSION}},
-\code{\link{urps_scenario}()},
-\code{\link{urps_scenario_ids}()},
-\code{\link{urps_scenarios}()},
-\code{\link{validate_urps_scenarios}()}
+\code{\link[=urps_scenario]{urps_scenario()}},
+\code{\link[=urps_scenario_ids]{urps_scenario_ids()}},
+\code{\link[=urps_scenarios]{urps_scenarios()}},
+\code{\link[=validate_urps_scenarios]{validate_urps_scenarios()}}
 }
 \concept{URPS scenarios}

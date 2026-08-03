@@ -66,10 +66,13 @@ baseline_scale <- urps_fte_scale_sex(data.frame(
   stringsAsFactors = FALSE))
 
 # ── 3. Annual entrants entering at age 34 ─────────────────────────────────────
-# ABOG: ~70/yr (estimated from 2013→2025 trend: +560 certified / 12 yr)
-# ABU:  ~15/yr
-ENTRANTS_ABOG_BASE <- 70L
-ENTRANTS_ABU_BASE  <- 15L
+# ABOG: 60/yr — ABMS new FPMRS certificates: 50 (2022), 67 (2023); mean ≈ 58, round to 60.
+#   NRMP match positions filled (OB/GYN-based): 56–61 (2021–2023), rising to ~56 in 2025 match.
+#   Sources: ABMS Board Certification Report 2023-24; NRMP 2025 URPS Match Results Statistics.
+# ABU:  14/yr — ABU URPS exam candidates/passes: 8–17/yr (2017–2025); NRMP 2025 urology fills: 14.
+#   Source: ABU National URPS Exam Statistics; NRMP 2025 SMS Results and Data Book.
+ENTRANTS_ABOG_BASE <- 60L
+ENTRANTS_ABU_BASE  <- 14L
 
 make_entrants <- function(n_abog, n_abu, pf_abog = 0.85, pf_abu = 0.55) {
   data.frame(
@@ -130,6 +133,63 @@ scenarios <- c(
   "lower_late_career_fte", "combined_pessimistic", "combined_investment")
 
 proj <- do.call(rbind, lapply(scenarios, project_scenario))
+
+# ── 4b. Parametric-bootstrap CI on baseline scenario ─────────────────────────
+# Perturb: retirement timing ±1yr (sd=0.51), entrant count ±15% (cv=0.077),
+# LFP intercept ±0.05. B=200 replicates, seed=42.
+project_scenario_ci <- function(scenario_id, years, param_draw) {
+  sc     <- urps_scenario(scenario_id)
+  cohort <- cohort0[, c("age", "sex", "pathway", "certified_n")]
+
+  lapply(years, function(yr) {
+    if (yr > 2025) {
+      cohort$age <<- cohort$age + 1L
+      cohort <<- cohort[cohort$age <= 80, ]
+
+      for (sx in c("female", "male")) {
+        for (pw in c("ABOG", "ABU")) {
+          sel <- cohort$sex == sx & cohort$pathway == pw
+          if (!any(sel)) next
+          shift <- param_draw$retirement_shift
+          h <- urps_retirement_hazard(
+            cohort$age[sel], sx, pw,
+            retirement_shift_years = sc$retirement_shift_years + shift)
+          cohort$certified_n[sel] <<- cohort$certified_n[sel] * (1 - h)
+        }
+      }
+
+      n_abog <- max(1L, round(ENTRANTS_ABOG_BASE * sc$entrant_multiplier *
+                                param_draw$entrant_scale))
+      n_abu  <- max(1L, round(ENTRANTS_ABU_BASE  * sc$entrant_multiplier *
+                                param_draw$entrant_scale))
+      ents   <- make_entrants(n_abog, n_abu)
+      cohort <<- rbind(cohort, ents)
+    }
+
+    onset      <- sc$late_career_fte_onset_age
+    supply_fte <- urps_supply_fte_sex(
+      cohort, baseline_scale,
+      late_from_age = if (!is.na(onset)) onset else NULL,
+      late_factor   = sc$late_career_fte_factor)
+
+    data.frame(year = yr, scenario_id = scenario_id,
+               supply_headcount    = round(sum(cohort$certified_n)),
+               supply_clinical_fte = round(supply_fte, 1),
+               stringsAsFactors    = FALSE)
+  }) |> do.call(what = rbind)
+}
+
+cat("Running bootstrap CI (B=200)...\n")
+ci <- urps_projection_ci(
+  project_fn = project_scenario_ci,
+  scenarios  = "baseline",
+  years      = 2025:2045,
+  B          = 200L,
+  seed       = 42L)
+cat("Bootstrap complete.\n\n")
+
+# ── 4c. State-level distribution of 2025 baseline supply ─────────────────────
+state_supply_2025 <- urps_allocate_national(1339)
 
 # Historical observed ABOG+ABU headcount (ABOG and ABU annual reports)
 observed <- data.frame(
@@ -199,6 +259,8 @@ all_data$label  <- LABELS[all_data$scenario_id]
 all_data$lsize  <- SIZES[all_data$scenario_id]
 
 # ── 6. Headcount plot ─────────────────────────────────────────────────────────
+ci_baseline <- ci[ci$scenario_id == "baseline", ]
+
 p_head <- ggplot(all_data,
     aes(x = year, y = supply_headcount,
         colour = scenario_id, linetype = scenario_id,
@@ -207,6 +269,10 @@ p_head <- ggplot(all_data,
              colour = "grey60", linewidth = 0.4) +
   annotate("text", x = 2025.6, y = 2050, label = "Projection \u2192",
            hjust = 0, size = 3, colour = "grey50") +
+  geom_ribbon(data = ci_baseline,
+              aes(x = year, ymin = lower_headcount_95, ymax = upper_headcount_95),
+              inherit.aes = FALSE,
+              fill = "#2166ac", alpha = 0.12) +
   geom_line(data = subset(all_data, scenario_id != "observed")) +
   geom_line(data = subset(all_data, scenario_id == "observed"), linewidth = 1.3) +
   geom_point(data = subset(all_data, scenario_id == "observed"),
@@ -282,3 +348,24 @@ print(summary_tbl[, c("scenario_id",
                        "hc_change", "hc_pct",
                        "supply_clinical_fte_2025", "supply_clinical_fte_2045")],
       row.names = FALSE)
+
+# ── 10. Baseline CI summary ───────────────────────────────────────────────────
+cat("\nBaseline 95% CI (B=200 parametric bootstrap, seed=42):\n\n")
+ci_show <- ci[ci$scenario_id == "baseline" & ci$year %in% c(2025,2030,2035,2040,2045), ]
+print(ci_show[, c("year","lower_headcount_95","upper_headcount_95",
+                  "lower_fte_95","upper_fte_95")], row.names = FALSE)
+
+# ── 11. State allocation of 2025 supply ──────────────────────────────────────
+cat("\n2025 baseline supply allocated to CONUS states (female-pop weighted, top 15):\n\n")
+ss <- state_supply_2025[order(-state_supply_2025$n_allocated), ]
+print(head(ss, 15), row.names = FALSE)
+cat("  ... (", nrow(ss), "states total, sum =", sum(ss$n_allocated), ")\n\n")
+
+# ── 12. New entrant validation note ──────────────────────────────────────────
+cat("New entrant validation (updated from NRMP/ABMS data):\n")
+cat("  ENTRANTS_ABOG_BASE:", ENTRANTS_ABOG_BASE,
+    "  [prev: 70 — revised to 60 from ABMS 2022-23 certs (50, 67) and NRMP OB/GYN fills]\n")
+cat("  ENTRANTS_ABU_BASE: ", ENTRANTS_ABU_BASE,
+    "  [prev: 15 — revised to 14 from ABU exam passes and NRMP urology fills]\n")
+cat("  Sources: ABMS Board Certification Report 2023-24;",
+    "NRMP 2025 URPS Match Results Statistics; ABU National URPS Exam Statistics.\n\n")

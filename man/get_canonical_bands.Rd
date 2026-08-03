@@ -18,7 +18,7 @@ get_canonical_bands()  # 30 60 120 180
 \seealso{
 \code{\link[=get_primary_access_band]{get_primary_access_band()}}, \link{CANONICAL_BANDS}
 
-Other access-band accessors: 
-\code{\link{get_primary_access_band}()}
+Other access-band accessors:
+\code{\link[=get_primary_access_band]{get_primary_access_band()}}
 }
 \concept{access-band accessors}

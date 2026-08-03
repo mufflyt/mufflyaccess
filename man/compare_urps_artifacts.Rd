@@ -37,19 +37,19 @@ if (length(drift$changed_counts)) stop("counts changed; review before adopting")
 \seealso{
 \code{\link[=validate_urps_artifact]{validate_urps_artifact()}}, \code{\link[=use_urps_artifact]{use_urps_artifact()}}
 
-Other URPS workforce: 
-\code{\link{urps_count}()},
-\code{\link{urps_counts}()},
-\code{\link{urps_counts_long}()},
-\code{\link{urps_entrants}()},
-\code{\link{urps_entry_counts}()},
-\code{\link{urps_lineage}()},
-\code{\link{urps_provenance}()},
-\code{\link{urps_require_retirement_ascertained}()},
-\code{\link{urps_retired_values}()},
-\code{\link{urps_retirement_status}()},
-\code{\link{use_urps_artifact}()},
-\code{\link{validate_urps_artifact}()},
-\code{\link{validate_urps_ssot}()}
+Other URPS workforce:
+\code{\link[=urps_count]{urps_count()}},
+\code{\link[=urps_counts]{urps_counts()}},
+\code{\link[=urps_counts_long]{urps_counts_long()}},
+\code{\link[=urps_entrants]{urps_entrants()}},
+\code{\link[=urps_entry_counts]{urps_entry_counts()}},
+\code{\link[=urps_lineage]{urps_lineage()}},
+\code{\link[=urps_provenance]{urps_provenance()}},
+\code{\link[=urps_require_retirement_ascertained]{urps_require_retirement_ascertained()}},
+\code{\link[=urps_retired_values]{urps_retired_values()}},
+\code{\link[=urps_retirement_status]{urps_retirement_status()}},
+\code{\link[=use_urps_artifact]{use_urps_artifact()}},
+\code{\link[=validate_urps_artifact]{validate_urps_artifact()}},
+\code{\link[=validate_urps_ssot]{validate_urps_ssot()}}
 }
 \concept{URPS workforce}

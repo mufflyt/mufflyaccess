@@ -26,8 +26,8 @@ pfd_prevalence("nope")    # errors: unknown condition
 \link{WU2014_PFD_PREVALENCE} (the underlying table),
 \code{\link[=pfd_prevalence_acs_bands]{pfd_prevalence_acs_bands()}} (the same rates spread over ACS age-band columns).
 
-Other pfd-prevalence: 
+Other pfd-prevalence:
 \code{\link{WU2014_PFD_PREVALENCE}},
-\code{\link{pfd_prevalence_acs_bands}()}
+\code{\link[=pfd_prevalence_acs_bands]{pfd_prevalence_acs_bands()}}
 }
 \concept{pfd-prevalence}

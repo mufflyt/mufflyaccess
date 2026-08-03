@@ -4,7 +4,7 @@
 \alias{validate_urps_projection}
 \title{Validate a URPS projection table against the contract (fail loud)}
 \usage{
-validate_urps_projection(x, baseline_tie = NULL, tol = 1e-06)
+validate_urps_projection(x, baseline_tie = NULL, tol = 0.000001)
 }
 \arguments{
 \item{x}{A projection \code{data.frame}, or a path to a CSV to read
@@ -63,9 +63,10 @@ validate_urps_projection(p, baseline_tie = list(
 \code{\link[=urps_projection_schema]{urps_projection_schema()}}, \code{\link[=read_urps_projection]{read_urps_projection()}},
 \code{\link[=validate_urps_scenarios]{validate_urps_scenarios()}}, \code{\link[=urps_count]{urps_count()}}
 
-Other URPS projection: 
+Other URPS projection:
 \code{\link{URPS_PROJECTION_CONTRACT_VERSION}},
-\code{\link{read_urps_projection}()},
-\code{\link{urps_projection_schema}()}
+\code{\link[=read_urps_projection]{read_urps_projection()}},
+\code{\link[=urps_gap_fte]{urps_gap_fte()}},
+\code{\link[=urps_projection_schema]{urps_projection_schema()}}
 }
 \concept{URPS projection}

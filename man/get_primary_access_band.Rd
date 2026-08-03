@@ -23,7 +23,7 @@ get_primary_access_band("sec")    # 3600 (seconds)
 \seealso{
 \code{\link[=get_canonical_bands]{get_canonical_bands()}}, \link{PRIMARY_ACCESS_BAND_MIN}
 
-Other access-band accessors: 
-\code{\link{get_canonical_bands}()}
+Other access-band accessors:
+\code{\link[=get_canonical_bands]{get_canonical_bands()}}
 }
 \concept{access-band accessors}

@@ -29,10 +29,10 @@ urps_effective_fte(cs, scale = urps_fte_scale(cs))
 \seealso{
 \code{\link[=urps_fte_scale]{urps_fte_scale()}}, \code{\link[=urps_fte_weight]{urps_fte_weight()}}
 
-Other URPS FTE: 
+Other URPS FTE:
 \code{\link{URPS_FTE_PATHWAY_CLINICAL_TIME}},
-\code{\link{urps_fte_age_curve}()},
-\code{\link{urps_fte_scale}()},
-\code{\link{urps_fte_weight}()}
+\code{\link[=urps_fte_age_curve]{urps_fte_age_curve()}},
+\code{\link[=urps_fte_scale]{urps_fte_scale()}},
+\code{\link[=urps_fte_weight]{urps_fte_weight()}}
 }
 \concept{URPS FTE}

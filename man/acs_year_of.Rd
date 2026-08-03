@@ -21,12 +21,12 @@ acs_year_of(c(2011, 2018, 2025))   # 2013, 2018, 2022  (clamped to the window)
 \seealso{
 \code{\link[=tract_vintage_of]{tract_vintage_of()}}
 
-Other accessibility-disparity statistics: 
-\code{\link{annual_trend}()},
-\code{\link{mc_weighted_ci}()},
-\code{\link{rurality_from_ruca}()},
-\code{\link{tract_vintage_of}()},
-\code{\link{weighted_mean_all}()},
-\code{\link{zero_access_share}()}
+Other accessibility-disparity statistics:
+\code{\link[=annual_trend]{annual_trend()}},
+\code{\link[=mc_weighted_ci]{mc_weighted_ci()}},
+\code{\link[=rurality_from_ruca]{rurality_from_ruca()}},
+\code{\link[=tract_vintage_of]{tract_vintage_of()}},
+\code{\link[=weighted_mean_all]{weighted_mean_all()}},
+\code{\link[=zero_access_share]{zero_access_share()}}
 }
 \concept{accessibility-disparity statistics}

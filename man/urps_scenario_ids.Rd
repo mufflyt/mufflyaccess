@@ -19,11 +19,11 @@ urps_scenario_ids()
 \seealso{
 \code{\link[=urps_scenarios]{urps_scenarios()}}, \code{\link[=is_urps_scenario]{is_urps_scenario()}}, \code{\link[=validate_urps_scenarios]{validate_urps_scenarios()}}
 
-Other URPS scenarios: 
+Other URPS scenarios:
 \code{\link{URPS_SCENARIO_REGISTRY_VERSION}},
-\code{\link{is_urps_scenario}()},
-\code{\link{urps_scenario}()},
-\code{\link{urps_scenarios}()},
-\code{\link{validate_urps_scenarios}()}
+\code{\link[=is_urps_scenario]{is_urps_scenario()}},
+\code{\link[=urps_scenario]{urps_scenario()}},
+\code{\link[=urps_scenarios]{urps_scenarios()}},
+\code{\link[=validate_urps_scenarios]{validate_urps_scenarios()}}
 }
 \concept{URPS scenarios}

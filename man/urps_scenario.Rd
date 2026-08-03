@@ -28,11 +28,11 @@ try(urps_scenario("no_such_scenario"))  # hard error
 \seealso{
 \code{\link[=urps_scenarios]{urps_scenarios()}}, \code{\link[=validate_urps_scenarios]{validate_urps_scenarios()}}
 
-Other URPS scenarios: 
+Other URPS scenarios:
 \code{\link{URPS_SCENARIO_REGISTRY_VERSION}},
-\code{\link{is_urps_scenario}()},
-\code{\link{urps_scenario_ids}()},
-\code{\link{urps_scenarios}()},
-\code{\link{validate_urps_scenarios}()}
+\code{\link[=is_urps_scenario]{is_urps_scenario()}},
+\code{\link[=urps_scenario_ids]{urps_scenario_ids()}},
+\code{\link[=urps_scenarios]{urps_scenarios()}},
+\code{\link[=validate_urps_scenarios]{validate_urps_scenarios()}}
 }
 \concept{URPS scenarios}

@@ -30,11 +30,11 @@ safe_ratio(1, 0)        # NA_real_
 \seealso{
 \code{\link[=safe_divide]{safe_divide()}}, \code{\link[=safe_percent]{safe_percent()}}, \code{\link[=safe_rate]{safe_rate()}}
 
-Other safe-arithmetic: 
-\code{\link{safe_divide}()},
-\code{\link{safe_divide_manu}()},
-\code{\link{safe_pct_manu}()},
-\code{\link{safe_percent}()},
-\code{\link{safe_rate}()}
+Other safe-arithmetic:
+\code{\link[=safe_divide]{safe_divide()}},
+\code{\link[=safe_divide_manu]{safe_divide_manu()}},
+\code{\link[=safe_pct_manu]{safe_pct_manu()}},
+\code{\link[=safe_percent]{safe_percent()}},
+\code{\link[=safe_rate]{safe_rate()}}
 }
 \concept{safe-arithmetic}

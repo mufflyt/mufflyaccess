@@ -25,8 +25,8 @@ unname(b)                         # c(0.368, 0.368, 0.368, 0.368, 0.497, 0.497)
 \seealso{
 \code{\link[=pfd_prevalence]{pfd_prevalence()}} (the two-bracket form these bands expand).
 
-Other pfd-prevalence: 
+Other pfd-prevalence:
 \code{\link{WU2014_PFD_PREVALENCE}},
-\code{\link{pfd_prevalence}()}
+\code{\link[=pfd_prevalence]{pfd_prevalence()}}
 }
 \concept{pfd-prevalence}
