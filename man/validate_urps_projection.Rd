@@ -43,6 +43,8 @@ the \code{baseline} scenario present;
 \item no duplicate \verb{(year, scenario_id, specialty, certification_pathway, geography_type, geography_id)} key;
 \item \code{supply_headcount} non-negative; where present, \code{entrants} / \code{exits}
 non-negative and \verb{lower_95 <= supply_headcount <= upper_95};
+\item where present, \verb{0 <= supply_clinical_fte <= supply_headcount} (a head
+is at most 1.0 clinical FTE);
 \item where all three are present, \code{net_change == entrants - exits} (within
 \code{tol});
 \item with \code{baseline_tie}, the \code{baseline}-scenario \code{supply_headcount} at the

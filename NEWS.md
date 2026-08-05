@@ -25,6 +25,21 @@ and expose certification-year entrants. No canonical count changed.
   `urps_subspecialty_cert_year`. These are entry into the certified stock, NOT
   fellowship graduation year, first year of clinical practice, or net workforce
   growth. mufflyaccess still never manufactures future entrants (that is cliff).
+* **Semantic + adversarial tests** for the scenario dictionary and the projection
+  contract (+84 assertions). Semantic: the retirement family is ordered
+  earlier < baseline < later, the entry family brackets the baseline entrant rate
+  with symmetric +/-10% moves, composites point the right way on every supply axis,
+  each single-lever family perturbs only its own lever, `baseline` is the unique
+  fully-neutral origin (all supply and demand levers neutral), and
+  `requires_fte_model` marks exactly the FTE-touching scenarios. Adversarial:
+  membership is exact (case, whitespace, partials, and near-miss ids rejected; one
+  bad id among many caught; factor/NA columns handled), and a one-cell mutation
+  matrix over the projection validator rejects each subtly-wrong cell -- plus
+  baseline-tie pathway mapping, retired-stock smuggling, the flow-identity tolerance
+  boundary, required-vs-optional column semantics, and reader path guards.
+* **Stricter projection validation.** `validate_urps_projection()` enforces
+  `0 <= supply_clinical_fte <= supply_headcount` where present (a head is at most
+  1.0 clinical FTE) -- an invariant the adversarial pass surfaced.
 
 # mufflyaccess 0.10.0
 
