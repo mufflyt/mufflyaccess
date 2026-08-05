@@ -105,6 +105,8 @@ urps_projection_schema <- function() .urps_projection_schema()
 #'       geography_type, geography_id)` key;
 #'     \item `supply_headcount` non-negative; where present, `entrants` / `exits`
 #'       non-negative and `lower_95 <= supply_headcount <= upper_95`;
+#'     \item where present, `0 <= supply_clinical_fte <= supply_headcount` (a head
+#'       is at most 1.0 clinical FTE);
 #'     \item where all three are present, `net_change == entrants - exits` (within
 #'       `tol`);
 #'     \item with `baseline_tie`, the `baseline`-scenario `supply_headcount` at the
@@ -177,6 +179,16 @@ validate_urps_projection <- function(x, baseline_tie = NULL, tol = 1e-6) {
     v <- suppressWarnings(as.numeric(d[[col]]))
     if (any(!is.na(v) & v < 0))
       stop(sprintf("[validate_urps_projection] %s must be non-negative where present.", col), call. = FALSE)
+  }
+  # clinical FTE is bounded: non-negative and never more than the headcount it is
+  # drawn from (a single head contributes at most 1.0 clinical FTE).
+  if ("supply_clinical_fte" %in% names(d)) {
+    fte <- suppressWarnings(as.numeric(d$supply_clinical_fte))
+    if (any(!is.na(fte) & fte < 0))
+      stop("[validate_urps_projection] supply_clinical_fte must be non-negative where present.", call. = FALSE)
+    if (any(!is.na(fte) & fte > sh))
+      stop("[validate_urps_projection] supply_clinical_fte cannot exceed supply_headcount (a head is at most 1.0 clinical FTE).",
+           call. = FALSE)
   }
 
   # 95% bounds bracket the point estimate (where present)
