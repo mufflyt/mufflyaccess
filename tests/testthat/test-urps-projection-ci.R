@@ -5,7 +5,7 @@ library(testthat)
 # ---- version -----------------------------------------------------------------
 
 test_that("URPS_PROJECTION_CI_VERSION is semver", {
-  expect_match(URPS_PROJECTION_CI_VERSION, "^[0-9]+\\.[0-9]+\\.[0-9]+$")
+  expect_match(mufflyaccess:::URPS_PROJECTION_CI_VERSION, "^[0-9]+\\.[0-9]+\\.[0-9]+$")
 })
 
 # ---- urps_ci_param_draw ------------------------------------------------------

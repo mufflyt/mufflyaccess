@@ -5,7 +5,7 @@ library(testthat)
 # ---- version -----------------------------------------------------------------
 
 test_that("URPS_STATE_ALLOC_VERSION is semver", {
-  expect_match(URPS_STATE_ALLOC_VERSION, "^[0-9]+\\.[0-9]+\\.[0-9]+$")
+  expect_match(mufflyaccess:::URPS_STATE_ALLOC_VERSION, "^[0-9]+\\.[0-9]+\\.[0-9]+$")
 })
 
 # ---- urps_state_female_pop ---------------------------------------------------
