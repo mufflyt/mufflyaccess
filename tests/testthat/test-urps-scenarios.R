@@ -26,7 +26,25 @@ test_that("baseline is the neutral lever origin (supply and demand)", {
   expect_false(b$requires_demand_model)
   expect_equal(b$demand_obesity_prev_shift, 0.0)
   expect_equal(b$demand_insurance_expansion_factor, 1.0)
+  expect_equal(b$career_change_multiplier, 1)
   expect_null(b$components)
+})
+
+test_that("burnout_reduction is an executable-today attrition lever", {
+  br <- urps_scenario("burnout_reduction")
+  expect_identical(br$family, "attrition")
+  expect_equal(br$career_change_multiplier, 0.75)   # 25% fewer early-career exits
+  # It acts ONLY on the early-exit hazard: every other lever stays neutral, so it
+  # never distorts the retirement curve and needs no FTE or demand model.
+  expect_equal(br$retirement_shift_years, 0L)
+  expect_equal(br$entrant_multiplier, 1)
+  expect_equal(br$late_career_fte_factor, 1)
+  expect_false(br$requires_fte_model)
+  expect_false(br$requires_demand_model)
+  # Registered id, and the attrition lever is unique to it.
+  expect_true(is_urps_scenario("burnout_reduction"))
+  d <- urps_scenarios()
+  expect_identical(d$scenario_id[d$career_change_multiplier != 1], "burnout_reduction")
 })
 
 test_that("lever definitions match the named scenarios", {
@@ -104,7 +122,8 @@ test_that("all demand scenarios belong to the 'demand' family", {
 
 test_that("supply-only scenarios have neutral demand levers", {
   supply_ids <- c("retire_2yr_earlier", "retire_5yr_earlier", "retire_2yr_later",
-                  "fellowship_plus_10pct", "fellowship_constrained", "lower_late_career_fte")
+                  "fellowship_plus_10pct", "fellowship_constrained", "lower_late_career_fte",
+                  "burnout_reduction")
   d <- urps_scenarios()
   for (id in supply_ids) {
     r <- d[d$scenario_id == id, ]

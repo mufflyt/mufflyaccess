@@ -10,8 +10,8 @@ urps_scenarios()
 A \code{data.frame}, one row per scenario, with columns:
 \describe{
 \item{scenario_id}{the stable identifier (the enum value)}
-\item{family}{\code{"reference"}, \code{"retirement"}, \code{"entry"}, \code{"fte"}, or
-\code{"composite"}}
+\item{family}{\code{"reference"}, \code{"retirement"}, \code{"entry"}, \code{"fte"},
+\code{"attrition"}, \code{"demand"}, or \code{"composite"}}
 \item{label}{human-readable name}
 \item{entrant_multiplier}{scales annual entrants (1 = baseline)}
 \item{retirement_shift_years}{integer years to shift the retirement-hazard
@@ -19,6 +19,8 @@ curve (negative = earlier exit; 0 = baseline)}
 \item{late_career_fte_factor}{multiplies clinical FTE at/after the onset age
 (1 = no adjustment)}
 \item{late_career_fte_onset_age}{age at which the FTE factor begins, or \code{NA}}
+\item{career_change_multiplier}{scales the age-flat early-exit (burnout)
+hazard (< 1 = fewer early-career exits; 1 = baseline)}
 \item{requires_fte_model}{\code{TRUE} if the scenario needs the clinical-FTE
 model (a later phase) to be executed}
 \item{description}{one-line statement of the scenario}

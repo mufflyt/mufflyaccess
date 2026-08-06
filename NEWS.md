@@ -1,5 +1,16 @@
 # mufflyaccess (development)
 
+* **Burnout-reduction scenario (registry v1.3.0).** Adds a fifth supply lever,
+  `career_change_multiplier`, and a `burnout_reduction` scenario (family
+  `attrition`, `career_change_multiplier = 0.75`). It scales the age-flat
+  early-exit (career-change) hazard, NOT the retirement curve, so it never
+  distorts the retirement-hazard shape (which is why it is a distinct lever, not
+  a `retirement_shift_years` value). The 0.75 level is illustrative: no in-domain
+  URPS burnout->attrition estimate exists, so it is a scenario range, not a
+  calibrated effect. Load-time validation gains a "career-change adjustment iff
+  the attrition family" invariant; `baseline` remains the neutral origin
+  (`career_change_multiplier = 1`).
+
 * **URPS clinical-FTE model (Phase 3).** Fills the `supply_clinical_fte` column the
   projection contract (0.10.0) reserves. New API: `URPS_FTE_PATHWAY_CLINICAL_TIME`
   (ABOG 1.0 / ABU 0.70), `urps_fte_age_curve()`, `urps_fte_weight()` (age productivity
