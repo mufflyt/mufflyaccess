@@ -261,6 +261,15 @@ calculate_replacement_gap <- function(retirees_by_subspec, fellowship_grads,
 #' @param top_n Number of top-vulnerable states to return.
 #' @return Data frame of the `top_n` most vulnerable states plus
 #'   `vulnerability_score`.
+#' @examples
+#' impacts <- data.frame(
+#'   state = c("CA", "TX", "WY"),
+#'   count_active = c(120, 90, 3),
+#'   count_at_risk = c(20, 25, 2),
+#'   pct_loss_if_retire = c(16.7, 27.8, 66.7),
+#'   zero_coverage_if_retire = c(FALSE, FALSE, TRUE)
+#' )
+#' calculate_state_vulnerability(impacts, top_n = 2)
 #' @export
 calculate_state_vulnerability <- function(state_impacts, top_n = 10) {
   stopifnot(is.data.frame(state_impacts))
