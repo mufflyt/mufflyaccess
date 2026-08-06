@@ -7,7 +7,7 @@
 # not moving without someone noticing.
 
 test_that("interpolation hits the anchors exactly", {
-  par <- .obstetric_extdata("us_completed_parity_by_cohort.csv")
+  par <- mufflyaccess:::.obstetric_extdata("us_completed_parity_by_cohort.csv")
   for (i in seq_len(nrow(par))) {
     expect_equal(completed_parity_for_cohort(par$birth_cohort[i]),
                  par$mean_completed_parity[i])
@@ -19,7 +19,7 @@ test_that("outside the anchor range it CLAMPS rather than extrapolating", {
   # completed parity negative within a couple of centuries and, more to the
   # point, produce a confidently wrong number for any cohort past the last
   # anchor -- which is every cohort the projection actually cares about.
-  par <- .obstetric_extdata("us_completed_parity_by_cohort.csv")
+  par <- mufflyaccess:::.obstetric_extdata("us_completed_parity_by_cohort.csv")
   lo <- min(par$birth_cohort); hi <- max(par$birth_cohort)
   expect_equal(completed_parity_for_cohort(lo - 50),
                par$mean_completed_parity[which.min(par$birth_cohort)])
@@ -37,7 +37,7 @@ test_that("the parity series still says what it said when it was adopted", {
 })
 
 test_that("the cesarean series interpolates and clamps the same way", {
-  ces <- .obstetric_extdata("us_cesarean_rate_by_year.csv")
+  ces <- mufflyaccess:::.obstetric_extdata("us_cesarean_rate_by_year.csv")
   expect_equal(cesarean_rate_for_year(ces$year[1]), ces$cesarean_rate[1])
   expect_equal(cesarean_rate_for_year(min(ces$year) - 20),
                ces$cesarean_rate[which.min(ces$year)])
@@ -82,8 +82,8 @@ test_that("cohort exposure averages over the childbearing window, not one year",
   # A cohort's cesarean fraction must reflect its own fertile years. Reading a
   # single calendar year would attribute one year's obstetric practice to a
   # whole cohort.
-  expect_equal(OBSTETRIC_CHILDBEAR_AGE_LO, 20L)
-  expect_equal(OBSTETRIC_CHILDBEAR_AGE_HI, 35L)
+  expect_equal(mufflyaccess:::OBSTETRIC_CHILDBEAR_AGE_LO, 20L)
+  expect_equal(mufflyaccess:::OBSTETRIC_CHILDBEAR_AGE_HI, 35L)
   c0 <- 1960
   window <- mean(cesarean_rate_for_year((c0 + 20):(c0 + 35)))
   expect_equal(cohort_vaginal_exposure(c0)$cohort_cesarean_fraction,
