@@ -14,6 +14,10 @@ on:
     - cron: "0 12 * * 1"   # weekly drift check
   workflow_dispatch:
 
+# Read-only: every job just checks out repos, installs, and runs tests.
+permissions:
+  contents: read
+
 env:
   ISO_ARTIFACT_COMMIT: cf7222df2dba8a75831b372b7787af379a9b799d   # carries artifacts/workforce/ (v3.0.0)
   ISO_SOURCE_COMMIT:   74085a9e695eec5350275a29d8655512ad57422b   # producing source commit
