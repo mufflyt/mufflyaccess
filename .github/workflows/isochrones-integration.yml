@@ -101,6 +101,6 @@ jobs:
           Rscript -e '
             library(testthat)
             testthat::test_dir("tests/testthat",
-              filter = "urps|baseline|unqualified|geography", stop_on_failure = TRUE)
+              filter = "urps|baseline|unqualified|geography|engine|mufflyaccess", stop_on_failure = TRUE)
             cat("${{ matrix.repo }} consumer contract: OK\n")
           '

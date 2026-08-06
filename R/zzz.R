@@ -1,5 +1,21 @@
 # Deprecated URPS workforce constants as warn-on-access active bindings.
 # (Data objects cannot warn on access, so they are installed here.)
+
+#' Deprecated 2025 URPS roster-snapshot count constants
+#'
+#' @description `URPS_COUNT_ABOG_ONLY_2025` (1031) and
+#'   `URPS_COUNT_ABOG_PLUS_ABU_2025` (1339) are the 2025 `roster_snapshot`
+#'   headcounts, kept as **deprecated** warn-on-access bindings. Use [urps_count()]
+#'   instead:
+#'   `urps_count(2025, "roster_snapshot", "national", include_urology = FALSE)` and
+#'   the `include_urology = TRUE` variant. These are the 2025 roster, **not** the
+#'   2023 `board_certified_active` count (1027 / 1306).
+#' @name urps_count_2025_deprecated
+#' @aliases URPS_COUNT_ABOG_ONLY_2025 URPS_COUNT_ABOG_PLUS_ABU_2025
+#' @seealso [urps_count()]
+#' @keywords internal
+NULL
+
 .onLoad <- function(libname, pkgname) {
   ns <- asNamespace(pkgname)
   make_dep <- function(name, value, hint) {
