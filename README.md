@@ -3,7 +3,8 @@
 <!-- badges: start -->
 [![Lifecycle: stable](https://img.shields.io/badge/lifecycle-stable-brightgreen.svg)](https://lifecycle.r-lib.org/articles/stages.html#stable)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-0.4.0-informational.svg)](DESCRIPTION)
+[![Version](https://img.shields.io/badge/version-0.10.0-informational.svg)](DESCRIPTION)
+[![tests](https://github.com/mufflyt/mufflyaccess/actions/workflows/tests.yml/badge.svg)](https://github.com/mufflyt/mufflyaccess/actions/workflows/tests.yml)
 <!-- badges: end -->
 
 **Single source of truth (SSOT) for the constants and pure statistics shared
