@@ -13,6 +13,8 @@
 #   retirement_shift_years     shifts the retirement-hazard curve (- = earlier exit)
 #   late_career_fte_factor     multiplies clinical FTE at/after the onset age
 #   late_career_fte_onset_age  age at which the FTE factor begins (NA if none)
+#   career_change_multiplier   scales the age-flat early-exit (burnout) hazard
+#                              (< 1 = fewer early-career exits; 1 = baseline)
 #
 # A scenario dictionary fixes WHAT a named scenario is (its lever settings), so
 # every repo agrees "fellowship_plus_10pct" means entrants x 1.10. It does not fix
@@ -20,9 +22,9 @@
 # registry's declared, versioned policy definitions; revise via a registry bump.
 # ==============================================================================
 
-.URPS_SCENARIO_REGISTRY_VERSION <- "1.2.0"
+.URPS_SCENARIO_REGISTRY_VERSION <- "1.3.0"
 
-.urps_scenario_families <- c("reference", "retirement", "entry", "fte", "demand", "composite")
+.urps_scenario_families <- c("reference", "retirement", "entry", "fte", "attrition", "demand", "composite")
 
 # composites are defined as an ordered set of single-lever component scenarios;
 # their lever values are RECONSTRUCTED from the components at load and cross-checked
@@ -37,12 +39,14 @@
     scenario_id = c(
       "baseline", "retire_2yr_earlier", "retire_5yr_earlier", "retire_2yr_later",
       "fellowship_plus_10pct", "fellowship_constrained", "lower_late_career_fte",
+      "burnout_reduction",
       "demand_insurance_expansion", "demand_obesity_increase", "demand_equity",
       "demand_managed_care_increase", "demand_retail_clinic_shift",
       "combined_pessimistic", "combined_investment"),
     family = c(
       "reference", "retirement", "retirement", "retirement",
       "entry", "entry", "fte",
+      "attrition",
       "demand", "demand", "demand", "demand", "demand",
       "composite", "composite"),
     label = c(
@@ -53,6 +57,7 @@
       "Fellowship output +10%",
       "Fellowship output constrained (-10%)",
       "Reduced late-career clinical FTE",
+      "Burnout reduction (fewer early-career exits)",
       "Increased insurance coverage (+10pp uninsured -> insured)",
       "Increased obesity prevalence (+5 percentage points by 2035)",
       "Reduced access barriers (equity: income + race + insurance convergence)",
@@ -60,16 +65,17 @@
       "Expanded retail clinic capacity (10% of office visits shift to retail)",
       "Combined pessimistic",
       "Combined workforce investment"),
-    entrant_multiplier        = c(1.00, 1.00, 1.00, 1.00, 1.10, 0.90, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 0.90, 1.10),
-    retirement_shift_years    = c(0L,  -2L,  -5L,   2L,   0L,   0L,   0L,   0L,   0L,   0L,   0L,   0L,  -2L,   2L),
-    late_career_fte_factor    = c(1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 0.75, 1.00, 1.00, 1.00, 1.00, 1.00, 0.75, 1.00),
-    late_career_fte_onset_age = c(NA,   NA,   NA,   NA,   NA,   NA,   60L,  NA,   NA,   NA,   NA,   NA,   60L,  NA),
-    demand_obesity_prev_shift           = c(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 5.0, 0.0, 0.0, 0.0, 0.0, 0.0),
-    demand_insurance_expansion_factor   = c(1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.2, 1.0, 1.1, 1.0, 1.0, 1.0, 1.0),
-    demand_managed_care_factor          = c(1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.85,1.0, 1.0, 1.0),
-    demand_retail_clinic_share          = c(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.10,0.0, 0.0),
-    requires_fte_model    = c(FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, TRUE,  FALSE, FALSE, FALSE, FALSE, FALSE, TRUE,  FALSE),
-    requires_demand_model = c(FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, TRUE,  TRUE,  TRUE,  TRUE,  TRUE,  FALSE, FALSE),
+    entrant_multiplier        = c(1.00, 1.00, 1.00, 1.00, 1.10, 0.90, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 0.90, 1.10),
+    retirement_shift_years    = c(0L,  -2L,  -5L,   2L,   0L,   0L,   0L,   0L,   0L,   0L,   0L,   0L,   0L,  -2L,   2L),
+    late_career_fte_factor    = c(1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 0.75, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 0.75, 1.00),
+    late_career_fte_onset_age = c(NA,   NA,   NA,   NA,   NA,   NA,   60L,  NA,   NA,   NA,   NA,   NA,   NA,   60L,  NA),
+    career_change_multiplier  = c(1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 0.75, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00),
+    demand_obesity_prev_shift           = c(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 5.0, 0.0, 0.0, 0.0, 0.0, 0.0),
+    demand_insurance_expansion_factor   = c(1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.2, 1.0, 1.1, 1.0, 1.0, 1.0, 1.0),
+    demand_managed_care_factor          = c(1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.85,1.0, 1.0, 1.0),
+    demand_retail_clinic_share          = c(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.10,0.0, 0.0),
+    requires_fte_model    = c(FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, TRUE,  FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, TRUE,  FALSE),
+    requires_demand_model = c(FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, TRUE,  TRUE,  TRUE,  TRUE,  TRUE,  FALSE, FALSE),
     description = c(
       "Reference projection: observed retirement hazards, entrants held at the modelled rate, and no late-career FTE or demand adjustment. Every other scenario is stated as a perturbation of this origin.",
       "Retirement-hazard curve shifted 2 years earlier (physicians exit sooner).",
@@ -78,6 +84,7 @@
       "Annual entrants scaled by 1.10 -- a 10% expansion of fellowship output.",
       "Annual entrants scaled by 0.90 -- a 10% contraction of fellowship output.",
       "Clinical FTE multiplied by 0.75 from age 60 onward, layered on top of headcount (requires the age-specific clinical-FTE model; see Phase 3 / CHARTER).",
+      "Attrition scenario: career-change (age-flat early-exit) hazard multiplied by 0.75 -- a 25% reduction in early-career exits (a burnout-reduction lever). Acts on the early-exit process, NOT the retirement curve, so it never distorts the retirement-hazard shape. Illustrative: no in-domain URPS burnout->attrition estimate exists, so this is a scenario range, not a calibrated effect.",
       "Demand scenario: insurance_expansion_factor = 1.2, representing a 10pp shift from uninsured to insured status in the URPS-relevant population. Requires calibrated demand equations.",
       "Demand scenario: obesity_prev_shift = +5 percentage points above baseline by 2035, increasing pelvic floor disorder prevalence and visit rates. Requires calibrated demand equations.",
       "Demand scenario: equity convergence -- income, race, and insurance barriers reduced toward population mean (insurance_expansion_factor = 1.1). Requires calibrated demand equations.",
@@ -92,7 +99,8 @@
 local({
   d <- .urps_scenarios_df()
   supply_lever_cols <- c("entrant_multiplier", "retirement_shift_years",
-                         "late_career_fte_factor", "late_career_fte_onset_age")
+                         "late_career_fte_factor", "late_career_fte_onset_age",
+                         "career_change_multiplier")
   demand_lever_cols <- c("demand_obesity_prev_shift", "demand_insurance_expansion_factor")
   b <- d[d$scenario_id == "baseline", ]
   stopifnot(
@@ -104,14 +112,16 @@ local({
       sum(d$family == "reference") == 1L && d$scenario_id[d$family == "reference"] == "baseline",
     "baseline must be the neutral supply lever origin" =
       b$entrant_multiplier == 1 && b$retirement_shift_years == 0L &&
-      b$late_career_fte_factor == 1 && is.na(b$late_career_fte_onset_age),
+      b$late_career_fte_factor == 1 && is.na(b$late_career_fte_onset_age) &&
+      b$career_change_multiplier == 1,
     "baseline must be the neutral demand lever origin" =
       b$demand_obesity_prev_shift == 0.0 &&
       b$demand_insurance_expansion_factor == 1.0 &&
       b$demand_managed_care_factor == 1.0 &&
       b$demand_retail_clinic_share == 0.0,
-    "entrant_multiplier, late_career_fte_factor, demand_insurance_expansion_factor, and demand_managed_care_factor must be positive" =
+    "entrant_multiplier, late_career_fte_factor, career_change_multiplier, demand_insurance_expansion_factor, and demand_managed_care_factor must be positive" =
       all(d$entrant_multiplier > 0) && all(d$late_career_fte_factor > 0) &&
+      all(d$career_change_multiplier > 0) &&
       all(d$demand_insurance_expansion_factor > 0) && all(d$demand_managed_care_factor > 0),
     "demand_retail_clinic_share must be in [0, 1)" =
       all(d$demand_retail_clinic_share >= 0 & d$demand_retail_clinic_share < 1),
@@ -127,6 +137,8 @@ local({
         d$demand_retail_clinic_share != 0.0)),
     "demand scenarios must belong to the 'demand' family" =
       all(d$family[d$requires_demand_model] == "demand"),
+    "a career-change (burnout) adjustment iff the 'attrition' family" =
+      all((d$career_change_multiplier != 1) == (d$family == "attrition")),
     "composite family iff the scenario has registered components" =
       setequal(d$scenario_id[d$family == "composite"], names(.urps_scenario_components))
   )
@@ -143,6 +155,7 @@ local({
       retirement_shift_years    = as.integer(sum(cr$retirement_shift_years)),
       late_career_fte_factor    = prod(cr$late_career_fte_factor),
       late_career_fte_onset_age = if (length(onset)) as.integer(min(onset)) else NA_integer_,
+      career_change_multiplier          = prod(cr$career_change_multiplier),
       demand_obesity_prev_shift         = sum(cr$demand_obesity_prev_shift),
       demand_insurance_expansion_factor = prod(cr$demand_insurance_expansion_factor),
       demand_managed_care_factor        = prod(cr$demand_managed_care_factor),
@@ -193,8 +206,8 @@ URPS_SCENARIO_REGISTRY_VERSION <- .URPS_SCENARIO_REGISTRY_VERSION
 #' @return A `data.frame`, one row per scenario, with columns:
 #'   \describe{
 #'     \item{scenario_id}{the stable identifier (the enum value)}
-#'     \item{family}{`"reference"`, `"retirement"`, `"entry"`, `"fte"`, or
-#'       `"composite"`}
+#'     \item{family}{`"reference"`, `"retirement"`, `"entry"`, `"fte"`,
+#'       `"attrition"`, `"demand"`, or `"composite"`}
 #'     \item{label}{human-readable name}
 #'     \item{entrant_multiplier}{scales annual entrants (1 = baseline)}
 #'     \item{retirement_shift_years}{integer years to shift the retirement-hazard
@@ -202,6 +215,8 @@ URPS_SCENARIO_REGISTRY_VERSION <- .URPS_SCENARIO_REGISTRY_VERSION
 #'     \item{late_career_fte_factor}{multiplies clinical FTE at/after the onset age
 #'       (1 = no adjustment)}
 #'     \item{late_career_fte_onset_age}{age at which the FTE factor begins, or `NA`}
+#'     \item{career_change_multiplier}{scales the age-flat early-exit (burnout)
+#'       hazard (< 1 = fewer early-career exits; 1 = baseline)}
 #'     \item{requires_fte_model}{`TRUE` if the scenario needs the clinical-FTE
 #'       model (a later phase) to be executed}
 #'     \item{description}{one-line statement of the scenario}
