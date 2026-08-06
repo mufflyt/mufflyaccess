@@ -39,6 +39,14 @@ filter(x, category == DENOMINATOR_CATEGORY, range == PRIMARY_ACCESS_BAND_SEC)
   - [Pelvic-floor-disorder prevalence](#pelvic-floor-disorder-prevalence)
   - [Accessibility-disparity statistics](#accessibility-disparity-statistics)
   - [Safe-division family](#safe-division-family)
+  - [URPS workforce — the published SSOT](#urps-workforce--the-published-ssot)
+  - [URPS scenario dictionary](#urps-scenario-dictionary)
+  - [URPS projection contract](#urps-projection-contract)
+  - [URPS clinical FTE (supply side)](#urps-clinical-fte-supply-side)
+  - [URPS demand + gap](#urps-demand--gap)
+  - [URPS workforce flows](#urps-workforce-flows)
+  - [URPS geographic distribution + parameter CI](#urps-geographic-distribution--parameter-ci)
+  - [Workforce & obstetric statistics](#workforce--obstetric-statistics)
 - [Design principles](#design-principles)
 - [What is intentionally *not* here](#what-is-intentionally-not-here)
 - [Development](#development)
@@ -292,7 +300,7 @@ enum a projection table keys on; the projection **model** stays in `cliff`.
 | Function | Returns |
 |---|---|
 | `urps_scenarios()` | The registry `data.frame`: one row per scenario with its `family`, label, the supply levers (`entrant_multiplier`, `retirement_shift_years`, `late_career_fte_factor` / `_onset_age`), the demand levers, and `requires_fte_model` / `requires_demand_model`. |
-| `urps_scenario(id)` | One scenario's labelled definition (plus `components` for composites, `registry_version`); fail-loud on an unknown id. |
+| `urps_scenario(scenario_id)` | One scenario's labelled definition (plus `components` for composites, `registry_version`); fail-loud on an unknown id. |
 | `urps_scenario_ids()` / `is_urps_scenario(x)` | The enum / a vectorised, non-erroring membership predicate. |
 | `validate_urps_scenarios(x)` | Fail-loud guard that every id in a character vector or a `data.frame`'s `scenario_id` column is registered. |
 | `URPS_SCENARIO_REGISTRY_VERSION` | Semantic version of the registry. |
@@ -319,7 +327,7 @@ Each weight is ≤ 1, so effective FTE never exceeds headcount.
 |---|---|
 | `urps_fte_weight(age, pathway, late_from_age, late_factor)` / `urps_fte_weight_sex(...)` | Per-provider FTE weight = age-productivity × pathway clinical-time × late-career factor (with a sex-stratified hours variant). |
 | `urps_effective_fte(counts, scale = 1, ...)` / `urps_effective_fte_sex(...)` | Aggregate clinical FTE of an `(age, pathway[, sex], n)` cohort. |
-| `urps_fte_scale(reference_counts, target)` / `urps_fte_scale_sex(...)` | Normalization scale anchoring a reference cohort's FTE to a target headcount. |
+| `urps_fte_scale(reference_counts, target_headcount)` / `urps_fte_scale_sex(...)` | Normalization scale anchoring a reference cohort's FTE to a target headcount. |
 | `urps_supply_fte_sex(cohort, ...)` | Full supply pipeline: certified headcount → `supply_clinical_fte` (sex-stratified). |
 | `urps_fte_age_curve()` / `urps_fte_predicted_hours()` / `urps_fte_sex_hours_params()` | The age-productivity curve / predicted weekly patient-care hours / the OLS hours-model parameters. |
 | `URPS_FTE_PATHWAY_CLINICAL_TIME` | Pathway clinical-time weights (ABOG 1.00, ABU 0.70). |
@@ -333,9 +341,9 @@ coefficients, so consumers wire them now and they light up on calibration.
 | Function | Returns |
 |---|---|
 | `urps_demand_fte(population, visits_per_fte, scenario_id)` / `urps_demand_clinical_fte(...)` | Projected demand in clinical-FTE units for a patient population + scenario (`NA` until calibrated). |
-| `urps_gap_fte(supply, demand)` | `gap_fte = demand − supply` (positive = shortage). |
+| `urps_gap_fte(supply_clinical_fte, demand_clinical_fte)` | `gap_fte = demand − supply` (positive = shortage). |
 | `urps_demand_params()` / `urps_demand_scalars()` | The regression-parameter skeleton (with `calibration_status`) / the specialty × setting scalar table. |
-| `urps_demand_levers(id)` / `urps_demand_scalar(setting)` | A scenario's four demand levers / one setting-of-care calibration scalar. |
+| `urps_demand_levers(scenario_id)` / `urps_demand_scalar(setting)` | A scenario's four demand levers / one setting-of-care calibration scalar. |
 | `URPS_DEMAND_VERSION` / `URPS_DEMAND_SCALARS_VERSION` | Semantic versions (pre-calibration `0.1.0`). |
 
 ### URPS workforce flows
@@ -345,7 +353,7 @@ Stock-and-flow primitives: retirement, labour-force participation, and entry.
 | Function | Returns |
 |---|---|
 | `urps_retirement_hazard(...)` / `urps_survival_curve()` / `urps_retirement_params()` | Annual retirement hazard `P(retire | active)` / the full survival curve / literature-calibrated parameters. |
-| `urps_p_active(age, sex)` / `urps_p_still_active(age)` | Probability actively practicing given age (and sex). |
+| `urps_p_active(age, sex)` / `urps_p_still_active(age, sex, pathway)` | Probability actively practicing given age (and sex / pathway). |
 | `urps_lfp_curve()` / `urps_lfp_params()` / `urps_apply_lfp(cohort)` | Labour-force-participation curve / parameters / application to a certified cohort. |
 | `urps_entrants(year)` / `urps_entry_counts()` | Board-certified URPS entrants for a year / entry into the certified stock by year and pathway. |
 | `urps_retirement_status()` / `urps_require_retirement_ascertained()` | Departure-ascertainment status of the served artifact / a fail-loud guard so "unknown retirement" is never read as "zero departures". |
@@ -366,7 +374,7 @@ Dependency-light statistics shared with the workforce-cliff manuscript.
 |---|---|
 | `calculate_proportion_ci(x, n)` / `calculate_two_prop_test(...)` | Wilson-score CI for a proportion / two-proportion z-test with an `n ≥ 30` guard. |
 | `calculate_replacement_gap(...)` / `calculate_rural_metro_comparison(...)` / `calculate_state_vulnerability(...)` | Retirees-vs-graduates replacement gap / rural-vs-metro at-risk comparison / state vulnerability ranking. |
-| `cesarean_rate_for_year(year)` / `completed_parity_for_cohort(cohort)` / `cohort_vaginal_exposure(...)` | Interpolated obstetric-exposure series: total-cesarean rate, mean completed parity, cohort vaginal-delivery exposure. |
+| `cesarean_rate_for_year(years)` / `completed_parity_for_cohort(cohorts)` / `cohort_vaginal_exposure(cohorts)` | Interpolated obstetric-exposure series: total-cesarean rate, mean completed parity, cohort vaginal-delivery exposure. |
 
 ## Design principles
 
@@ -402,14 +410,19 @@ devtools::test()
 devtools::check()
 ```
 
-The exported surface is guarded by four test files under `tests/testthat/`:
+The exported surface is guarded by ~36 test files under `tests/testthat/`,
+grouped by domain:
 
-| Test file | Covers |
+| Domain | Representative test files |
 |---|---|
-| `test-constants.R` | Canonical scalar/vector values and derived-consistency invariants. |
-| `test-promoted-ssots.R` | Constants promoted from `isochrones` (MOE, RUCA, Wu-2014 PFD). |
-| `test-accessibility-stats.R` | The weighted-mean / zero-share / MC-CI / trend statistics. |
-| `test-safe-divide.R` | The safe-division family's zero-denominator guarantees. |
+| Constants & derived invariants | `test-constants.R`, `test-promoted-ssots.R`, `test-deprecated-urps-constants.R` |
+| Accessibility & safe-math | `test-accessibility-stats.R`, `test-safe-divide.R`, `test-workforce-statistics.R` |
+| URPS count contract | `test-urps-count.R`, `test-urps-counts-table.R`, `test-validate-urps-ssot.R`, `test-producer-release-contract.R`, `test-contract-lineage.R` |
+| Scenario dictionary & projection contract | `test-urps-scenarios.R`, `test-urps-scenarios-adversarial.R`, `test-urps-projection.R`, `test-urps-projection-adversarial.R`, `test-urps-projection-ci.R` |
+| Supply / demand / flows | `test-urps-fte.R`, `test-urps-fte-sex.R`, `test-urps-demand.R`, `test-urps-demand-scalars.R`, `test-urps-flows.R`, `test-urps-lfp.R`, `test-urps-retirement.R`, `test-urps-state-alloc.R` |
+| Obstetric exposure | `test-obstetric-exposure.R` |
+| Isochrones cross-repo contract | `test-isochrones-*.R`, `test-use-urps-artifact.R` |
+| Boundary-value & type guards | `test-urps-bva.R`, `test-urps-checkmate.R`, `test-urps-readiness.R` |
 
 `NAMESPACE` is generated by roxygen — run `devtools::document()` rather than
 editing it by hand. When you promote a new constant, add its primary-source
