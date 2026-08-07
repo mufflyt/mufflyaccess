@@ -27,3 +27,11 @@ the test that qualify it.
 \examples{
 calculate_rural_metro_comparison(30, 100, 40, 200)$comparison$rate_difference_pct
 }
+\seealso{
+Other workforce statistics:
+\code{\link[=calculate_proportion_ci]{calculate_proportion_ci()}},
+\code{\link[=calculate_replacement_gap]{calculate_replacement_gap()}},
+\code{\link[=calculate_state_vulnerability]{calculate_state_vulnerability()}},
+\code{\link[=calculate_two_prop_test]{calculate_two_prop_test()}}
+}
+\concept{workforce statistics}

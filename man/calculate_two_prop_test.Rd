@@ -28,3 +28,11 @@ read a p-value that does not exist.
 calculate_two_prop_test(12, 40, 20, 60)
 calculate_two_prop_test(2, 5, 3, 6)$method   # "descriptive_only"
 }
+\seealso{
+Other workforce statistics:
+\code{\link[=calculate_proportion_ci]{calculate_proportion_ci()}},
+\code{\link[=calculate_replacement_gap]{calculate_replacement_gap()}},
+\code{\link[=calculate_rural_metro_comparison]{calculate_rural_metro_comparison()}},
+\code{\link[=calculate_state_vulnerability]{calculate_state_vulnerability()}}
+}
+\concept{workforce statistics}

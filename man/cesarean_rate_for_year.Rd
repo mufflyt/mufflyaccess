@@ -23,3 +23,9 @@ US total-cesarean rate, interpolated across cited anchor years
 \examples{
 cesarean_rate_for_year(c(1990, 2005, 2020))
 }
+\seealso{
+Other obstetric exposure:
+\code{\link[=cohort_vaginal_exposure]{cohort_vaginal_exposure()}},
+\code{\link[=completed_parity_for_cohort]{completed_parity_for_cohort()}}
+}
+\concept{obstetric exposure}

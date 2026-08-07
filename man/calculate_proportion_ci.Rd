@@ -25,3 +25,11 @@ rural access-desert proportion is routinely both.
 \examples{
 calculate_proportion_ci(12, 40)
 }
+\seealso{
+Other workforce statistics:
+\code{\link[=calculate_replacement_gap]{calculate_replacement_gap()}},
+\code{\link[=calculate_rural_metro_comparison]{calculate_rural_metro_comparison()}},
+\code{\link[=calculate_state_vulnerability]{calculate_state_vulnerability()}},
+\code{\link[=calculate_two_prop_test]{calculate_two_prop_test()}}
+}
+\concept{workforce statistics}
