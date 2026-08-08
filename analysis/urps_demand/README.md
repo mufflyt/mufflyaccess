@@ -76,14 +76,29 @@ p <- mufflyaccess::read_urps_demand_params("analysis/urps_demand/urps_demand_par
 attr(p, "calibration_status")   # "calibrated"
 ```
 
-The final hookup is one option-aware branch in `urps_demand_params()` (owned by
-`R/urps_demand.R`): when `getOption("mufflyaccess.urps_demand_params_path")` (or
-an env var) points at a fitted artifact, delegate to `read_urps_demand_params()`
-and serve it; otherwise return the NA skeleton. With that in place,
-`urps_demand_fte()` and `urps_gap_fte()` light up across cliff and twostep with
-**no consumer change** — they already call the demand functions unconditionally
-and simply stop receiving `NA`. Bump `URPS_DEMAND_VERSION` to `1.0.0` on the
-first real fit.
+This is **wired in**. `urps_demand_params()` checks
+`getOption("mufflyaccess.urps_demand_params_path")` (then the env var
+`MUFFLYACCESS_URPS_DEMAND_PARAMS`); when it points at a fitted artifact the
+function delegates to `read_urps_demand_params()` and serves it, otherwise it
+returns the NA skeleton:
+
+```r
+options(mufflyaccess.urps_demand_params_path =
+        "analysis/urps_demand/urps_demand_params_fitted.csv")
+mufflyaccess::urps_demand_fte(population, visits_per_fte = 2000)  # now a real FTE
+```
+
+`urps_demand_clinical_fte()` then evaluates the office + outpatient visit-count
+regressions per person, applies the scenario demand levers, and divides by
+`visits_per_fte` — so `urps_demand_fte()` and `urps_gap_fte()` light up across
+cliff and twostep with **no consumer change** (they already call the demand
+functions unconditionally and simply stop receiving `NA`). A misconfigured path
+fails loud rather than silently serving `NA`. Bump `URPS_DEMAND_VERSION` to
+`1.0.0` on the first real fit.
+
+`population` is a design-matrix `data.frame`: an `n` count column plus covariate
+columns named as the fit's design terms (`age`, `sex_male`, `race_black`, `bmi`,
+…); an absent covariate is taken at its reference level (`0`).
 
 ## Interim option
 

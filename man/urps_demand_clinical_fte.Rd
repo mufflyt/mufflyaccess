@@ -33,17 +33,24 @@ clinics, reducing URPS physician demand. Must be in [0, 1). Default \code{0}.
 See \code{\link[=urps_demand_levers]{urps_demand_levers()}}.}
 }
 \value{
-\code{NA_real_} (stub). When calibrated, a length-1 numeric
-\code{demand_clinical_fte}.
+Length-1 numeric \code{demand_clinical_fte} when the demand model is
+calibrated; \code{NA_real_} while it is the uncalibrated skeleton. \code{population}
+is a design-matrix \code{data.frame}: an \code{n} count column plus covariate columns
+named as the fit's design terms (\code{age}, \code{sex_male}, \code{race_black}, \code{bmi},
+...); an absent covariate is taken at its reference level (\code{0}).
 }
 \description{
-\strong{Stub — returns \code{NA_real_} until calibrated.} Once
-\code{urps_demand_params()} carries fitted coefficients, this function will
-evaluate predicted visit counts per person, sum over the population,
-apply the scenario demand levers, and convert to clinical FTE.
+Predicted ambulatory-visit demand for a patient population,
+converted to clinical FTE. \strong{Returns \code{NA_real_} while the demand model is
+uncalibrated} (the \code{urps_demand_params()} NA skeleton). Once a fitted
+artifact is active — \code{options(mufflyaccess.urps_demand_params_path = ...)} or
+\code{MUFFLYACCESS_URPS_DEMAND_PARAMS}, see \code{\link[=read_urps_demand_params]{read_urps_demand_params()}} — it
+evaluates the visit-count regressions per person, sums over the population,
+applies the scenario demand levers, and divides by \code{visits_per_fte}.
 }
 \details{
-The full pipeline (to be implemented when calibrated):
+The pipeline, evaluated once \code{urps_demand_params()} is calibrated
+(office + outpatient visit-count services drive office-based URPS FTE):
 \enumerate{
 \item For each service type, evaluate the regression at each person's covariate
 vector to get predicted visit rate.

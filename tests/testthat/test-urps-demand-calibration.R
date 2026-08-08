@@ -68,3 +68,37 @@ test_that("a calibrated artifact with any NA beta, or a bad nb_theta pattern, is
 test_that("read_urps_demand_params errors on a missing path", {
   expect_error(read_urps_demand_params("/no/such/file.csv"), "existing file path")
 })
+
+# ---- activation hook: option/env -> urps_demand_params() serves the fit -------
+
+test_that("with no artifact configured, the skeleton is served and demand is NA", {
+  old <- options(mufflyaccess.urps_demand_params_path = NULL); on.exit(options(old), add = TRUE)
+  Sys.unsetenv("MUFFLYACCESS_URPS_DEMAND_PARAMS")
+  expect_identical(unique(urps_demand_params()$calibration_status), "not_calibrated")
+  pop <- data.frame(n = 1000, age = 50, sex_male = 0, bmi = 28)
+  expect_true(is.na(urps_demand_fte(pop, visits_per_fte = 2000)))
+})
+
+test_that("configuring a fitted artifact activates demand end to end", {
+  skip_if(!nzchar(ex_path) || !file.exists(ex_path), "example artifact not bundled")
+  old <- options(mufflyaccess.urps_demand_params_path = ex_path); on.exit(options(old), add = TRUE)
+
+  expect_identical(unique(urps_demand_params()$calibration_status), "example")
+  pop <- data.frame(n = c(1000, 2000), age = c(50, 65), sex_male = 0, bmi = c(28, 31))
+  d <- urps_demand_clinical_fte(pop, visits_per_fte = 2000)
+  expect_true(is.finite(d) && d > 0)                       # no longer NA once activated
+  # demand is linear in population count
+  d2 <- urps_demand_clinical_fte(transform(pop, n = n * 2), visits_per_fte = 2000)
+  expect_equal(d2, 2 * d)
+  # shifting office demand to retail clinics lowers URPS physician demand
+  d_retail <- urps_demand_clinical_fte(pop, visits_per_fte = 2000, retail_clinic_share = 0.25)
+  expect_lt(d_retail, d)
+  # gap wires through: gap = demand - supply
+  expect_equal(urps_gap_fte(0.5, d), d - 0.5)
+})
+
+test_that("a misconfigured artifact path fails loud (never silently NA)", {
+  old <- options(mufflyaccess.urps_demand_params_path = "/no/such/fit.csv")
+  on.exit(options(old), add = TRUE)
+  expect_error(urps_demand_params(), "existing file path")
+})

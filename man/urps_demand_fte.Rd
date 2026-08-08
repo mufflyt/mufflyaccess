@@ -17,7 +17,8 @@ four demand levers are resolved from the registry; passing raw lever values
 is not required.}
 }
 \value{
-Length-1 numeric \code{demand_clinical_fte}, or \code{NA_real_} until calibrated.
+Length-1 numeric \code{demand_clinical_fte} once a fitted artifact is active,
+or \code{NA_real_} while the demand model is the uncalibrated skeleton.
 }
 \description{
 The demand-side counterpart to \code{\link[=urps_supply_fte_sex]{urps_supply_fte_sex()}}. Looks up
@@ -38,10 +39,12 @@ demand_fte <- mufflyaccess::urps_demand_fte(population, visits_per_fte,
 gap_fte <- mufflyaccess::urps_gap_fte(supply_fte, demand_fte)
 }\if{html}{\out{</div>}}
 
-Returns \code{NA_real_} for any scenario until \code{urps_demand_params()} carries
-calibrated coefficients (\code{calibration_status != "not_calibrated"}). Cliff
-can call this unconditionally — the \code{NA} propagates to \code{gap_fte} and the
-contract validator allows \code{NA} in optional columns.
+Returns \code{NA_real_} for any scenario while \code{urps_demand_params()} is the
+uncalibrated skeleton, and a real \code{demand_clinical_fte} once a fitted
+artifact is active (\code{calibration_status != "not_calibrated"}; see
+\code{\link[=read_urps_demand_params]{read_urps_demand_params()}}). Cliff can call this unconditionally — the \code{NA}
+propagates to \code{gap_fte} and the contract validator allows \code{NA} in optional
+columns, and it simply stops being \code{NA} after activation.
 }
 \examples{
 pop <- data.frame(age = 50, sex = "female", n = 10000)

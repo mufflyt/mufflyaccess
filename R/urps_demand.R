@@ -156,6 +156,16 @@ local({
 #' @export
 URPS_DEMAND_VERSION <- .URPS_DEMAND_VERSION
 
+# Resolve a configured fitted-params artifact (option first, then env var). NULL
+# when unset -> urps_demand_params() serves the NA skeleton (the default). When
+# set, urps_demand_params() delegates to read_urps_demand_params(), which
+# validates the artifact and fails loud on a malformed / missing one.
+.urps_demand_params_source <- function() {
+  p <- getOption("mufflyaccess.urps_demand_params_path",
+                 default = Sys.getenv("MUFFLYACCESS_URPS_DEMAND_PARAMS", ""))
+  if (is.character(p) && length(p) == 1L && nzchar(p)) p else NULL
+}
+
 #' URPS healthcare use prediction equation parameters (skeleton)
 #'
 #' @description The regression parameter skeleton for six URPS-relevant service
@@ -193,6 +203,8 @@ URPS_DEMAND_VERSION <- .URPS_DEMAND_VERSION
 #' urps_demand_params()[, c("service_type", "model_form", "calibration_status")]
 #' @export
 urps_demand_params <- function() {
+  configured <- .urps_demand_params_source()
+  if (!is.null(configured)) return(read_urps_demand_params(configured))   # activated fit
   d <- .urps_demand_params_df()
   attr(d, "source") <- paste(
     "IHS Markit HWMM v5.19.20 (model structure, covariate list, Exhibits 14-16);",
@@ -259,12 +271,16 @@ urps_demand_levers <- function(scenario_id) {
 
 #' Compute demand_clinical_fte from a patient population and the fitted equations
 #'
-#' @description **Stub — returns `NA_real_` until calibrated.** Once
-#'   `urps_demand_params()` carries fitted coefficients, this function will
-#'   evaluate predicted visit counts per person, sum over the population,
-#'   apply the scenario demand levers, and convert to clinical FTE.
+#' @description Predicted ambulatory-visit demand for a patient population,
+#'   converted to clinical FTE. **Returns `NA_real_` while the demand model is
+#'   uncalibrated** (the `urps_demand_params()` NA skeleton). Once a fitted
+#'   artifact is active — `options(mufflyaccess.urps_demand_params_path = ...)` or
+#'   `MUFFLYACCESS_URPS_DEMAND_PARAMS`, see [read_urps_demand_params()] — it
+#'   evaluates the visit-count regressions per person, sums over the population,
+#'   applies the scenario demand levers, and divides by `visits_per_fte`.
 #'
-#' @details The full pipeline (to be implemented when calibrated):
+#' @details The pipeline, evaluated once `urps_demand_params()` is calibrated
+#'   (office + outpatient visit-count services drive office-based URPS FTE):
 #'   1. For each service type, evaluate the regression at each person's covariate
 #'      vector to get predicted visit rate.
 #'   2. Multiply by person count → expected visits.
@@ -292,8 +308,11 @@ urps_demand_levers <- function(scenario_id) {
 #' @param retail_clinic_share Fraction of office-visit demand shifted to retail
 #'   clinics, reducing URPS physician demand. Must be in \[0, 1). Default `0`.
 #'   See [urps_demand_levers()].
-#' @return `NA_real_` (stub). When calibrated, a length-1 numeric
-#'   `demand_clinical_fte`.
+#' @return Length-1 numeric `demand_clinical_fte` when the demand model is
+#'   calibrated; `NA_real_` while it is the uncalibrated skeleton. `population`
+#'   is a design-matrix `data.frame`: an `n` count column plus covariate columns
+#'   named as the fit's design terms (`age`, `sex_male`, `race_black`, `bmi`,
+#'   ...); an absent covariate is taken at its reference level (`0`).
 #' @seealso [urps_demand_params()], [urps_demand_scalars()], [urps_demand_levers()]
 #' @family URPS demand
 #' @examples
@@ -315,9 +334,50 @@ urps_demand_clinical_fte <- function(population, visits_per_fte,
     stop("[urps_demand_clinical_fte] `retail_clinic_share` must be in [0, 1).", call. = FALSE)
   params <- urps_demand_params()
   if (all(is.na(params$intercept)))
-    return(NA_real_)
-  stop("[urps_demand_clinical_fte] calibrated coefficients not yet available. ",
-       "See urps_demand_params() calibration_status.", call. = FALSE)
+    return(NA_real_)                                   # NA skeleton -> demand NA
+
+  # ---- calibrated path: predicted ambulatory-visit demand -> clinical FTE -----
+  if (!is.data.frame(population) || !"n" %in% names(population))
+    stop("[urps_demand_clinical_fte] `population` must be a data.frame with an `n` column ",
+         "and design-matrix covariate columns (age, sex_male, race_*, bmi, ...).", call. = FALSE)
+  if (!is.numeric(visits_per_fte) || length(visits_per_fte) != 1L ||
+      is.na(visits_per_fte) || visits_per_fte <= 0)
+    stop("[urps_demand_clinical_fte] `visits_per_fte` must be a positive number.", call. = FALSE)
+
+  # Office-based URPS physician FTE is driven by the ambulatory visit-count
+  # services (office + outpatient); the inpatient / ED / home-health rows are a
+  # different setting and do not enter office-based FTE. This is the documented
+  # default estimand -- adjust here if the FTE definition changes.
+  visit_services <- c("office_visit", "outpatient_visit")
+  term_map <- c(
+    b_age = "age", b_sex_male = "sex_male",
+    b_race_black = "race_black", b_race_hispanic = "race_hispanic", b_race_other = "race_other",
+    b_bmi = "bmi", b_smoking_current = "smoking_current",
+    b_income_low = "income_low", b_income_mid = "income_mid",
+    b_insurance_medicaid = "ins_medicaid", b_insurance_medicare = "ins_medicare",
+    b_insurance_uninsured = "ins_uninsured", b_managed_care = "managed_care",
+    b_chronic_count = "chronic_count", b_urban = "urban")
+  col <- function(nm) if (nm %in% names(population)) as.numeric(population[[nm]]) else
+    rep(0, nrow(population))     # absent covariate = reference level (0)
+  n <- as.numeric(population$n)
+
+  total_visits <- 0
+  for (svc in visit_services) {
+    r  <- params[params$service_type == svc, , drop = FALSE]
+    lp <- rep(r$intercept, nrow(population))
+    for (b in names(term_map)) lp <- lp + r[[b]] * col(term_map[[b]])
+    rate <- exp(lp)                                    # NB: E[annual visits | x]
+    total_visits <- total_visits + sum(rate * n) * r$calibration_scalar
+  }
+
+  # Scenario demand levers (documented multiplicative adjustments):
+  #   insurance_expansion_factor, managed_care_factor -> scale total demand;
+  #   retail_clinic_share -> share of office demand shifted off URPS physicians;
+  #   obesity_prev_shift  -> first-order proportional PFD-demand bump (pp / 100).
+  total_visits <- total_visits * insurance_expansion_factor * managed_care_factor *
+                  (1 - retail_clinic_share) * (1 + obesity_prev_shift / 100)
+
+  total_visits / visits_per_fte                        # visits -> clinical FTE
 }
 
 #' Scenario-aware demand FTE: registry lookup + clinical FTE in one call
@@ -341,10 +401,12 @@ urps_demand_clinical_fte <- function(population, visits_per_fte,
 #'   gap_fte <- mufflyaccess::urps_gap_fte(supply_fte, demand_fte)
 #'   ```
 #'
-#'   Returns `NA_real_` for any scenario until `urps_demand_params()` carries
-#'   calibrated coefficients (`calibration_status != "not_calibrated"`). Cliff
-#'   can call this unconditionally — the `NA` propagates to `gap_fte` and the
-#'   contract validator allows `NA` in optional columns.
+#'   Returns `NA_real_` for any scenario while `urps_demand_params()` is the
+#'   uncalibrated skeleton, and a real `demand_clinical_fte` once a fitted
+#'   artifact is active (`calibration_status != "not_calibrated"`; see
+#'   [read_urps_demand_params()]). Cliff can call this unconditionally — the `NA`
+#'   propagates to `gap_fte` and the contract validator allows `NA` in optional
+#'   columns, and it simply stops being `NA` after activation.
 #'
 #' @param population A `data.frame` — see [urps_demand_clinical_fte()].
 #' @param visits_per_fte Annual URPS visits per FTE provider. See
