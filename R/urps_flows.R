@@ -32,6 +32,10 @@
 #' @return One of `"observed"`, `"partially_observed"`, `"not_ascertained"`.
 #' @seealso [urps_require_retirement_ascertained()], [urps_counts_long()]
 #' @family URPS workforce
+#' @examples
+#' # Ascertainment status of the served artifact (the bootstrap does not
+#' # observe retirement, so this is "not_ascertained"):
+#' urps_retirement_status()
 #' @export
 urps_retirement_status <- function() {
   m  <- .urps_manifest()
@@ -56,6 +60,11 @@ urps_retirement_status <- function() {
 #' @return Invisibly `TRUE` when retirement is observed; otherwise `stop()`s.
 #' @seealso [urps_retirement_status()]
 #' @family URPS workforce
+#' @examples
+#' # The guard stops unless retirement is observed, so a consumer can never
+#' # read "unknown retirement" as zero departures:
+#' tryCatch(urps_require_retirement_ascertained(),
+#'          error = function(e) conditionMessage(e))
 #' @export
 urps_require_retirement_ascertained <- function(what = "retirement/departure counts") {
   st <- urps_retirement_status()
@@ -102,6 +111,10 @@ urps_require_retirement_ascertained <- function(what = "retirement/departure cou
 #'   `first_year_is_founding_bucket`.
 #' @seealso [urps_entrants()], [urps_counts()]
 #' @family URPS workforce
+#' @examples
+#' # Entry into the certified stock by year and pathway.
+#' # The first row is the founding bucket (all entries through that year).
+#' head(urps_entry_counts())
 #' @export
 urps_entry_counts <- function(measure = "board_certified_active", geography = "national") {
   w <- urps_counts(measure = measure, geography = geography)
@@ -132,6 +145,9 @@ urps_entry_counts <- function(measure = "board_certified_active", geography = "n
 #'   [urps_entry_counts()] for the full definition and caveats.
 #' @seealso [urps_entry_counts()]
 #' @family URPS workforce
+#' @examples
+#' urps_entrants(2019)                          # ABOG pathway
+#' urps_entrants(2019, include_urology = TRUE)  # ABOG + ABU
 #' @export
 urps_entrants <- function(year, geography = "national", include_urology = FALSE,
                           measure = "board_certified_active") {

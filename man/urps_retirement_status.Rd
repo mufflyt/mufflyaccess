@@ -18,6 +18,11 @@ survivorship-biased certification build-up with retirement \strong{not ascertain
 NOT a valid value here: modeled retirement belongs in cliff, never in
 mufflyaccess.
 }
+\examples{
+# Ascertainment status of the served artifact (the bootstrap does not
+# observe retirement, so this is "not_ascertained"):
+urps_retirement_status()
+}
 \seealso{
 \code{\link[=urps_require_retirement_ascertained]{urps_require_retirement_ascertained()}}, \code{\link[=urps_counts_long]{urps_counts_long()}}
 

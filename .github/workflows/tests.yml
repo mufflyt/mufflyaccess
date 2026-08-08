@@ -14,6 +14,10 @@ on:
   pull_request:
   workflow_dispatch:
 
+# Read-only: checkout + install + run the suite; no writes to the repo.
+permissions:
+  contents: read
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true

@@ -18,6 +18,12 @@ number when it is \code{"observed"}. Otherwise this stops, so an unascertained
 retirement can \strong{never} be silently interpreted as zero departures. Call this
 before any \code{baseline - retirements} arithmetic.
 }
+\examples{
+# The guard stops unless retirement is observed, so a consumer can never
+# read "unknown retirement" as zero departures:
+tryCatch(urps_require_retirement_ascertained(),
+         error = function(e) conditionMessage(e))
+}
 \seealso{
 \code{\link[=urps_retirement_status]{urps_retirement_status()}}
 

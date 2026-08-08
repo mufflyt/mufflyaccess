@@ -16,10 +16,24 @@ Data frame: \code{birth_cohort}, \code{mean_total_parity},
 }
 \description{
 Mean vaginal and cesarean deliveries per woman for each birth cohort,
-derived from the completed-parity and cesarean-rate series. See the module
-header for the assumptions this carries; the repeat-cesarean one in
-particular means vaginal deliveries are understated for high-parity cohorts.
+derived from the completed-parity and cesarean-rate series.
+}
+\details{
+Three assumptions, invisible in the returned numbers, are carried by
+the derivation. The cohort cesarean fraction is the mean annual rate over the
+childbearing window \code{OBSTETRIC_CHILDBEAR_AGE_LO:OBSTETRIC_CHILDBEAR_AGE_HI}
+(ages 20-35), not the rate in any single year. Parity is then apportioned
+vaginal/cesarean by that fraction, which assumes cesarean risk is independent
+of birth order; it is not (repeat cesarean is the dominant indication), so
+vaginal deliveries are understated for high-parity cohorts. The interpolators
+clamp outside the anchor range (\code{rule = 2}) rather than extrapolating.
 }
 \examples{
 cohort_vaginal_exposure(c(1940, 1970))
 }
+\seealso{
+Other obstetric exposure:
+\code{\link[=cesarean_rate_for_year]{cesarean_rate_for_year()}},
+\code{\link[=completed_parity_for_cohort]{completed_parity_for_cohort()}}
+}
+\concept{obstetric exposure}

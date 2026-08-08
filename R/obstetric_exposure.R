@@ -58,6 +58,7 @@ OBSTETRIC_CHILDBEAR_AGE_HI <- 35L
 #'   against a known series and so a caller can substitute a revised one without
 #'   editing the package.
 #' @return Numeric cesarean fraction per year, clamped at the anchor range ends.
+#' @family obstetric exposure
 #' @examples
 #' cesarean_rate_for_year(c(1990, 2005, 2020))
 #' @export
@@ -74,6 +75,7 @@ cesarean_rate_for_year <- function(years, ces = NULL) {
 #' @param par Optional data frame with `birth_cohort` and
 #'   `mean_completed_parity`, overriding the packaged anchor series.
 #' @return Numeric mean completed parity, clamped outside the anchor range.
+#' @family obstetric exposure
 #' @examples
 #' completed_parity_for_cohort(c(1940, 1960, 1980))
 #' @export
@@ -87,14 +89,21 @@ completed_parity_for_cohort <- function(cohorts, par = NULL) {
 #' Cohort vaginal-delivery exposure
 #'
 #' Mean vaginal and cesarean deliveries per woman for each birth cohort,
-#' derived from the completed-parity and cesarean-rate series. See the module
-#' header for the assumptions this carries; the repeat-cesarean one in
-#' particular means vaginal deliveries are understated for high-parity cohorts.
+#' derived from the completed-parity and cesarean-rate series.
 #'
+#' @details Three assumptions, invisible in the returned numbers, are carried by
+#'   the derivation. The cohort cesarean fraction is the mean annual rate over the
+#'   childbearing window `OBSTETRIC_CHILDBEAR_AGE_LO:OBSTETRIC_CHILDBEAR_AGE_HI`
+#'   (ages 20-35), not the rate in any single year. Parity is then apportioned
+#'   vaginal/cesarean by that fraction, which assumes cesarean risk is independent
+#'   of birth order; it is not (repeat cesarean is the dominant indication), so
+#'   vaginal deliveries are understated for high-parity cohorts. The interpolators
+#'   clamp outside the anchor range (`rule = 2`) rather than extrapolating.
 #' @param cohorts Integer birth cohorts.
 #' @return Data frame: `birth_cohort`, `mean_total_parity`,
 #'   `cohort_cesarean_fraction`, `mean_vaginal_deliveries`,
 #'   `mean_cesarean_deliveries`.
+#' @family obstetric exposure
 #' @examples
 #' cohort_vaginal_exposure(c(1940, 1970))
 #' @export

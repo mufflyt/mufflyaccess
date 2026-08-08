@@ -44,3 +44,11 @@ calculate_replacement_gap(
   data.frame(subspecialty = c("FPMRS", "FPMRS", "GO"), graduates = c(10, 12, 4))
 )$overall$replacement_ratio
 }
+\seealso{
+Other workforce statistics:
+\code{\link[=calculate_proportion_ci]{calculate_proportion_ci()}},
+\code{\link[=calculate_rural_metro_comparison]{calculate_rural_metro_comparison()}},
+\code{\link[=calculate_state_vulnerability]{calculate_state_vulnerability()}},
+\code{\link[=calculate_two_prop_test]{calculate_two_prop_test()}}
+}
+\concept{workforce statistics}
