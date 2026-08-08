@@ -48,6 +48,7 @@
 #'   `method`, `note`.
 #' @examples
 #' calculate_proportion_ci(12, 40)
+#' @family workforce statistics
 #' @export
 calculate_proportion_ci <- function(x, n, conf_level = 0.95) {
   if (isTRUE(n == 0) || is.na(n)) {
@@ -86,6 +87,7 @@ calculate_proportion_ci <- function(x, n, conf_level = 0.95) {
 #' @examples
 #' calculate_two_prop_test(12, 40, 20, 60)
 #' calculate_two_prop_test(2, 5, 3, 6)$method   # "descriptive_only"
+#' @family workforce statistics
 #' @export
 calculate_two_prop_test <- function(x1, n1, x2, n2, min_sample_size = 30) {
   if (n1 < min_sample_size || n2 < min_sample_size) {
@@ -134,6 +136,7 @@ calculate_two_prop_test <- function(x1, n1, x2, n2, min_sample_size = 30) {
 #' @return List: `rural`, `metro`, `comparison` (rate difference plus the test).
 #' @examples
 #' calculate_rural_metro_comparison(30, 100, 40, 200)$comparison$rate_difference_pct
+#' @family workforce statistics
 #' @export
 calculate_rural_metro_comparison <- function(rural_at_risk, rural_total,
                                              metro_at_risk, metro_total) {
@@ -186,6 +189,7 @@ calculate_rural_metro_comparison <- function(rural_at_risk, rural_total,
 #'   data.frame(subspecialty = c("FPMRS", "GO"), retiring_count = c(50, 30)),
 #'   data.frame(subspecialty = c("FPMRS", "FPMRS", "GO"), graduates = c(10, 12, 4))
 #' )$overall$replacement_ratio
+#' @family workforce statistics
 #' @export
 calculate_replacement_gap <- function(retirees_by_subspec, fellowship_grads,
                                       horizon_years = 5) {
@@ -261,6 +265,16 @@ calculate_replacement_gap <- function(retirees_by_subspec, fellowship_grads,
 #' @param top_n Number of top-vulnerable states to return.
 #' @return Data frame of the `top_n` most vulnerable states plus
 #'   `vulnerability_score`.
+#' @family workforce statistics
+#' @examples
+#' impacts <- data.frame(
+#'   state = c("CA", "TX", "WY"),
+#'   count_active = c(120, 90, 3),
+#'   count_at_risk = c(20, 25, 2),
+#'   pct_loss_if_retire = c(16.7, 27.8, 66.7),
+#'   zero_coverage_if_retire = c(FALSE, FALSE, TRUE)
+#' )
+#' calculate_state_vulnerability(impacts, top_n = 2)
 #' @export
 calculate_state_vulnerability <- function(state_impacts, top_n = 10) {
   stopifnot(is.data.frame(state_impacts))

@@ -49,8 +49,12 @@ lever values: entrant multiplier, retirement-hazard shift, late-career FTE facto
 cliff owns what the levers *do* (the projection engine). cliff then emits its
 projection as a long table keyed on `scenario_id`, and mufflyaccess validates it
 ([`validate_urps_projection()`]) — schema, registered scenarios, the
-`entrants - exits` flow identity, and a tie of the baseline-year starting stock
+`entrants - exits` flow identity, the `0 <= supply_clinical_fte <=
+supply_headcount` capacity bound, and a tie of the baseline-year starting stock
 back to [`urps_count()`] — exactly as it validates the isochrones count artifact.
+The clinical-FTE and demand columns are themselves defined here ([`urps_effective_fte()`],
+[`urps_demand_fte()`], [`urps_gap_fte()`]) — cliff supplies the cohort, mufflyaccess
+owns the weights — so a headcount and its capacity index never disagree on units.
 
 ---
 

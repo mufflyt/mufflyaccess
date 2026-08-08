@@ -33,6 +33,11 @@ series is a \strong{founding bucket}: all entries on or before that year (the
 build-up cannot separate pre-window certifications from that year alone);
 subsequent years are single-year entries.
 }
+\examples{
+# Entry into the certified stock by year and pathway.
+# The first row is the founding bucket (all entries through that year).
+head(urps_entry_counts())
+}
 \seealso{
 \code{\link[=urps_entrants]{urps_entrants()}}, \code{\link[=urps_counts]{urps_counts()}}
 

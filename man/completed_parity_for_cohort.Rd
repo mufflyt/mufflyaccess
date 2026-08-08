@@ -21,3 +21,9 @@ Mean completed parity by birth cohort, interpolated across cited anchors
 \examples{
 completed_parity_for_cohort(c(1940, 1960, 1980))
 }
+\seealso{
+Other obstetric exposure:
+\code{\link[=cesarean_rate_for_year]{cesarean_rate_for_year()}},
+\code{\link[=cohort_vaginal_exposure]{cohort_vaginal_exposure()}}
+}
+\concept{obstetric exposure}

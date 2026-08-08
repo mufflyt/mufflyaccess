@@ -83,6 +83,33 @@ repo doesn't import the package) &nbsp;·&nbsp; **— not referenced**.
 | `safe_rate` | ∘ | — | ✅ |
 | `safe_ratio` | ∘ | — | ✅ |
 
+## URPS workforce-projection contract (producer-driven)
+
+Unlike the access constants above — which flow *out* of `mufflyaccess` into
+`twostep` — the workforce-projection family is a **producer→SSOT** contract: the
+model lives in `cliff`, and `mufflyaccess` owns only the vocabulary and the
+validators. `cliff`'s `scripts/urps_projection/build_urps_projection.R` runs the
+workforce engine and calls back into these exports to key its output on the
+shared scenario enum and to fail-loud validate the long table before it is
+committed. So `cliff`'s relationship here is **consumer of the contract, producer
+of the artifact** — the mirror image of the count contract (`urps_count()` etc.),
+where `isochrones` is the producer.
+
+| Export family | Role | cliff | isochrones | twostep |
+|---|---|:--:|:--:|:--:|
+| Scenario dictionary (`urps_scenarios`, `urps_scenario`, `urps_scenario_ids`, `is_urps_scenario`, `validate_urps_scenarios`, `URPS_SCENARIO_REGISTRY_VERSION`) | Names the projection's scenario column | ✅ | — | — |
+| Projection contract (`urps_projection_schema`, `validate_urps_projection`, `read_urps_projection`, `URPS_PROJECTION_CONTRACT_VERSION`) | Validates cliff's emitted long table | ✅ | — | — |
+| Clinical-FTE supply (`urps_effective_fte`, `urps_fte_weight`, `urps_fte_scale`, `URPS_FTE_PATHWAY_CLINICAL_TIME`, …) | Fills `supply_clinical_fte` | ✅ | — | — |
+| Demand + gap (`urps_demand_fte`, `urps_gap_fte`, `urps_demand_params`, …) | Fills `demand_clinical_fte` / `gap_fte` (NA pre-calibration) | ✅ | — | — |
+| Workforce flows (`urps_retirement_hazard`, `urps_entrants`, `urps_apply_lfp`, …) | Stock-and-flow primitives for the recurrence | ✅ | — | — |
+| Geographic allocation + parameter CI (`urps_allocate_national`, `urps_projection_ci`, …) | State split / bootstrap intervals | ✅ | — | — |
+
+> These rows are a **curated** interpretation, not raw `usage_matrix.sh` output:
+> the projection producer lives in a `scripts/` path the matrix script does not
+> scan, and the consume-direction is inverted (cliff calls the validators rather
+> than re-exposing constants via a shim). Re-confirm against
+> `cliff/scripts/urps_projection/` when the producer moves.
+
 ## Margins of error & PFD prevalence — currently unconsumed
 
 These exports are in the SSOT but not referenced by any of the three repos at

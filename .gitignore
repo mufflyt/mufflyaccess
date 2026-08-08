@@ -7,3 +7,8 @@
 .Rhistory
 .RData
 .Ruserdata
+
+# R build / check artifacts
+*.tar.gz
+*.Rcheck/
+..Rcheck/
