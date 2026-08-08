@@ -1,0 +1,7 @@
+service_type,model_form,outcome_units,intercept,b_age,b_sex_male,b_race_black,b_race_hispanic,b_race_other,b_bmi,b_smoking_current,b_income_low,b_income_mid,b_insurance_medicaid,b_insurance_medicare,b_insurance_uninsured,b_managed_care,b_chronic_count,b_urban,nb_theta,calibration_scalar,data_source,calibration_status
+office_visit,negative_binomial,annual_visit_count,-1.20,0.012,-0.35,-0.08,-0.12,-0.05,0.010,0.06,-0.20,-0.10,-0.15,0.05,-0.40,-0.12,0.18,0.07,1.2,1.05,MEPS_2013_2017_EXAMPLE,example
+outpatient_visit,negative_binomial,annual_visit_count,-2.10,0.015,-0.30,0.02,-0.06,-0.03,0.008,0.09,-0.10,-0.05,0.03,0.10,-0.30,-0.08,0.22,0.02,0.9,0.98,MEPS_2013_2017_EXAMPLE,example
+home_health_visit,negative_binomial,annual_visit_count,-3.50,0.030,-0.20,0.05,-0.02,0.01,0.006,0.12,0.05,0.02,0.20,0.35,-0.15,-0.05,0.40,-0.10,0.5,1.10,MEPS_2013_2017_EXAMPLE,example
+hospitalization_prob,logistic,probability_0_1,-2.80,0.020,0.05,0.10,-0.05,0.00,0.012,0.15,0.10,0.05,0.12,0.20,0.08,-0.06,0.30,-0.04,NA,1.00,MEPS_2013_2017_EXAMPLE,example
+ed_visit_prob,logistic,probability_0_1,-1.90,0.008,0.10,0.18,0.06,0.03,0.009,0.20,0.15,0.08,0.25,0.10,0.30,-0.10,0.22,-0.08,NA,1.02,MEPS_2013_2017_EXAMPLE,example
+hospital_los,poisson,days_per_admission,0.80,0.010,0.06,0.04,-0.03,0.01,0.005,0.07,0.03,0.01,0.06,0.12,0.02,-0.03,0.14,-0.02,NA,1.00,MEPS_2013_2017_EXAMPLE,example
