@@ -102,3 +102,24 @@ test_that("a misconfigured artifact path fails loud (never silently NA)", {
   on.exit(options(old), add = TRUE)
   expect_error(urps_demand_params(), "existing file path")
 })
+
+# ---- the bundled literature_proxy artifact (free, no restricted data) --------
+
+test_that("the literature_proxy artifact validates and activates to sensible demand", {
+  proxy <- system.file("extdata", "urps_demand_params_literature_proxy.csv",
+                       package = "mufflyaccess")
+  skip_if(!nzchar(proxy) || !file.exists(proxy), "literature_proxy artifact not bundled")
+
+  p <- read_urps_demand_params(proxy)
+  expect_identical(attr(p, "calibration_status"), "literature_proxy")
+  expect_invisible(validate_urps_demand_params(p))
+
+  old <- options(mufflyaccess.urps_demand_params_path = proxy); on.exit(options(old), add = TRUE)
+  older <- data.frame(age = 60:79, sex_male = 0, bmi = 29, ins_medicare = 1L, n = 1e5)
+  younger <- transform(older, age = age - 15)
+  d_old <- urps_demand_fte(older,   visits_per_fte = 2500)
+  d_yng <- urps_demand_fte(younger, visits_per_fte = 2500)
+  expect_true(is.finite(d_old) && d_old > 0)
+  expect_gt(d_old, d_yng)                                   # PFD-driven age gradient (Wu-2014)
+  expect_lt(urps_demand_fte(older, 2500, scenario_id = "demand_retail_clinic_shift"), d_old)
+})

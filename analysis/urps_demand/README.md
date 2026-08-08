@@ -100,10 +100,40 @@ fails loud rather than silently serving `NA`. Bump `URPS_DEMAND_VERSION` to
 columns named as the fit's design terms (`age`, `sex_male`, `race_black`, `bmi`,
 …); an absent covariate is taken at its reference level (`0`).
 
-## Interim option
+## Free interim path: the literature_proxy (no restricted data, no money)
 
-If the restricted data is far off, a `calibration_status = "literature_proxy"`
-artifact — betas derived from published visits-per-FTE / utilization rates, each
-sourced and clearly flagged provisional — validates against the same contract and
-unblocks demand/gap numbers with a caveat. The validator already accepts that
-status; only the sourced coefficient table would need to be authored.
+When the restricted data is out of reach, use the bundled
+**`calibration_status = "literature_proxy"`** artifact. It validates against the
+same contract as a real fit and unblocks demand/gap numbers today — clearly
+flagged provisional.
+
+```r
+proxy <- system.file("extdata", "urps_demand_params_literature_proxy.csv",
+                     package = "mufflyaccess")
+options(mufflyaccess.urps_demand_params_path = proxy)
+mufflyaccess::urps_demand_fte(population, visits_per_fte = 2500)   # a real number
+```
+
+Rebuild it (deterministic, free) with
+[`build_literature_proxy.R`](build_literature_proxy.R), which derives its
+coefficients from published priors:
+
+- **Age gradient** `b_age ≈ 0.023/yr` — computed from this package's own Wu-2014
+  PFD prevalence table (`WU2014_PFD_PREVALENCE`: 0.368 at 65–79 → 0.497 at 80+;
+  Wu et al., *Obstet Gynecol* 2014, PMID 24463674). PFD prevalence is the demand
+  driver for urogynecologic care.
+- **Level** = PFD prevalence × a **subspecialist capture fraction** (0.05 —
+  because most PFD is managed by general OB/GYN, not URPS subspecialists) ×
+  visits-per-treated-woman. This capture fraction is the single most uncertain
+  quantity and the main thing a real fit replaces; it is the dial to turn, and at
+  0.05 baseline national demand lands near observed subspecialist supply
+  (~1300 FTE), i.e. a modest baseline gap.
+- **Covariate signs** (Medicare ↑, uninsured ↓, urban ↑, obesity ↑, women's
+  condition) are directional priors from general ambulatory / women's-health
+  utilization — **not** fitted magnitudes.
+
+**Read this as relative, not absolute.** The age structure and scenario
+responses are the reliable part; the absolute level rides on the two provisional
+level constants at the top of `build_literature_proxy.R`. When the real MEPS/NAMCS
+fit lands, swap `calibration_status` to `"calibrated"` and the same wiring serves
+it with no consumer change.
