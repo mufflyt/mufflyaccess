@@ -86,6 +86,12 @@ here for provenance completeness.
 - [ ] **isochrones:** on the next release, correct the manifest `known_limitations`
       note that still calls the base rosters "UNTRACKED with NO committed producer" —
       the inputs are now tracked in cliff.
+- [ ] **cliff:** verify the CT county-FIPS vintage in Module D — the `county_fips`
+      roster join against 2020-vintage ACS. Confirm whether the roster carries the
+      old Connecticut county FIPS (`09001`–`09015`) or the 2022 planning-region FIPS
+      (`09110`–`09190`); a mismatch drops CT silently and would bias the
+      geographic-maldistribution denominator. Next SSOT candidate: if the vintage
+      must be agreed on across repos, the crosswalk belongs here, not in `cliff`.
 - [x] **mufflyaccess:** purge retired-cell (1332 / 1329) framing from the handoff
       material and mark the legacy producer stale (this change).
 - [x] **cliff:** the SSOT-boundary docstring in `R/urps_baseline.R` no longer
