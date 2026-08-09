@@ -11,3 +11,10 @@
 ^handoff$
 ^share$
 ^\.github$
+^data-raw$
+^codemeta\.json$
+^_pkgdown\.yml$
+^CODE_OF_CONDUCT\.md$
+^CITATION\.cff$
+^CITATION\.bib$
+^LICENSE\.md$

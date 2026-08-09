@@ -1,0 +1,17 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: "mufflyaccess: Canonical Access, Census-Denominator, and Geography Constants (SSOT)"
+abstract: >-
+  Single source of truth for the constants shared across the OB/GYN subspecialty geographic-access projects (isochrones, twostep, cliff): the primary drive-time access band, the total-female access denominator category label, the tract "reached" majority-coverage cut, the national contiguous-US ACS female population, the contiguous-US / non-contiguous state code lists, the ACS margin-of-error z multipliers, the 2-level RUCA metro/rural breakpoint, and the Wu-2014 age-specific pelvic-floor-disorder prevalence table (the 65+ access denominator). Each value carries provenance and fail-loud validation so the repositories cannot silently drift. Genuinely repo-specific values stay per-repository by design -- e.g. the cliff workforce-cliff supply/demand line uses a full-age Nygaard-2008 population-projection curve (a different cohort/source) that is intentionally NOT included here.
+type: software
+version: 0.10.0
+date-released: 2026-08-09
+license: MIT
+repository-code: "https://github.com/mufflyt/mufflyaccess"
+url: "https://github.com/mufflyt/mufflyaccess"
+authors:
+  - family-names: Muffly
+    given-names: Tyler
+    orcid: "https://orcid.org/0000-0002-2044-1693"
+    email: tyler.muffly@dhha.org
+    affiliation: "Department of Obstetrics and Gynecology, Denver Health"
