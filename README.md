@@ -147,7 +147,13 @@ safe_rate(events = subspecialists, exposure = female_pop, multiplier = 1e5)
 
 ## Reference
 
-All 106 exported objects, grouped by domain.
+All 110 exported objects, grouped by domain.
+
+> Every value in the tables below is asserted against the installed package by
+> `data-raw/check_readme_constants.R`. If this README and the package ever
+> disagree, that script exits non-zero and names the constant. Documentation
+> that cannot be checked is documentation that drifts — this count said 106
+> until the check was written.
 
 ### Access bands & thresholds
 
@@ -438,3 +444,30 @@ Which repo consumes which export — the SSOT contract map — is documented in
 ## License
 
 MIT © 2026 Tyler Muffly. See [LICENSE](LICENSE).
+
+---
+
+## How to cite
+
+```r
+citation("mufflyaccess")
+```
+
+`CITATION.cff` and `CITATION.bib` carry the same entry for GitHub and reference
+managers. ORCID [0000-0002-2044-1693](https://orcid.org/0000-0002-2044-1693).
+
+## Checking the docs
+
+```sh
+Rscript data-raw/check_readme_constants.R   # README vs installed package
+```
+
+## Related
+
+| Package | Owns |
+|---|---|
+| [`mufflyaccess`](https://github.com/mufflyt/mufflyaccess) | this package — constants and safe arithmetic |
+| [`twostep`](https://github.com/mufflyt/twostep) | E2SFCA accessibility, population-weighted coverage |
+| [`mysterymaps`](https://github.com/mufflyt/mysterymaps) | map construction |
+| [`isochrones`](https://github.com/mufflyt/isochrones) | routing, water masks, the isochrone pipeline |
+| [`cliff`](https://github.com/mufflyt/cliff) | workforce retirement modelling |
