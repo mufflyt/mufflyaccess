@@ -68,13 +68,14 @@ test_that("urps_exit_counts() aggregates to annual observed counts", {
   old <- options(mufflyaccess.urps_departures_path = dep_ex); on.exit(options(old), add = TRUE)
 
   ec <- urps_exit_counts()
-  expect_true(all(c("year", "n_retired", "n_retired_with_evidence",
+  expect_true(all(c("year", "n_departed", "n_retired", "n_retired_with_evidence",
                     "retirement_status", "retirement_definition") %in% names(ec)))
   expect_equal(nrow(ec), 5L)                                   # 2019..2023
-  expect_true(all(ec$n_retired == 2L))                        # 2 departures / year
+  expect_true(all(ec$n_departed == 2L))                       # 2 workforce exits / year
+  expect_identical(ec$n_retired, ec$n_departed)               # alias equals the primary field
   expect_true(all(ec$n_retired_with_evidence == 1L))          # 1 evidenced retirement / year
   # evidenced retirements are a subset of all workforce exits
-  expect_true(all(ec$n_retired_with_evidence <= ec$n_retired))
+  expect_true(all(ec$n_retired_with_evidence <= ec$n_departed))
   expect_true(all(ec$retirement_status == "observed"))
   expect_true(all(ec$retirement_definition == "observed_workforce_exit"))
 })

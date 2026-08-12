@@ -129,14 +129,21 @@ urps_departures <- function(start_year = NULL, end_year = NULL) {
 #' Observed URPS workforce departures by year
 #'
 #' @description Aggregates [urps_departures()] to annual observed departure
-#'   counts -- the `n_retired` the workforce-count series can finally carry as a
-#'   real number instead of `NA`. `retirement_definition = "observed_workforce_exit"`
-#'   records that this counts departures from practice, not only self-declared
-#'   retirements.
+#'   counts -- the real numbers the workforce-count series can finally carry
+#'   instead of `NA`. The primary event is **departure from the practicing
+#'   workforce** (`n_departed`); retirement is only one *observed reason* for it,
+#'   so `n_retired_with_evidence` (the `exit_reason == "retired"` subset) is the
+#'   count you should use when you specifically mean retirement.
+#'   `n_retired` is retained as a **backwards-compatible alias of `n_departed`**
+#'   (equal in value) for downstream contracts that still read that name; new
+#'   code should prefer `n_departed`. `retirement_definition =
+#'   "observed_workforce_exit"` records that this counts departures from practice,
+#'   not only self-declared retirements.
 #' @param start_year,end_year Optional inclusive `exit_year` bounds.
-#' @return A `data.frame`: `year`, `n_retired`, `n_retired_with_evidence`
-#'   (the `exit_reason == "retired"` subset), `retirement_status = "observed"`,
-#'   `retirement_definition`.
+#' @return A `data.frame`: `year`, `n_departed` (all workforce exits),
+#'   `n_retired` (backwards-compatible alias of `n_departed`),
+#'   `n_retired_with_evidence` (the `exit_reason == "retired"` subset),
+#'   `retirement_status = "observed"`, `retirement_definition`.
 #' @seealso [urps_departures()], [urps_exit_hazard_by_age_year()]
 #' @family URPS exit panel
 #' @examples
@@ -149,9 +156,11 @@ urps_departures <- function(start_year = NULL, end_year = NULL) {
 urps_exit_counts <- function(start_year = NULL, end_year = NULL) {
   d <- urps_departures(start_year = start_year, end_year = end_year)
   yrs <- sort(unique(d$exit_year))
+  n_departed <- as.integer(tapply(d$exit_year, d$exit_year, length)[as.character(yrs)])
   data.frame(
     year                     = yrs,
-    n_retired                = as.integer(tapply(d$exit_year, d$exit_year, length)[as.character(yrs)]),
+    n_departed               = n_departed,           # primary event: workforce exit
+    n_retired                = n_departed,            # backwards-compatible alias
     n_retired_with_evidence  = as.integer(vapply(yrs, function(y)
                                  sum(d$exit_year == y & d$retirement_observed %in% TRUE), integer(1))),
     retirement_status        = "observed",
