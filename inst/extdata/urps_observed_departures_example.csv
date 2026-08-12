@@ -1,0 +1,11 @@
+provider_id,exit_month,exit_reason,retirement_observed,age_at_exit
+1000000001,2019-07-01,workforce_exit,FALSE,58
+1000000002,2019-11-01,retired,TRUE,67
+1000000003,2020-03-01,workforce_exit,FALSE,49
+1000000004,2020-09-01,retired,TRUE,71
+1000000005,2021-02-01,workforce_exit,FALSE,63
+1000000006,2021-08-01,retired,TRUE,69
+1000000007,2022-01-01,workforce_exit,FALSE,55
+1000000008,2022-06-01,retired,TRUE,66
+1000000009,2023-04-01,workforce_exit,FALSE,60
+1000000010,2023-10-01,retired,TRUE,73
