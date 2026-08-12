@@ -127,13 +127,54 @@ Then `urps_retirement_status()` returns `"observed"`,
 `urps_require_retirement_ascertained()` stops stopping, and `n_retired` carries
 actual numbers across the count/projection contracts instead of `NA`.
 
-## cliff follow-up (not in mufflyaccess)
+## Populating it from isochrones (the real source)
 
-cliff should **not** replace its Weibull retirement curve with these historical
-counts — that would trade a smooth process for noisy point estimates. It should
-estimate the departure **process** (with uncertainty) from the observed hazards:
-`wc_project()` gains `retirement_source = c("observed_hazard", "legacy_modeled")`,
-where `"observed_hazard"` calibrates the forward simulation to
-`mufflyaccess::urps_exit_hazard_by_age_year()` and `"legacy_modeled"` keeps the
-frozen 2016–2021 curve. mufflyaccess serves the observed *past*; cliff still
-simulates the *future*, now anchored to it.
+The observed evidence already exists upstream. **isochrones** carries a
+multi-source retirement consensus (`credentials.retirement_consensus`) and a
+per-provider-per-year active panel (`credentials.physicians_active_by_year`,
+2013–2024). Its
+[`scripts/urps_exit_hazard/build_urps_exit_hazard.R`](https://github.com/mufflyt/isochrones/pull/532)
+reshapes those — restricted to the FPMRS/URPS cohort — into the two CSVs this
+package serves, in the exact schemas above (`urps_exit_hazard_by_age_year.csv`,
+`urps_observed_departures.csv`). isochrones **owns** the retirement derivation;
+`build_exit_panel.R` here is the general provider-month builder, but when the
+facts come from isochrones you skip straight to the freeze step.
+
+[`freeze_from_isochrones.R`](freeze_from_isochrones.R) is that step — the ingest
+gate. It **validates** the isochrones output by round-tripping it through this
+package's own readers (`urps_exit_hazard_by_age_year()`, `urps_departures()`,
+`urps_exit_counts()` — which enforce the serving contracts and fail loud on
+anything malformed), **freezes** the validated copies, and only on an explicit
+`URPS_CONFIRM_OBSERVED=1` **flips the served manifest** to
+`retirement_ascertainment = "observed"`. It **refuses** to mark the bundled
+synthetic example artifacts as observed, so the flip can never happen on
+stand-in data.
+
+```sh
+# after isochrones' build has produced the two CSVs on the DuckDB host:
+URPS_EXIT_HAZARD_CSV=/path/to/urps_exit_hazard_by_age_year.csv \
+URPS_DEPARTURES_CSV=/path/to/urps_observed_departures.csv \
+Rscript analysis/urps_exit_panel/freeze_from_isochrones.R          # validate + freeze (dry run)
+
+# once the isochrones back-test clears the bar, flip the manifest for real:
+MUFFLYACCESS_URPS_ARTIFACT_DIR=/path/to/served/artifact \
+URPS_CONFIRM_OBSERVED=1 \
+URPS_EXIT_HAZARD_CSV=... URPS_DEPARTURES_CSV=... \
+Rscript analysis/urps_exit_panel/freeze_from_isochrones.R
+```
+
+The gate that authorizes that flip is isochrones'
+`backtest_retirement_source.R`: promote `observed_hazard` only when it beats the
+frozen curve on **both** RMSE and 95%-interval coverage on held-out years.
+
+## cliff follow-up (not in mufflyaccess) — **implemented**
+
+cliff does **not** replace its Weibull retirement curve with these historical
+counts — that would trade a smooth process for noisy point estimates. It
+estimates the departure **process** (with uncertainty) from the observed
+hazards. This seam is merged: `CLIFF_RETIREMENT_SOURCE` selects
+`"observed_hazard"` (calibrated to `mufflyaccess::urps_exit_hazard_by_age_year()`,
+drawn per Monte Carlo iteration) or `"legacy_modeled"` (the frozen 2016–2021
+curve, still the default). mufflyaccess serves the observed *past*; cliff still
+simulates the *future*, now anchored to it — pending the back-test that gates
+promoting `observed_hazard` to the default.
