@@ -1,0 +1,9 @@
+age,year,n_at_risk,n_exits,exit_hazard,hazard_source
+55,2021,120,2,0.016667,observed_provider_month_panel
+60,2021,90,3,0.033333,observed_provider_month_panel
+65,2021,70,4,0.057143,observed_provider_month_panel
+70,2021,40,5,0.125000,observed_provider_month_panel
+55,2022,124,1,0.008065,observed_provider_month_panel
+60,2022,94,2,0.021277,observed_provider_month_panel
+65,2022,73,4,0.054795,observed_provider_month_panel
+70,2022,42,6,0.142857,observed_provider_month_panel
