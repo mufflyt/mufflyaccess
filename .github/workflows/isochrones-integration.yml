@@ -11,9 +11,19 @@ name: isochrones-integration
 # scoped to THIS repo only, so those checkouts 404 ("Repository not found").
 # To run the real drift check, set a repository secret CROSS_REPO_RO_TOKEN to a
 # token (fine-grained PAT or App token) with Contents:Read on those three repos;
-# it is passed to each cross-repo checkout. When the secret is ABSENT the job
-# skips the cross-repo steps and passes (green) with a notice, instead of failing
-# red on an access problem it cannot fix. Nothing here needs write access.
+# it is passed to each cross-repo checkout. Nothing here needs write access.
+#
+# WHEN THE SECRET IS ABSENT the behaviour depends on the event, because a green
+# check that means "we did not look" is worse than no check at all -- this job
+# previously reported success in 6-11 seconds having skipped every substantive
+# step, which is indistinguishable from a real pass on the PR page:
+#
+#   * pull_request -- skip the cross-repo steps and pass with a notice. PRs from
+#     forks cannot read secrets, so failing there would punish contributors for
+#     an access problem they cannot fix.
+#   * push to main, the weekly cron, manual dispatch -- FAIL LOUDLY. These are
+#     exactly the runs whose job is to catch upstream drift, and silently not
+#     running is the failure mode this workflow exists to prevent.
 
 on:
   push:
@@ -44,10 +54,24 @@ jobs:
         run: |
           if [ -n "$CROSS_REPO_TOKEN" ]; then
             echo "has_token=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "has_token=false" >> "$GITHUB_OUTPUT"
-            echo "::notice title=isochrones-integration skipped::CROSS_REPO_RO_TOKEN is not set, so the private mufflyt/isochrones + cliff + twostep checkouts are skipped and this cross-repo drift check does not run. Set the secret (a token with Contents:Read on those repos) to enable it."
+            exit 0
           fi
+
+          echo "has_token=false" >> "$GITHUB_OUTPUT"
+
+          # Fork PRs cannot read secrets: skip green rather than blaming the
+          # contributor for an access problem they cannot fix.
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            echo "::notice title=isochrones-integration skipped::CROSS_REPO_RO_TOKEN is not readable from a pull_request run, so the private mufflyt/isochrones + cliff + twostep checkouts are skipped and this cross-repo drift check did not run."
+            exit 0
+          fi
+
+          # On main / the weekly cron / manual dispatch, not running IS the
+          # failure. Reporting success here would mean the drift check, the
+          # share/acs_sheps staleness gate and the cliff+twostep consumer
+          # contract tests all silently never ran.
+          echo "::error title=cross-repo drift check did NOT run::CROSS_REPO_RO_TOKEN is not set, so the pinned-artifact validation, the share/acs_sheps staleness gate and the cliff + twostep consumer contract tests were all skipped. This job is failing rather than reporting a green check it did not earn. Set the secret to a token with Contents:Read on mufflyt/isochrones, mufflyt/cliff and mufflyt/twostep."
+          exit 1
       - name: Check out mufflyaccess
         if: steps.detect.outputs.has_token == 'true'
         uses: actions/checkout@v4
