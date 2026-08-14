@@ -59,3 +59,51 @@ jobs:
           args: '"--no-manual"'          # --no-manual: no LaTeX on the runner
           error-on: '"warning"'
           upload-snapshots: true
+
+  # man/ and NAMESPACE are generated; nothing was verifying they still match R/.
+  # They had drifted on main -- the maintainer ORCID was missing from the
+  # rendered docs, canon_npi's regex was malformed markup, and the URPS demand
+  # family index omitted three functions -- because DESCRIPTION pinned a
+  # roxygen2 version nobody had installed, so re-documenting looked like churn
+  # and was avoided. Regenerating with the PINNED version makes the pin
+  # meaningful: docs must be reproducible from source, and a stale man/ is a
+  # failure rather than something you notice months later.
+  docs-in-sync:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          use-public-rspm: true
+
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          dependencies: '"all"'
+          extra-packages: any::remotes
+
+      # Read the pin out of DESCRIPTION rather than hardcoding it, so bumping
+      # Config/roxygen2/version is all it takes to move this check with it.
+      # CRAN's current roxygen2 is NOT the pinned one, and regenerating with a
+      # different version rewrites every .Rd -- which would make this job fail
+      # on formatting noise instead of real drift.
+      - name: Install the roxygen2 version DESCRIPTION pins
+        run: |
+          Rscript -e '
+            pin <- read.dcf("DESCRIPTION")[1, "Config/roxygen2/version"]
+            if (is.na(pin) || !nzchar(pin))
+              stop("DESCRIPTION has no Config/roxygen2/version to pin to", call. = FALSE)
+            cat("DESCRIPTION pins roxygen2", pin, "\n")
+            remotes::install_version("roxygen2", version = pin, upgrade = "never")
+            stopifnot(identical(as.character(packageVersion("roxygen2")), pin))
+          '
+
+      - name: Re-document and fail on drift
+        run: |
+          Rscript -e 'roxygen2::roxygenise(".")'
+          if ! git diff --exit-code -- man NAMESPACE DESCRIPTION; then
+            echo "::error title=man/ is out of sync with R/::Generated documentation does not match the roxygen comments in R/ (diff above). Run roxygen2::roxygenise() with the version DESCRIPTION pins and commit the result."
+            exit 1
+          fi
