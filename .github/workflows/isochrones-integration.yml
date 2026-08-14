@@ -326,6 +326,16 @@ jobs:
             # installed and verified above.
             pkg <- "${{ matrix.repo }}"
             library(pkg, character.only = TRUE)
+            # Some consumer tests call UNEXPORTED helpers by bare name --
+            # cliff test-workforce-baseline.R calls load_workforce_baseline(),
+            # which is not in its NAMESPACE. load_all() would expose those, but
+            # that is exactly what puts topenv on the package namespace and
+            # breaks data.table. Attaching the namespace gives the same
+            # visibility with topenv left at globalenv, so both hold at once.
+            # (This filter is broader than cliff own contract job, which skips
+            # these files; the extra coverage is worth keeping.)
+            attach(asNamespace(pkg), name = paste0(pkg, ":internals"),
+                   warn.conflicts = FALSE)
             cat(pkg, "attached from", dirname(system.file(package = pkg)), "\n")
             testthat::test_dir("tests/testthat",
               filter = "urps|baseline|unqualified|geography|engine|mufflyaccess", stop_on_failure = TRUE)
