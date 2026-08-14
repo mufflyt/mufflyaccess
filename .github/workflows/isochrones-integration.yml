@@ -308,9 +308,24 @@ jobs:
           RENV_PATHS_ROOT: ${{ github.workspace }}/.renv-cache
         run: Rscript -e 'renv::install(".", prompt = FALSE)'
 
+      # install.packages(repos = NULL) rather than renv::install(): given a local
+      # directory renv still resolves it as a git remote and calls the GitHub
+      # API for its DESCRIPTION, which fails on an unauthenticated/rate-limited
+      # runner ("error downloading .../contents/DESCRIPTION [error code 22]").
+      # Nothing here needs the network -- the package is on disk beside us.
       - name: Install this checkout of mufflyaccess into the renv library
         working-directory: ${{ matrix.repo }}
-        run: Rscript -e 'renv::install("../mufflyaccess", rebuild = TRUE)'
+        env:
+          GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          Rscript -e '
+            lib <- renv::paths$library()
+            dir.create(lib, recursive = TRUE, showWarnings = FALSE)
+            cat("installing into", lib, "\n")
+            install.packages("../mufflyaccess", repos = NULL, type = "source", lib = lib)
+            if (!nzchar(find.package("mufflyaccess", lib.loc = lib, quiet = TRUE)))
+              stop("mufflyaccess did not land in the renv library", call. = FALSE)
+          '
 
       # Fail loudly rather than test the wrong package. Comparing against the
       # lockfile's own pin is exact: if what R loads still carries that SHA, the
