@@ -24,7 +24,7 @@ times, or otherwise treats a coordinate as a real practice location.
 \details{
 Two independent signals are checked, either of which is disqualifying:
 \itemize{
-\item a logical \code{usable_for_travel_time} column that is \code{FALSE};
+\item a logical \code{usable_for_travel_time} column that is \code{FALSE}, or \code{NA};
 \item a \code{coord_source} value containing "centroid" (city, county or ZIP
 centroid geocodes).
 }
@@ -32,6 +32,25 @@ A data frame carrying neither column passes, so this is safe to call on
 inputs that predate the convention -- it constrains what it can see and does
 not invent a verdict about what it cannot.
 }
+\section{Unknown fitness is not eligible}{
+
+\code{usable_for_travel_time} is a three-state contract, not a boolean:
+\itemize{
+\item \code{TRUE} -- eligible.
+\item \code{FALSE} -- refused: the coordinate is known to be unfit.
+\item \code{NA} -- refused, with a \emph{distinct} message: fitness was never
+established.
+}
+\code{NA} is refused because "eligible unless proven otherwise" is the wrong
+default for a guard protecting travel-time inference -- an unverified
+coordinate that silently passes is the failure this function exists to
+prevent. It is refused \emph{separately} from \code{FALSE} because "we never checked
+this row" and "this row is known bad" are different facts, and a caller
+reporting an exclusion needs to say which. Do not coerce \code{NA} to \code{FALSE}
+upstream to satisfy this: that discards the provenance of never having
+checked.
+}
+
 \examples{
 \dontrun{
   generate_isochrones <- function(points) {
