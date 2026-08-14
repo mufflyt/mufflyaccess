@@ -100,6 +100,48 @@ jobs:
       - name: Point at the released artifact
         if: steps.detect.outputs.has_token == 'true'
         run: echo "MUFFLYACCESS_URPS_ARTIFACT_DIR=$GITHUB_WORKSPACE/isochrones/artifacts/workforce" >> "$GITHUB_ENV"
+      # The in-repo fixture must be byte-identical to what isochrones actually
+      # released at the pinned commit. This is not redundant with the validation
+      # below, and the token-free share-drift job cannot cover it:
+      # build_share_package.R generates the collaborator-facing package from the
+      # FIXTURE, so if the fixture ever diverges from the released artifact, the
+      # share package is derived from data that was never released -- and every
+      # other check would still pass, because each is internally consistent.
+      # This is the only place the two are compared.
+      - name: Fixture must match the pinned upstream artifact
+        if: steps.detect.outputs.has_token == 'true'
+        run: |
+          Rscript -e '
+            fixture <- "tests/testthat/fixtures/isochrones-v3.0.0"
+            released <- file.path(Sys.getenv("GITHUB_WORKSPACE"),
+                                  "isochrones", "artifacts", "workforce")
+            files <- sort(basename(Sys.glob(file.path(fixture, "*"))))
+            if (!length(files)) stop("no fixture files found at ", fixture, call. = FALSE)
+
+            problems <- character()
+            for (f in files) {
+              a <- file.path(fixture, f)
+              b <- file.path(released, f)
+              if (!file.exists(b)) {
+                problems <- c(problems, sprintf("%s: in the fixture but NOT in the released artifact", f))
+                next
+              }
+              if (!identical(unname(tools::md5sum(a)), unname(tools::md5sum(b))))
+                problems <- c(problems, sprintf("%s: fixture differs from the released artifact", f))
+            }
+
+            if (length(problems)) {
+              cat("::error title=fixture has drifted from the released artifact::",
+                  paste(problems, collapse = "; "),
+                  ". share/acs_sheps is generated from the FIXTURE, so this means the ",
+                  "collaborator-facing package is derived from data isochrones never ",
+                  "released. Re-copy the artifact from the pinned commit, or move the pin ",
+                  "deliberately and regenerate the share package.\n", sep = "")
+              stop("fixture/artifact mismatch", call. = FALSE)
+            }
+            cat("fixture matches the released artifact (", length(files), " files)\n", sep = "")
+          '
+
       - name: Validate + canonical invariants (strict, fail-closed)
         if: steps.detect.outputs.has_token == 'true'
         run: |

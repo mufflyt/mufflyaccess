@@ -1,5 +1,20 @@
 # mufflyaccess (development)
 
+* **Drift guards for the cross-repo contract.** Three things this package
+  promises were not actually checked anywhere. (1) The exported API surface is
+  now recorded in `tests/testthat/api-surface.txt` and enforced by
+  `test-api-surface.R`: a removed or renamed export fails here rather than
+  surfacing as `could not find function` inside isochrones, cliff or twostep
+  after they next move their pin, and a new export has to be recorded so
+  widening a shared contract is visible in review. (2) The in-repo fixture is
+  compared byte-for-byte against the artifact isochrones actually released at
+  the pinned commit -- `build_share_package.R` generates the
+  collaborator-facing package from the *fixture*, so undetected fixture drift
+  would publish figures derived from data that was never released, with every
+  other check still passing. (3) `share/acs_sheps` regeneration and `man/`
+  re-documentation are now gated in CI, the two drifts corrected in this
+  release.
+
 * **ACS/Sheps share package: retirement schema + semantics corrected.** Two
   distinct collaborator-facing changes to `share/acs_sheps/out/`, both in
   `urps_national_series_v3.0.0.csv`:
