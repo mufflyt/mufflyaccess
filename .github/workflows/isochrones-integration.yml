@@ -182,7 +182,12 @@ jobs:
       # about that consumer, and cancelling the other just hides a second one.
       fail-fast: false
       matrix:
-        repo: [cliff, twostep]
+        include:
+          # renv_exclude: packages to skip during restore. See the restore step.
+          - repo: cliff
+            renv_exclude: "GenSA,eulerr"
+          - repo: twostep
+            renv_exclude: ""
     steps:
       - name: Check out mufflyaccess
         uses: actions/checkout@v4
@@ -216,9 +221,44 @@ jobs:
             libharfbuzz-dev libfribidi-dev libfreetype6-dev libtiff-dev \
             libjpeg-dev libcairo2-dev
 
-      - uses: r-lib/actions/setup-renv@v2
+      # Restored by hand rather than with setup-renv@v2, because that action
+      # always restores the WHOLE lockfile and offers no way to skip a package.
+      # renv::restore() installs everything recorded, so a dependency the
+      # contract tests never touch can still block the job: cliff pins a GenSA
+      # that no longer compiles on R >= 4.5 (Engine.cpp uses SET_TYPEOF, removed
+      # from the API), and that takes eulerr down with it.
+      #
+      # Excluding the pair costs this job nothing. In cliff, eulerr is
+      # Suggests-only, appears nowhere in R/ or tests/, and is used solely by
+      # scripts/create_urps_taxonomy_euler.R -- which pkgload::load_all() never
+      # sources, since it reads R/ only. None of the 17 tests matching the
+      # contract filter reference it, and both packages are leaves in the
+      # lockfile, so nothing else needs them. Excluding here rather than editing
+      # cliff's lockfile keeps that lockfile honest about what its figure script
+      # requires. See mufflyt/cliff#27 for the underlying incompatibility.
+      - name: Cache the renv library
+        uses: actions/cache@v4
         with:
-          working-directory: ${{ matrix.repo }}
+          path: ${{ github.workspace }}/.renv-cache
+          key: renv-${{ matrix.repo }}-${{ runner.os }}-${{ hashFiles(format('{0}/renv.lock', matrix.repo)) }}
+          restore-keys: renv-${{ matrix.repo }}-${{ runner.os }}-
+
+      - name: Restore the consumer's renv library
+        working-directory: ${{ matrix.repo }}
+        env:
+          RENV_PATHS_ROOT: ${{ github.workspace }}/.renv-cache
+          RENV_EXCLUDE: ${{ matrix.renv_exclude }}
+        run: |
+          Rscript -e '
+            excl <- trimws(strsplit(Sys.getenv("RENV_EXCLUDE"), ",")[[1]])
+            excl <- excl[nzchar(excl)]
+            if (length(excl)) {
+              cat("excluding from restore:", paste(excl, collapse = ", "), "\n")
+              renv::restore(exclude = excl, prompt = FALSE)
+            } else {
+              renv::restore(prompt = FALSE)
+            }
+          '
 
       # renv.lock pins mufflyaccess to an OLD commit -- cliff and twostep pin
       # DIFFERENT SHAs, both labelled 0.10.0, tens of commits behind main. The
