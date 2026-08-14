@@ -153,21 +153,42 @@ jobs:
           token: ${{ secrets.CROSS_REPO_RO_TOKEN }}
       - uses: r-lib/actions/setup-r@v2
         with: { use-public-rspm: true }
-      # mufflyaccess's own Imports (digest, jsonlite, stringr, ...) have to exist
-      # before R CMD INSTALL can build it. The consumer's setup-r-dependencies
-      # step below resolves the CONSUMER's DESCRIPTION, not this package's, so it
-      # cannot supply them -- without this step the install fails with
-      # "dependencies are not available".
-      - uses: r-lib/actions/setup-r-dependencies@v2
-        with:
-          working-directory: mufflyaccess
-          dependencies: '"hard"'        # Depends + Imports; Suggests aren't needed to INSTALL
-      - name: Install this exact mufflyaccess into the consumer
-        run: R CMD INSTALL --with-keep.source mufflyaccess
-      - uses: r-lib/actions/setup-r-dependencies@v2
+      # cliff and twostep are renv projects (.Rprofile + renv.lock + renv/).
+      # renv activates a project library that shadows the site library, so the
+      # usual setup-r-dependencies pass cannot be used here -- it fails with
+      # "there is no package called 'pak'". Restore each consumer's own library
+      # instead, so its dependencies are the ones it actually ships with.
+      - uses: r-lib/actions/setup-renv@v2
         with:
           working-directory: ${{ matrix.repo }}
-          extra-packages: any::testthat
+
+      # renv.lock pins mufflyaccess to an OLD commit -- cliff and twostep pin
+      # DIFFERENT SHAs, both labelled 0.10.0, tens of commits behind main. The
+      # restore above therefore installs that pinned build into the project
+      # library, where it would shadow the version under test and quietly turn
+      # this job into a check of stale code. Overwrite it with THIS checkout.
+      - name: Install this checkout of mufflyaccess into the renv library
+        working-directory: ${{ matrix.repo }}
+        run: Rscript -e 'renv::install("../mufflyaccess", rebuild = TRUE)'
+
+      # Fail loudly rather than test the wrong package. Comparing against the
+      # lockfile's own pin is exact: if what R loads still carries that SHA, the
+      # overwrite above did not take and every result below would be a false pass.
+      - name: Verify the renv library holds THIS checkout, not the pinned build
+        working-directory: ${{ matrix.repo }}
+        run: |
+          Rscript -e '
+            lock   <- jsonlite::fromJSON("renv.lock")
+            pinned <- lock$Packages$mufflyaccess$RemoteSha
+            inst   <- packageDescription("mufflyaccess")$RemoteSha
+            cat("library:", dirname(system.file(package = "mufflyaccess")), "\n")
+            cat("version:", as.character(packageVersion("mufflyaccess")), "\n")
+            cat("lockfile pin:", if (is.null(pinned)) "<none>" else substr(pinned, 1, 9), "\n")
+            cat("loaded build:", if (is.null(inst)) "<local checkout>" else substr(inst, 1, 9), "\n")
+            if (!is.null(pinned) && identical(inst, pinned))
+              stop("the renv library still holds the lockfile-pinned build; the consumer contract tests would validate stale mufflyaccess", call. = FALSE)
+            cat("OK: contract tests will load this checkout\n")
+          '
       - name: Run the consumer's URPS contract + guard tests
         working-directory: ${{ matrix.repo }}
         run: |
