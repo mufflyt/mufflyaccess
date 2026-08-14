@@ -1,4 +1,4 @@
-# mufflyaccess (development)
+# mufflyaccess 0.11.0
 
 * **Drift guards for the cross-repo contract.** Three things this package
   promises were not actually checked anywhere. (1) The exported API surface is
