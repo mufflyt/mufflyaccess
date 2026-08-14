@@ -19,7 +19,7 @@ names in \code{\link[=urps_demand_params]{urps_demand_params()}} (age, sex, race
 \code{n} (population count per row).}
 
 \item{visits_per_fte}{Annual URPS visits per full-time-equivalent provider
-(visits → FTE conversion denominator). No default; must be supplied.}
+(visits -> FTE conversion denominator). No default; must be supplied.}
 
 \item{obesity_prev_shift}{See \code{\link[=urps_demand_levers]{urps_demand_levers()}}. Default \code{0}.}
 
@@ -43,8 +43,8 @@ named as the fit's design terms (\code{age}, \code{sex_male}, \code{race_black},
 Predicted ambulatory-visit demand for a patient population,
 converted to clinical FTE. \strong{Returns \code{NA_real_} while the demand model is
 uncalibrated} (the \code{urps_demand_params()} NA skeleton). Once a fitted
-artifact is active — \code{options(mufflyaccess.urps_demand_params_path = ...)} or
-\code{MUFFLYACCESS_URPS_DEMAND_PARAMS}, see \code{\link[=read_urps_demand_params]{read_urps_demand_params()}} — it
+artifact is active -- \code{options(mufflyaccess.urps_demand_params_path = ...)} or
+\code{MUFFLYACCESS_URPS_DEMAND_PARAMS}, see \code{\link[=read_urps_demand_params]{read_urps_demand_params()}} -- it
 evaluates the visit-count regressions per person, sums over the population,
 applies the scenario demand levers, and divides by \code{visits_per_fte}.
 }
@@ -54,7 +54,7 @@ The pipeline, evaluated once \code{urps_demand_params()} is calibrated
 \enumerate{
 \item For each service type, evaluate the regression at each person's covariate
 vector to get predicted visit rate.
-\item Multiply by person count → expected visits.
+\item Multiply by person count -> expected visits.
 \item Apply demand scenario levers:
 \itemize{
 \item \code{obesity_prev_shift}: adjusts PFD-relevant covariate distribution.
@@ -63,8 +63,8 @@ vector to get predicted visit rate.
 \item \code{retail_clinic_share}: reduces physician demand by the share of visits
 that shift to retail clinics (\code{visits_physician = visits_total * (1 - share)}).
 }
-\item Multiply by specialty × setting calibration scalar (\code{urps_demand_scalars()}).
-\item Divide by \code{visits_per_fte} → \code{demand_clinical_fte}.
+\item Multiply by specialty x setting calibration scalar (\code{urps_demand_scalars()}).
+\item Divide by \code{visits_per_fte} -> \code{demand_clinical_fte}.
 }
 
 Use \code{\link[=urps_demand_levers]{urps_demand_levers()}} to retrieve a scenario's lever bundle from the

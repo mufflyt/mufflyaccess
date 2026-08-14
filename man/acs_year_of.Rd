@@ -10,7 +10,7 @@ acs_year_of(year)
 \item{year}{integer-coercible study year(s).}
 }
 \value{
-integer ACS data end-year(s), clamped to \link{2013, 2022}.
+integer ACS data end-year(s), clamped to \verb{[2013, 2022]}.
 }
 \description{
 ACS 5-year data year for a study year (clamped to the 2013-2022 window).

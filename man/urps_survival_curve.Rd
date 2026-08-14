@@ -23,7 +23,7 @@ urps_survival_curve(
 }
 \value{
 A \code{data.frame} with columns \code{age} (integer), \code{p_still_active}
-(numeric, in (0, 1)), and \code{annual_hazard} (numeric, in \link{0, 1}). One row
+(numeric, in (0, 1)), and \code{annual_hazard} (numeric, in \verb{[0, 1]}). One row
 per element of \code{age_range}.
 }
 \description{

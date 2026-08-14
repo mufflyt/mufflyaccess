@@ -259,7 +259,7 @@ urps_retirement_hazard <- function(age, sex, pathway, retirement_shift_years = 0
 #'   `0L`). Pass `urps_scenario(id)$retirement_shift_years`.
 #' @param age_range Integer or numeric vector of ages (default `35:80`).
 #' @return A `data.frame` with columns `age` (integer), `p_still_active`
-#'   (numeric, in (0, 1)), and `annual_hazard` (numeric, in [0, 1]). One row
+#'   (numeric, in (0, 1)), and `annual_hazard` (numeric, in `[0, 1]`). One row
 #'   per element of `age_range`.
 #' @seealso [urps_p_still_active()], [urps_retirement_hazard()],
 #'   [urps_retirement_params()]

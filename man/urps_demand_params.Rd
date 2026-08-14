@@ -25,7 +25,7 @@ types following the IHS Markit HWMM specification:\tabular{lll}{
 }
 
 
-\strong{Status:} \code{calibration_status = "not_calibrated"} — all beta columns are
+\strong{Status:} \code{calibration_status = "not_calibrated"} -- all beta columns are
 \code{NA_real_}. The structure exists so cliff can wire \code{\link[=urps_demand_clinical_fte]{urps_demand_clinical_fte()}}
 into the projection contract today. Coefficients populate when MEPS 2013-2017
 or NAMCS restricted-use data are fitted for URPS / FPMRS services.

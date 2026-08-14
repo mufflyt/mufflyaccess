@@ -100,7 +100,7 @@
   )
 }
 
-# Load-time validation — structural guarantees that survive a future
+# Load-time validation -- structural guarantees that survive a future
 # accidental edit, even before any betas are filled in.
 local({
   d <- .urps_demand_params_df()
@@ -145,7 +145,7 @@ local({
 
 #' Version of the URPS demand prediction equation skeleton
 #'
-#' @description Pre-calibration version `"0.1.0"` — structure matches the HWMM
+#' @description Pre-calibration version `"0.1.0"` -- structure matches the HWMM
 #'   specification but all regression coefficients are `NA`. Bump to `"1.0.0"` on
 #'   first MEPS/NAMCS fit.
 #' @format Length-1 character string.
@@ -180,7 +180,7 @@ URPS_DEMAND_VERSION <- .URPS_DEMAND_VERSION
 #'   | ED visit probability | Logistic | Probability |
 #'   | Hospital length of stay | Poisson | Days/admission |
 #'
-#'   **Status:** `calibration_status = "not_calibrated"` — all beta columns are
+#'   **Status:** `calibration_status = "not_calibrated"` -- all beta columns are
 #'   `NA_real_`. The structure exists so cliff can wire [urps_demand_clinical_fte()]
 #'   into the projection contract today. Coefficients populate when MEPS 2013-2017
 #'   or NAMCS restricted-use data are fitted for URPS / FPMRS services.
@@ -208,8 +208,8 @@ urps_demand_params <- function() {
   d <- .urps_demand_params_df()
   attr(d, "source") <- paste(
     "IHS Markit HWMM v5.19.20 (model structure, covariate list, Exhibits 14-16);",
-    "MEPS 2013-2017 (~170k persons, AHRQ Data Center) — fitting dataset;",
-    "NAMCS/NHAMCS/NIS — calibration totals for specialty x setting scalars.",
+    "MEPS 2013-2017 (~170k persons, AHRQ Data Center) -- fitting dataset;",
+    "NAMCS/NHAMCS/NIS -- calibration totals for specialty x setting scalars.",
     "URPS-specific fit pending; see urps_demand_scalars() for scalar skeleton.")
   attr(d, "formula_note") <- paste(
     "NB: E[visits] = exp(intercept + b_age*age + ... + b_urban*urban);",
@@ -274,8 +274,8 @@ urps_demand_levers <- function(scenario_id) {
 #' @description Predicted ambulatory-visit demand for a patient population,
 #'   converted to clinical FTE. **Returns `NA_real_` while the demand model is
 #'   uncalibrated** (the `urps_demand_params()` NA skeleton). Once a fitted
-#'   artifact is active — `options(mufflyaccess.urps_demand_params_path = ...)` or
-#'   `MUFFLYACCESS_URPS_DEMAND_PARAMS`, see [read_urps_demand_params()] — it
+#'   artifact is active -- `options(mufflyaccess.urps_demand_params_path = ...)` or
+#'   `MUFFLYACCESS_URPS_DEMAND_PARAMS`, see [read_urps_demand_params()] -- it
 #'   evaluates the visit-count regressions per person, sums over the population,
 #'   applies the scenario demand levers, and divides by `visits_per_fte`.
 #'
@@ -283,15 +283,15 @@ urps_demand_levers <- function(scenario_id) {
 #'   (office + outpatient visit-count services drive office-based URPS FTE):
 #'   1. For each service type, evaluate the regression at each person's covariate
 #'      vector to get predicted visit rate.
-#'   2. Multiply by person count → expected visits.
+#'   2. Multiply by person count -> expected visits.
 #'   3. Apply demand scenario levers:
 #'      - `obesity_prev_shift`: adjusts PFD-relevant covariate distribution.
 #'      - `insurance_expansion_factor`: scales visits from newly insured persons.
 #'      - `managed_care_factor`: multiplies total specialist visit demand.
 #'      - `retail_clinic_share`: reduces physician demand by the share of visits
 #'        that shift to retail clinics (`visits_physician = visits_total * (1 - share)`).
-#'   4. Multiply by specialty × setting calibration scalar (`urps_demand_scalars()`).
-#'   5. Divide by `visits_per_fte` → `demand_clinical_fte`.
+#'   4. Multiply by specialty x setting calibration scalar (`urps_demand_scalars()`).
+#'   5. Divide by `visits_per_fte` -> `demand_clinical_fte`.
 #'
 #'   Use [urps_demand_levers()] to retrieve a scenario's lever bundle from the
 #'   registry rather than passing raw numeric values.
@@ -300,7 +300,7 @@ urps_demand_levers <- function(scenario_id) {
 #'   names in [urps_demand_params()] (age, sex, race, bmi, etc.) and a column
 #'   `n` (population count per row).
 #' @param visits_per_fte Annual URPS visits per full-time-equivalent provider
-#'   (visits → FTE conversion denominator). No default; must be supplied.
+#'   (visits -> FTE conversion denominator). No default; must be supplied.
 #' @param obesity_prev_shift See [urps_demand_levers()]. Default `0`.
 #' @param insurance_expansion_factor See [urps_demand_levers()]. Default `1`.
 #' @param managed_care_factor Multiplier on total physician demand from HMO/ACO
@@ -384,7 +384,7 @@ urps_demand_clinical_fte <- function(population, visits_per_fte,
 #'
 #' @description The demand-side counterpart to [urps_supply_fte_sex()]. Looks up
 #'   the demand lever bundle for a registered scenario via [urps_demand_levers()],
-#'   then calls [urps_demand_clinical_fte()] — so cliff passes a `scenario_id`
+#'   then calls [urps_demand_clinical_fte()] -- so cliff passes a `scenario_id`
 #'   string rather than four raw lever values:
 #'
 #'   ```r
@@ -393,7 +393,7 @@ urps_demand_clinical_fte <- function(population, visits_per_fte,
 #'                   late_from_age = sc$late_career_fte_onset_age,
 #'                   late_factor   = sc$late_career_fte_factor)
 #'
-#'   # Demand side (new — call this once per projection row):
+#'   # Demand side (new -- call this once per projection row):
 #'   demand_fte <- mufflyaccess::urps_demand_fte(population, visits_per_fte,
 #'                   scenario_id = scenario_id)
 #'
@@ -404,11 +404,11 @@ urps_demand_clinical_fte <- function(population, visits_per_fte,
 #'   Returns `NA_real_` for any scenario while `urps_demand_params()` is the
 #'   uncalibrated skeleton, and a real `demand_clinical_fte` once a fitted
 #'   artifact is active (`calibration_status != "not_calibrated"`; see
-#'   [read_urps_demand_params()]). Cliff can call this unconditionally — the `NA`
+#'   [read_urps_demand_params()]). Cliff can call this unconditionally -- the `NA`
 #'   propagates to `gap_fte` and the contract validator allows `NA` in optional
 #'   columns, and it simply stops being `NA` after activation.
 #'
-#' @param population A `data.frame` — see [urps_demand_clinical_fte()].
+#' @param population A `data.frame` -- see [urps_demand_clinical_fte()].
 #' @param visits_per_fte Annual URPS visits per FTE provider. See
 #'   [urps_demand_clinical_fte()].
 #' @param scenario_id A registered scenario id (default `"baseline"`). The

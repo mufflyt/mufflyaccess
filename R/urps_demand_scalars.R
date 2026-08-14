@@ -1,9 +1,9 @@
 # ==============================================================================
-# URPS specialty × setting calibration scalar skeleton.
+# URPS specialty x setting calibration scalar skeleton.
 #
 # The IHS Markit HWMM (v5.19.20) calibrates regression-predicted visit totals
 # against NAMCS / NHAMCS / NIS national counts using multiplicative scalars,
-# one per specialty × setting combination. The scalar absorbs the gap between
+# one per specialty x setting combination. The scalar absorbs the gap between
 # what the MEPS-fitted regression predicts in aggregate and what the national
 # survey total observes for that specialty and setting.
 #
@@ -15,23 +15,23 @@
 #   when national survey totals for URPS services are available.
 #
 # Settings:
-#   office      — office-based physician visits (NAMCS; most recent: 2023)
-#   outpatient  — hospital outpatient department visits
+#   office      -- office-based physician visits (NAMCS; most recent: 2023)
+#   outpatient  -- hospital outpatient department visits
 #                 *** BLOCKER: NHAMCS-OPD discontinued after 2017 ***
 #                 Planned replacement: HCUP SASD (requires DUA from AHRQ;
 #                 see hcup-us.ahrq.gov/sasdoverview.jsp). Do NOT use NHAMCS-OPD
-#                 for new calibration — no data exists post-2017.
-#   home_health — home health visits (MEPS home health module; most recent: 2023)
-#   inpatient   — hospitalizations (HCUP NIS; most recent confirmed: 2023)
-#   ed          — emergency department visits (NHAMCS-ED; last year: 2022 —
+#                 for new calibration -- no data exists post-2017.
+#   home_health -- home health visits (MEPS home health module; most recent: 2023)
+#   inpatient   -- hospitalizations (HCUP NIS; most recent confirmed: 2023)
+#   ed          -- emergency department visits (NHAMCS-ED; last year: 2022 --
 #                 survey ended after 2022; 2022 data is the final release)
 #
 # Calibration data acquisition path:
 #   NAMCS:     CDC restricted-use, filtered to URPS specialty codes (2023 available)
 #   NHAMCS-ED: CDC restricted-use, ED module only (2022 = final year)
-#   NHAMCS-OPD: DISCONTINUED — use HCUP SASD instead (requires AHRQ DUA)
+#   NHAMCS-OPD: DISCONTINUED -- use HCUP SASD instead (requires AHRQ DUA)
 #   NIS:       AHRQ HCUP, hcup-us.ahrq.gov (2023 available)
-#   SASD:      AHRQ HCUP, hcup-us.ahrq.gov/sasdoverview.jsp (year TBD — check
+#   SASD:      AHRQ HCUP, hcup-us.ahrq.gov/sasdoverview.jsp (year TBD -- check
 #              availability; requires state-level DUA)
 # ==============================================================================
 
@@ -45,12 +45,12 @@
     scalar               = c(1.0,      1.0,          1.0,          1.0,         1.0,
                              1.0),
     calibration_source   = c(
-      "NAMCS_2023",     # office         — 2023 data available at CDC
-      "HCUP_SASD",      # outpatient     — NHAMCS-OPD discontinued after 2017; use SASD (AHRQ DUA required)
-      "MEPS_2023",      # home_health    — 2023 data available via IPUMS
-      "HCUP_NIS_2023",  # inpatient      — NIS 2023 confirmed at hcup-us.ahrq.gov
-      "NHAMCS_ED_2022", # ed             — NHAMCS ended after 2022; 2022 ED data is the final release
-      "NAMCS_2023"      # retail_clinic  — retail health clinic visits (NAMCS supplement)
+      "NAMCS_2023",     # office         -- 2023 data available at CDC
+      "HCUP_SASD",      # outpatient     -- NHAMCS-OPD discontinued after 2017; use SASD (AHRQ DUA required)
+      "MEPS_2023",      # home_health    -- 2023 data available via IPUMS
+      "HCUP_NIS_2023",  # inpatient      -- NIS 2023 confirmed at hcup-us.ahrq.gov
+      "NHAMCS_ED_2022", # ed             -- NHAMCS ended after 2022; 2022 ED data is the final release
+      "NAMCS_2023"      # retail_clinic  -- retail health clinic visits (NAMCS supplement)
     ),
     calibration_status   = "not_calibrated",
     stringsAsFactors     = FALSE
@@ -83,7 +83,7 @@ local({
 
 #' Version of the URPS demand calibration scalar skeleton
 #'
-#' @description Pre-calibration version `"0.1.0"` — all scalars are `1.0`.
+#' @description Pre-calibration version `"0.1.0"` -- all scalars are `1.0`.
 #'   Bump to `"1.0.0"` when NAMCS/NHAMCS/NIS totals are fitted.
 #' @format Length-1 character string.
 #' @seealso [urps_demand_scalars()], [urps_demand_params()]
@@ -93,7 +93,7 @@ local({
 #' @export
 URPS_DEMAND_SCALARS_VERSION <- .URPS_DEMAND_SCALARS_VERSION
 
-#' URPS specialty × setting calibration scalar table (skeleton)
+#' URPS specialty x setting calibration scalar table (skeleton)
 #'
 #' @description Multiplicative scalars aligning MEPS-fitted visit predictions to
 #'   NAMCS/NHAMCS/NIS national survey totals, one per service setting. All
@@ -121,11 +121,11 @@ urps_demand_scalars <- function() {
   d <- .urps_demand_scalars_df()
   attr(d, "source") <- paste(
     "IHS Markit HWMM v5.19.20 (calibration approach, specialty x setting structure);",
-    "NAMCS 2023 — National Ambulatory Medical Care Survey (office/retail visits);",
-    "NHAMCS-ED 2022 — emergency department visits (FINAL year; survey ended after 2022);",
-    "NHAMCS-OPD DISCONTINUED after 2017 — outpatient row uses HCUP SASD as replacement;",
-    "HCUP NIS 2023 — AHRQ National Inpatient Sample (hospitalizations);",
-    "HCUP SASD — State Ambulatory Surgery and Services Databases (outpatient; AHRQ DUA required);",
+    "NAMCS 2023 -- National Ambulatory Medical Care Survey (office/retail visits);",
+    "NHAMCS-ED 2022 -- emergency department visits (FINAL year; survey ended after 2022);",
+    "NHAMCS-OPD DISCONTINUED after 2017 -- outpatient row uses HCUP SASD as replacement;",
+    "HCUP NIS 2023 -- AHRQ National Inpatient Sample (hospitalizations);",
+    "HCUP SASD -- State Ambulatory Surgery and Services Databases (outpatient; AHRQ DUA required);",
     "MEPS 2023 home health module (home health visits).",
     "URPS-specific scalars pending data acquisition and specialty-code extraction.")
   attr(d, "formula_note") <-

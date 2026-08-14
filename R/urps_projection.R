@@ -277,7 +277,7 @@ validate_urps_projection <- function(x, baseline_tie = NULL, tol = 1e-6) {
 #' @examples
 #' urps_gap_fte(supply_clinical_fte = 1200, demand_clinical_fte = 1450) # +250 shortage
 #' urps_gap_fte(supply_clinical_fte = 1400, demand_clinical_fte = 1200) # -200 surplus
-#' urps_gap_fte(supply_clinical_fte = 1200, demand_clinical_fte = NA)   # NA
+#' urps_gap_fte(supply_clinical_fte = 1200, demand_clinical_fte = NA_real_) # NA
 #' @export
 urps_gap_fte <- function(supply_clinical_fte, demand_clinical_fte) {
   if (!is.numeric(supply_clinical_fte) || length(supply_clinical_fte) != 1L)

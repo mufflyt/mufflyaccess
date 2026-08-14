@@ -2,7 +2,7 @@
 % Please edit documentation in R/urps_demand_scalars.R
 \name{urps_demand_scalars}
 \alias{urps_demand_scalars}
-\title{URPS specialty × setting calibration scalar table (skeleton)}
+\title{URPS specialty x setting calibration scalar table (skeleton)}
 \usage{
 urps_demand_scalars()
 }

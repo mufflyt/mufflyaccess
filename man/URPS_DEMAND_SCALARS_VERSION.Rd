@@ -10,7 +10,7 @@ Length-1 character string.
 URPS_DEMAND_SCALARS_VERSION
 }
 \description{
-Pre-calibration version \code{"0.1.0"} — all scalars are \code{1.0}.
+Pre-calibration version \code{"0.1.0"} -- all scalars are \code{1.0}.
 Bump to \code{"1.0.0"} when NAMCS/NHAMCS/NIS totals are fitted.
 }
 \examples{
