@@ -28,13 +28,30 @@ NULL
 #' @details
 #' Two independent signals are checked, either of which is disqualifying:
 #' \itemize{
-#'   \item a logical `usable_for_travel_time` column that is `FALSE`;
+#'   \item a logical `usable_for_travel_time` column that is `FALSE`, or `NA`;
 #'   \item a `coord_source` value containing "centroid" (city, county or ZIP
 #'     centroid geocodes).
 #' }
 #' A data frame carrying neither column passes, so this is safe to call on
 #' inputs that predate the convention -- it constrains what it can see and does
 #' not invent a verdict about what it cannot.
+#'
+#' @section Unknown fitness is not eligible:
+#' `usable_for_travel_time` is a three-state contract, not a boolean:
+#' \itemize{
+#'   \item `TRUE` -- eligible.
+#'   \item `FALSE` -- refused: the coordinate is known to be unfit.
+#'   \item `NA` -- refused, with a *distinct* message: fitness was never
+#'     established.
+#' }
+#' `NA` is refused because "eligible unless proven otherwise" is the wrong
+#' default for a guard protecting travel-time inference -- an unverified
+#' coordinate that silently passes is the failure this function exists to
+#' prevent. It is refused *separately* from `FALSE` because "we never checked
+#' this row" and "this row is known bad" are different facts, and a caller
+#' reporting an exclusion needs to say which. Do not coerce `NA` to `FALSE`
+#' upstream to satisfy this: that discards the provenance of never having
+#' checked.
 #'
 #' @param df `data.frame`/`tibble`/`sf`: rows to check. May carry
 #'   `usable_for_travel_time` (logical) and/or `coord_source` (character).
@@ -61,6 +78,23 @@ assert_travel_time_eligible <- function(df, context = "travel-time analysis") {
          call. = FALSE)
 
   if ("usable_for_travel_time" %in% names(df)) {
+    # NA first, and with its own message. `which(!x)` drops NA, so an unknown
+    # fitness would otherwise mean "eligible unless proven otherwise" -- the
+    # wrong default for a guard whose purpose is to stop unverified coordinates
+    # entering travel-time inference. Unknown is refused, but refused
+    # DISTINCTLY: "we never checked this row" is a different fact from "this row
+    # is known bad", and collapsing them would destroy the provenance that makes
+    # the exclusion reportable.
+    unknown <- which(is.na(df$usable_for_travel_time))
+    if (length(unknown))
+      stop(context, " received ", length(unknown),
+           " row(s) with UNKNOWN geocode fitness (usable_for_travel_time = NA). ",
+           "Unknown is not eligible: treating an unverified coordinate as fit is ",
+           "the silent inclusion this guard exists to prevent. Verify them, or ",
+           "filter them out deliberately and report the exclusion -- do not ",
+           "coerce NA to FALSE upstream, which would hide that they were never ",
+           "checked.", call. = FALSE)
+
     bad <- which(!df$usable_for_travel_time)
     if (length(bad))
       stop(context, " received ", length(bad),

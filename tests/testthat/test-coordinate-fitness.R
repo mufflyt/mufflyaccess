@@ -97,18 +97,61 @@ test_that("zero rows pass", {
     data.frame(coord_source = character(0), usable_for_travel_time = logical(0))))
 })
 
-test_that("NA in usable_for_travel_time currently PASSES (pinned, not endorsed)", {
-  # which(!NA) is integer(0), so a row whose fitness is UNKNOWN is treated as
-  # fit. Pinned here so the behaviour is visible and any change is deliberate.
-  # Whether unknown fitness should instead be loud is a design question: it is
-  # the one path through this guard where a row can go unchecked in silence,
-  # which is the failure mode the guard exists to prevent.
+# ==============================================================================
+# The three-state contract on usable_for_travel_time
+# ==============================================================================
+
+test_that("TRUE is eligible", {
+  df <- fit_rows(3)
+  df$usable_for_travel_time <- TRUE
+  expect_true(assert_travel_time_eligible(df))
+})
+
+test_that("FALSE is refused as a known-bad geocode", {
+  df <- fit_rows(3)
+  df$usable_for_travel_time[2] <- FALSE
+  expect_error(assert_travel_time_eligible(df), "usable_for_travel_time = FALSE")
+  expect_error(assert_travel_time_eligible(df), "1 row\\(s\\)")
+})
+
+test_that("NA is refused as UNKNOWN fitness, distinctly from a known-bad one", {
   df <- fit_rows(3)
   df$usable_for_travel_time[2] <- NA
-  expect_true(assert_travel_time_eligible(df))
+  # refused at all -- "eligible unless proven otherwise" is the wrong default
+  expect_error(assert_travel_time_eligible(df))
+  # and refused with its OWN diagnostic, so a caller reporting an exclusion can
+  # distinguish "never checked" from "checked and unfit"
+  expect_error(assert_travel_time_eligible(df), "UNKNOWN geocode fitness")
+  expect_error(assert_travel_time_eligible(df), "usable_for_travel_time = NA")
+  expect_error(assert_travel_time_eligible(df), "1 row\\(s\\)")
+  # the two states must not be confusable: the NA message must NOT read as the
+  # known-bad one, or the caller cannot tell which exclusion they are reporting
+  msg <- tryCatch(assert_travel_time_eligible(df),
+                  error = function(e) conditionMessage(e))
+  expect_false(grepl("usable_for_travel_time = FALSE", msg, fixed = TRUE))
+})
 
-  # NA in coord_source likewise does not match "centroid" and so passes.
-  df2 <- fit_rows(3)
-  df2$coord_source[2] <- NA_character_
-  expect_true(assert_travel_time_eligible(df2))
+test_that("unknown is reported before known-bad when both are present", {
+  # A caller fixing this should learn about the unverified rows first: they are
+  # the ones whose status is recoverable by checking, rather than by exclusion.
+  df <- fit_rows(4)
+  df$usable_for_travel_time[2] <- NA
+  df$usable_for_travel_time[3] <- FALSE
+  expect_error(assert_travel_time_eligible(df), "UNKNOWN geocode fitness")
+})
+
+test_that("the NA refusal counts every unknown row", {
+  df <- fit_rows(5)
+  df$usable_for_travel_time[c(1, 4, 5)] <- NA
+  expect_error(assert_travel_time_eligible(df), "3 row\\(s\\) with UNKNOWN")
+})
+
+test_that("NA in coord_source still passes (asymmetry, pinned deliberately)", {
+  # coord_source is a provenance label, not a fitness verdict: an absent label
+  # is not a claim that the coordinate is unfit, and the fitness column is the
+  # channel that carries that claim. Pinned so the asymmetry with
+  # usable_for_travel_time is visible and any change is deliberate.
+  df <- fit_rows(3)
+  df$coord_source[2] <- NA_character_
+  expect_true(assert_travel_time_eligible(df))
 })

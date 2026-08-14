@@ -1,6 +1,6 @@
 Package: mufflyaccess
 Title: Canonical Access, Census-Denominator, and Geography Constants (SSOT)
-Version: 0.11.0
+Version: 0.11.1
 Authors@R:
     person("Tyler", "Muffly", email = "tyler.muffly@dhha.org", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0002-2044-1693"))

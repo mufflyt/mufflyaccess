@@ -1,4 +1,25 @@
-# mufflyaccess (development)
+# mufflyaccess 0.11.1
+
+* **BREAKING (guard): unknown geocode fitness is no longer eligible.**
+  `assert_travel_time_eligible()` treated `usable_for_travel_time = NA` as
+  passing, because `which(!x)` drops `NA` -- so the effective contract was
+  "eligible unless proven otherwise", which is the wrong default for a guard
+  protecting travel-time inference. An unverified coordinate that silently
+  passes is the failure the function exists to prevent. The column is now an
+  explicit three-state contract: `TRUE` eligible, `FALSE` refused as known
+  unfit, `NA` refused as *never established*.
+
+  `NA` is refused with its **own** message rather than folded into the `FALSE`
+  one: "we never checked this row" and "this row is known bad" are different
+  facts, and a caller reporting an exclusion has to be able to say which. For
+  the same reason, do **not** coerce `NA` to `FALSE` upstream to satisfy this
+  -- that discards the provenance of never having checked. Unknown rows are
+  reported before known-bad ones, since their status is recoverable by
+  verifying rather than only by exclusion.
+
+  `NA` in `coord_source` still passes, and that asymmetry is deliberate and
+  pinned by a test: `coord_source` is a provenance label, not a fitness
+  verdict, and an absent label is not a claim that a coordinate is unfit.
 
 * **Coverage for the promoted code, taken from where it came from.** Rather
   than writing new tests for functions promoted from isochrones, the suites
