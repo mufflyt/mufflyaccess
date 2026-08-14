@@ -24,9 +24,8 @@ so \code{n_retired_with_evidence} (the \code{exit_reason == "retired"} subset) i
 count you should use when you specifically mean retirement.
 \code{n_retired} is retained as a \strong{backwards-compatible alias of \code{n_departed}}
 (equal in value) for downstream contracts that still read that name; new
-code should prefer \code{n_departed}. \code{retirement_definition = "observed_workforce_exit"}
-records that this counts departures from practice, not only self-declared
-retirements.
+code should prefer \code{n_departed}. \code{retirement_definition = "observed_workforce_exit"} records that this counts departures from practice,
+not only self-declared retirements.
 }
 \examples{
 ex <- system.file("extdata", "urps_observed_departures_example.csv",

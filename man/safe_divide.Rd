@@ -8,7 +8,7 @@ safe_divide(
   numerator,
   denominator,
   default = NA_real_,
-  zero_threshold = 0.0000000001,
+  zero_threshold = 1e-10,
   on_zero = c("silent", "warning", "error"),
   na_value = NULL
 )

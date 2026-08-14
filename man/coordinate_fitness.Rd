@@ -21,8 +21,8 @@ forces the caller to filter deliberately and report the exclusion.
 }
 
 \seealso{
-Other coordinate-fitness: 
-\code{\link{assert_travel_time_eligible}()}
+Other coordinate-fitness:
+\code{\link[=assert_travel_time_eligible]{assert_travel_time_eligible()}}
 }
 \author{
 Tyler Muffly, MD + Claude Code
