@@ -4,7 +4,7 @@
 \alias{validate_urps_projection}
 \title{Validate a URPS projection table against the contract (fail loud)}
 \usage{
-validate_urps_projection(x, baseline_tie = NULL, tol = 0.000001)
+validate_urps_projection(x, baseline_tie = NULL, tol = 1e-06)
 }
 \arguments{
 \item{x}{A projection \code{data.frame}, or a path to a CSV to read

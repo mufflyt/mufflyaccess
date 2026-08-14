@@ -45,7 +45,7 @@ not invent a verdict about what it cannot.
 }
 }
 \seealso{
-Other coordinate-fitness: 
+Other coordinate-fitness:
 \code{\link{coordinate_fitness}}
 }
 \concept{coordinate-fitness}

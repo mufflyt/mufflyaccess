@@ -25,7 +25,7 @@ and the five territories (PR, GU, VI, AS, MP) in either direction.
 }
 \details{
 The output is byte-identical to the isochrones original; only two isochrones-
-specific SIDE EFFECTS were dropped (an unconditional \code{[INFO]} print and an
+specific SIDE EFFECTS were dropped (an unconditional \verb{[INFO]} print and an
 audible \code{beep}), which have no place in a shared library and do not affect the
 returned value.
 }

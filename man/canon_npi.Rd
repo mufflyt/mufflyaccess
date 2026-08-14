@@ -26,7 +26,7 @@ via leading-zero loss or 32-bit overflow.
 \details{
 Strips whitespace/\code{-}/\code{.} separators; rejects scientific notation, embedded
 letters, non-digit-only values, and values with more than 10 digits; then
-left-zero-pads to 10 and validates \code{^[0-9]{10}$}. Rejected and NA/empty inputs
+left-zero-pads to 10 and validates \verb{^[0-9]\{10\}$}. Rejected and NA/empty inputs
 return \code{NA_character_}.
 }
 \examples{

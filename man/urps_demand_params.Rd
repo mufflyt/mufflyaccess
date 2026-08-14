@@ -46,10 +46,13 @@ urps_demand_params()[, c("service_type", "model_form", "calibration_status")]
 Other URPS demand:
 \code{\link{URPS_DEMAND_SCALARS_VERSION}},
 \code{\link{URPS_DEMAND_VERSION}},
+\code{\link[=read_urps_demand_params]{read_urps_demand_params()}},
 \code{\link[=urps_demand_clinical_fte]{urps_demand_clinical_fte()}},
 \code{\link[=urps_demand_fte]{urps_demand_fte()}},
 \code{\link[=urps_demand_levers]{urps_demand_levers()}},
+\code{\link[=urps_demand_params_schema]{urps_demand_params_schema()}},
 \code{\link[=urps_demand_scalar]{urps_demand_scalar()}},
-\code{\link[=urps_demand_scalars]{urps_demand_scalars()}}
+\code{\link[=urps_demand_scalars]{urps_demand_scalars()}},
+\code{\link[=validate_urps_demand_params]{validate_urps_demand_params()}}
 }
 \concept{URPS demand}

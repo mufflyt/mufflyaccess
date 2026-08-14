@@ -17,8 +17,7 @@ four demand levers are resolved from the registry; passing raw lever values
 is not required.}
 }
 \value{
-Length-1 numeric \code{demand_clinical_fte} once a fitted artifact is active,
-or \code{NA_real_} while the demand model is the uncalibrated skeleton.
+Length-1 numeric \code{demand_clinical_fte}, or \code{NA_real_} until calibrated.
 }
 \description{
 The demand-side counterpart to \code{\link[=urps_supply_fte_sex]{urps_supply_fte_sex()}}. Looks up
@@ -59,10 +58,13 @@ urps_demand_fte(pop, 2000, scenario_id = "demand_managed_care_increase") # NA
 Other URPS demand:
 \code{\link{URPS_DEMAND_SCALARS_VERSION}},
 \code{\link{URPS_DEMAND_VERSION}},
+\code{\link[=read_urps_demand_params]{read_urps_demand_params()}},
 \code{\link[=urps_demand_clinical_fte]{urps_demand_clinical_fte()}},
 \code{\link[=urps_demand_levers]{urps_demand_levers()}},
 \code{\link[=urps_demand_params]{urps_demand_params()}},
+\code{\link[=urps_demand_params_schema]{urps_demand_params_schema()}},
 \code{\link[=urps_demand_scalar]{urps_demand_scalar()}},
-\code{\link[=urps_demand_scalars]{urps_demand_scalars()}}
+\code{\link[=urps_demand_scalars]{urps_demand_scalars()}},
+\code{\link[=validate_urps_demand_params]{validate_urps_demand_params()}}
 }
 \concept{URPS demand}
