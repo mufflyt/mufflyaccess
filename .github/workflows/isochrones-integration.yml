@@ -136,6 +136,9 @@ jobs:
     needs: mufflyaccess
     if: needs.mufflyaccess.outputs.has_token == 'true'   # skip cleanly when no cross-repo token
     strategy:
+      # Report cliff and twostep independently: a failure in one is a finding
+      # about that consumer, and cancelling the other just hides a second one.
+      fail-fast: false
       matrix:
         repo: [cliff, twostep]
     steps:
@@ -150,6 +153,15 @@ jobs:
           token: ${{ secrets.CROSS_REPO_RO_TOKEN }}
       - uses: r-lib/actions/setup-r@v2
         with: { use-public-rspm: true }
+      # mufflyaccess's own Imports (digest, jsonlite, stringr, ...) have to exist
+      # before R CMD INSTALL can build it. The consumer's setup-r-dependencies
+      # step below resolves the CONSUMER's DESCRIPTION, not this package's, so it
+      # cannot supply them -- without this step the install fails with
+      # "dependencies are not available".
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          working-directory: mufflyaccess
+          dependencies: '"hard"'        # Depends + Imports; Suggests aren't needed to INSTALL
       - name: Install this exact mufflyaccess into the consumer
         run: R CMD INSTALL --with-keep.source mufflyaccess
       - uses: r-lib/actions/setup-r-dependencies@v2
