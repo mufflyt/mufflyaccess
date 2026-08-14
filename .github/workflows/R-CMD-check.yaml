@@ -96,8 +96,17 @@ jobs:
             if (is.na(pin) || !nzchar(pin))
               stop("DESCRIPTION has no Config/roxygen2/version to pin to", call. = FALSE)
             cat("DESCRIPTION pins roxygen2", pin, "\n")
-            remotes::install_version("roxygen2", version = pin, upgrade = "never")
-            stopifnot(identical(as.character(packageVersion("roxygen2")), pin))
+            # setup-r use-public-rspm points the default repo at RSPM, which
+            # serves BINARIES of the CURRENT release. install_version() against
+            # it silently lands that build instead of the pin (with a "wrong
+            # SHA256 checksums" note), so ask CRAN proper for source.
+            remotes::install_version("roxygen2", version = pin,
+                                     repos = "https://cloud.r-project.org",
+                                     type = "source", upgrade = "never")
+            got <- as.character(packageVersion("roxygen2"))
+            if (!identical(got, pin))
+              stop(sprintf("installed roxygen2 %s but DESCRIPTION pins %s; re-documenting with the wrong version rewrites every .Rd", got, pin), call. = FALSE)
+            cat("roxygen2", got, "installed, matches the pin\n")
           '
 
       - name: Re-document and fail on drift
