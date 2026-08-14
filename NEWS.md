@@ -17,12 +17,16 @@
   would share one definition, but isochrones still carries its own copies in
   `R/join_standards.R` and `R/utils_standardized.R`. Two live implementations of
   a single source of truth is the drift this package exists to prevent, and
-  nothing compared them. `test-promoted-origin-parity.R` compares behaviour --
-  values *and* error behaviour, over a battery of inputs -- so reformatting is
-  free and a real change in either copy fails loudly. They agree today; the
-  sources differ only in `stringr::` qualification. Runs in the
-  isochrones-integration workflow against isochrones `main`, and skips
-  elsewhere unless `MUFFLYACCESS_ISOCHRONES_DIR` points at a checkout.
+  nothing compared them. `test-promoted-origin-parity.R` compares the parsed
+  source of both copies, normalising away `pkg::` qualification, layout,
+  comments, and the `cat()`/`maybe_beep()` instrumentation deliberately dropped
+  on promotion -- so what is compared is the logic. Executing the origin copies
+  was tried first and rejected: they are scripts rather than a package, so the
+  verdict depended on what happened to be installed. Parsing runs nothing and
+  is identical everywhere. They agree today. Runs in the isochrones-integration
+  workflow against isochrones `main`; the only thing that makes it skip is the
+  absence of a checkout, every other problem being a failure, because a guard
+  that quietly disables itself reports green while checking nothing.
 
 * **`assert_travel_time_eligible()` is tested.** It was the only export no test
   named. The guard exists because "whoever happened to be geocoded" silently
