@@ -16,11 +16,15 @@ safe_divide(
 \arguments{
 \item{numerator}{\verb{numeric vector}: Dividend. Recycled to match
 \code{denominator} length when length-1; stops if both are
-length > 1 and unequal.}
+length > 1 and unequal. Must be numeric or logical: character and
+factor arguments stop rather than being coerced, because the
+\code{NA} that coercion produced was indistinguishable from the
+\code{NA} a zero denominator produces.}
 
 \item{denominator}{\verb{numeric vector}: Divisor. Recycled symmetrically.
 Elements where \code{abs(denominator) < zero_threshold} or
-\code{is.na(denominator)} are treated as zero.}
+\code{is.na(denominator)} are treated as zero. Same type rule as
+\code{numerator}.}
 
 \item{default}{\verb{numeric scalar}: Value substituted wherever the
 denominator is effectively zero (default: \code{NA_real_}).}
