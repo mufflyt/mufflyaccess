@@ -22,24 +22,55 @@ isochrones_dir <- function() {
 
 # Source one origin file into its own environment. The origin files are plain
 # scripts, so this loads their definitions without needing isochrones installed.
+# Returns the error instead of swallowing it: once a checkout IS provided, a
+# failure to load must be visible rather than turning into a skip.
 load_origin <- function(dir, relpath) {
   path <- file.path(dir, relpath)
-  if (!file.exists(path)) return(NULL)
+  if (!file.exists(path))
+    return(list(env = NULL, error = paste0(relpath, " not found under ", dir)))
   env <- new.env(parent = globalenv())
-  ok <- tryCatch({
+  err <- tryCatch({
     suppressWarnings(suppressMessages(source(path, local = env)))
-    TRUE
-  }, error = function(e) FALSE)
-  if (!ok) NULL else env
+    NULL
+  }, error = function(e) conditionMessage(e))
+  if (is.null(err)) list(env = env, error = NULL) else list(env = NULL, error = err)
+}
+
+# A guard that quietly disables itself is worse than no guard: it reports green
+# while checking nothing. So the ONLY legitimate skip is "no checkout supplied"
+# (local runs). Once MUFFLYACCESS_ISOCHRONES_DIR is set, every other problem --
+# unreadable file, missing dependency, function gone -- is a failure.
+require_origin <- function(dir, relpath, fn) {
+  loaded <- load_origin(dir, relpath)
+  if (is.null(loaded$env))
+    fail(paste0("MUFFLYACCESS_ISOCHRONES_DIR is set to '", dir, "' but ",
+                relpath, " could not be loaded: ", loaded$error,
+                ". The parity guard must not silently disable itself -- install ",
+                "what the origin file needs, or correct the path."))
+  else if (!is.function(loaded$env[[fn]]))
+    fail(paste0("isochrones ", relpath, " no longer defines ", fn, "(). If the ",
+                "duplicate copy was removed, the promotion is finally complete ",
+                "-- delete this guard deliberately rather than leaving it green ",
+                "and inert."))
+  loaded$env
 }
 
 # Compare on values AND on error behaviour: a guard that stopped failing loudly
 # would be a silent behaviour change, and comparing return values alone would
 # miss it.
+#
+# Warnings are muffled rather than compared. The isochrones copy calls
+# beepr::beep() on some paths, which warns on a headless machine ("beep() could
+# not play the sound") -- and only on the FIRST call, so treating it as the
+# outcome made this comparison depend on audio hardware and on which test ran
+# first. Returned values and error behaviour are the contract here; an audio
+# side effect is not.
 outcome_of <- function(f, ...) {
-  tryCatch(list(kind = "value", value = f(...)),
-           error   = function(e) list(kind = "error",   msg = conditionMessage(e)),
-           warning = function(w) list(kind = "warning", msg = conditionMessage(w)))
+  withCallingHandlers(
+    tryCatch(list(kind = "value", value = f(...)),
+             error = function(e) list(kind = "error", msg = conditionMessage(e))),
+    warning = function(w) invokeRestart("muffleWarning")
+  )
 }
 
 NPI_CASES <- list(
@@ -70,9 +101,7 @@ STATE_CASES <- list(
 test_that("canon_npi() matches the isochrones copy it was promoted from", {
   dir <- isochrones_dir()
   skip_if(is.null(dir), "set MUFFLYACCESS_ISOCHRONES_DIR to an isochrones checkout")
-  env <- load_origin(dir, file.path("R", "join_standards.R"))
-  skip_if(is.null(env), "isochrones R/join_standards.R not sourceable")
-  skip_if(!is.function(env$canon_npi), "isochrones no longer defines canon_npi")
+  env <- require_origin(dir, file.path("R", "join_standards.R"), "canon_npi")
 
   for (x in NPI_CASES) {
     mine   <- outcome_of(mufflyaccess::canon_npi, x, verbose = FALSE)
@@ -88,10 +117,8 @@ test_that("canon_npi() matches the isochrones copy it was promoted from", {
 test_that("standardize_state_name() matches the isochrones copy it was promoted from", {
   dir <- isochrones_dir()
   skip_if(is.null(dir), "set MUFFLYACCESS_ISOCHRONES_DIR to an isochrones checkout")
-  env <- load_origin(dir, file.path("R", "utils_standardized.R"))
-  skip_if(is.null(env), "isochrones R/utils_standardized.R not sourceable")
-  skip_if(!is.function(env$standardize_state_name),
-          "isochrones no longer defines standardize_state_name")
+  env <- require_origin(dir, file.path("R", "utils_standardized.R"),
+                        "standardize_state_name")
 
   for (x in STATE_CASES) {
     for (out in c("name", "abbr")) {
