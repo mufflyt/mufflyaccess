@@ -7,6 +7,10 @@ name: tests
 # adversarial, boundary-value, and checkmate suites -- with the Suggests
 # dependencies (checkmate / arrow / digest / nanoparquet) installed so the
 # arrow-only and checkmate-only tests actually run instead of skipping.
+#
+# This job does NOT substitute for R-CMD-check.yaml: testthat never runs
+# examples, and it does not look at Rd cross-references, non-ASCII source, the
+# DESCRIPTION license pointer, or man/-vs-R/ drift. Those need `R CMD check`.
 
 on:
   push:
