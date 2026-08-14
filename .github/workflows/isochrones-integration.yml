@@ -170,7 +170,9 @@ jobs:
           sudo apt-get update -qq
           sudo apt-get install -y --no-install-recommends \
             cmake gdal-bin libabsl-dev libfontconfig1-dev libgdal-dev \
-            libgeos-dev libpng-dev libudunits2-dev libx11-dev pandoc
+            libgeos-dev libpng-dev libudunits2-dev libx11-dev pandoc \
+            libharfbuzz-dev libfribidi-dev libfreetype6-dev libtiff-dev \
+            libjpeg-dev libcairo2-dev
 
       - uses: r-lib/actions/setup-renv@v2
         with:
@@ -208,7 +210,12 @@ jobs:
         run: |
           Rscript -e '
             library(testthat)
-            testthat::test_dir("tests/testthat",
+            # test_dir() does NOT load the package under test, so the consumers own
+            # exported functions were absent and every test calling one died with
+            # "could not find function urps_...". test_local() loads it via pkgload
+            # first. It loads the CONSUMER only -- mufflyaccess still resolves from
+            # the renv library, i.e. the checkout installed and verified above.
+            testthat::test_local(".",
               filter = "urps|baseline|unqualified|geography|engine|mufflyaccess", stop_on_failure = TRUE)
             cat("${{ matrix.repo }} consumer contract: OK\n")
           '
