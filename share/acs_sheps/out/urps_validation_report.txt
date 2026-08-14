@@ -5,4 +5,4 @@ URPS workforce SSOT -- validation report (contract v3.0.0)
 [PASS] release gate: source git commit pin
 [PASS] national active == 1306 / CONUS active == 1303
 [PASS] retired 1332/1329 are exposed only as retired
-[INFO] provider-snapshot reconstruction: NOT RUN here (no parquet reader; run in CI with arrow)
+[INFO] provider-snapshot reconstruction: PERFORMED
