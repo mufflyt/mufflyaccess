@@ -142,6 +142,35 @@ jobs:
             cat("fixture matches the released artifact (", length(files), " files)\n", sep = "")
           '
 
+      # A SECOND isochrones checkout, at main rather than the pinned artifact
+      # commit. The pin above is the released data contract; this one is current
+      # SOURCE, which is what the promoted-function parity check below needs --
+      # comparing against a months-old commit would let live drift through.
+      - name: Check out isochrones at main (for promoted-source parity)
+        if: steps.detect.outputs.has_token == 'true'
+        uses: actions/checkout@v4
+        with:
+          repository: mufflyt/isochrones
+          ref: main
+          path: isochrones-main
+          token: ${{ secrets.CROSS_REPO_RO_TOKEN }}
+
+      # canon_npi() and standardize_state_name() were promoted here so the three
+      # repos would share ONE definition, but isochrones still carries its own
+      # copies in R/join_standards.R and R/utils_standardized.R. Two live
+      # implementations of a single source of truth is the drift this package
+      # exists to prevent, and nothing compared them until now. The test
+      # compares BEHAVIOUR, not text, so reformatting is free and a real change
+      # in either copy fails loudly.
+      - name: Promoted functions still match their isochrones originals
+        if: steps.detect.outputs.has_token == 'true'
+        env:
+          MUFFLYACCESS_ISOCHRONES_DIR: ${{ github.workspace }}/isochrones-main
+        run: >
+          Rscript -e 'library(testthat);
+          testthat::test_dir("tests/testthat", filter = "promoted-origin-parity",
+          stop_on_failure = TRUE)'
+
       - name: Validate + canonical invariants (strict, fail-closed)
         if: steps.detect.outputs.has_token == 'true'
         run: |

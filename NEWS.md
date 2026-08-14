@@ -1,3 +1,37 @@
+# mufflyaccess (development)
+
+* **Coverage for the promoted code, taken from where it came from.** Rather
+  than writing new tests for functions promoted from isochrones, the suites
+  that already guarded them upstream were brought across.
+  `test-accessibility-stats-adversarial.R` is ported from isochrones'
+  `test-accessibility-stratification.R` -- the file `R/accessibility_stats.R`
+  already names as its guard. The functions were promoted here verbatim, but
+  their tests stayed behind, leaving a 30-line smoke test in place of the
+  property, regression and edge-case coverage in the origin repo. It carries
+  the upstream regression guard for the Monte-Carlo clamp/filter bug, where the
+  estimator dropped negative draws and pushed the point estimate outside its own
+  confidence interval for sparse groups.
+
+* **The promoted functions are now checked against their originals.**
+  `canon_npi()` and `standardize_state_name()` were promoted so the three repos
+  would share one definition, but isochrones still carries its own copies in
+  `R/join_standards.R` and `R/utils_standardized.R`. Two live implementations of
+  a single source of truth is the drift this package exists to prevent, and
+  nothing compared them. `test-promoted-origin-parity.R` compares behaviour --
+  values *and* error behaviour, over a battery of inputs -- so reformatting is
+  free and a real change in either copy fails loudly. They agree today; the
+  sources differ only in `stringr::` qualification. Runs in the
+  isochrones-integration workflow against isochrones `main`, and skips
+  elsewhere unless `MUFFLYACCESS_ISOCHRONES_DIR` points at a checkout.
+
+* **`assert_travel_time_eligible()` is tested.** It was the only export no test
+  named. The guard exists because "whoever happened to be geocoded" silently
+  redefined a denominator once before, so an untested guard against silent
+  exclusion was the same failure one level up. Note one pinned behaviour: an
+  `NA` in `usable_for_travel_time` currently PASSES, since `which(!NA)` is
+  empty -- unknown fitness is treated as fit. That is the one path where a row
+  goes unchecked in silence, and is flagged for a decision rather than endorsed.
+
 # mufflyaccess 0.11.0
 
 * **Drift guards for the cross-repo contract.** Three things this package
