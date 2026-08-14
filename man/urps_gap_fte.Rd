@@ -41,7 +41,7 @@ All three values go directly into the projection contract columns
 \examples{
 urps_gap_fte(supply_clinical_fte = 1200, demand_clinical_fte = 1450) # +250 shortage
 urps_gap_fte(supply_clinical_fte = 1400, demand_clinical_fte = 1200) # -200 surplus
-urps_gap_fte(supply_clinical_fte = 1200, demand_clinical_fte = NA)   # NA
+urps_gap_fte(supply_clinical_fte = 1200, demand_clinical_fte = NA_real_) # NA
 }
 \seealso{
 \code{\link[=urps_supply_fte_sex]{urps_supply_fte_sex()}}, \code{\link[=urps_demand_fte]{urps_demand_fte()}},

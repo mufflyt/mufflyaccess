@@ -10,7 +10,7 @@ Length-1 character string.
 URPS_DEMAND_VERSION
 }
 \description{
-Pre-calibration version \code{"0.1.0"} — structure matches the HWMM
+Pre-calibration version \code{"0.1.0"} -- structure matches the HWMM
 specification but all regression coefficients are \code{NA}. Bump to \code{"1.0.0"} on
 first MEPS/NAMCS fit.
 }

@@ -12,7 +12,7 @@ zero_access_share(access, w)
 \item{w}{numeric weights.}
 }
 \value{
-percent in \link{0,100} under non-negative weights, or NA.
+percent in \verb{[0,100]} under non-negative weights, or NA.
 }
 \description{
 Zero-access share (percent of weighted population with access EXACTLY 0).

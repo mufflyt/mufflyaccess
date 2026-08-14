@@ -7,7 +7,7 @@
 urps_demand_fte(population, visits_per_fte, scenario_id = "baseline")
 }
 \arguments{
-\item{population}{A \code{data.frame} — see \code{\link[=urps_demand_clinical_fte]{urps_demand_clinical_fte()}}.}
+\item{population}{A \code{data.frame} -- see \code{\link[=urps_demand_clinical_fte]{urps_demand_clinical_fte()}}.}
 
 \item{visits_per_fte}{Annual URPS visits per FTE provider. See
 \code{\link[=urps_demand_clinical_fte]{urps_demand_clinical_fte()}}.}
@@ -23,7 +23,7 @@ or \code{NA_real_} while the demand model is the uncalibrated skeleton.
 \description{
 The demand-side counterpart to \code{\link[=urps_supply_fte_sex]{urps_supply_fte_sex()}}. Looks up
 the demand lever bundle for a registered scenario via \code{\link[=urps_demand_levers]{urps_demand_levers()}},
-then calls \code{\link[=urps_demand_clinical_fte]{urps_demand_clinical_fte()}} — so cliff passes a \code{scenario_id}
+then calls \code{\link[=urps_demand_clinical_fte]{urps_demand_clinical_fte()}} -- so cliff passes a \code{scenario_id}
 string rather than four raw lever values:
 
 \if{html}{\out{<div class="sourceCode r">}}\preformatted{# Supply side (cliff already does this):
@@ -31,7 +31,7 @@ supply_fte <- mufflyaccess::urps_supply_fte_sex(cohort, baseline_scale,
                 late_from_age = sc$late_career_fte_onset_age,
                 late_factor   = sc$late_career_fte_factor)
 
-# Demand side (new — call this once per projection row):
+# Demand side (new -- call this once per projection row):
 demand_fte <- mufflyaccess::urps_demand_fte(population, visits_per_fte,
                 scenario_id = scenario_id)
 
@@ -42,7 +42,7 @@ gap_fte <- mufflyaccess::urps_gap_fte(supply_fte, demand_fte)
 Returns \code{NA_real_} for any scenario while \code{urps_demand_params()} is the
 uncalibrated skeleton, and a real \code{demand_clinical_fte} once a fitted
 artifact is active (\code{calibration_status != "not_calibrated"}; see
-\code{\link[=read_urps_demand_params]{read_urps_demand_params()}}). Cliff can call this unconditionally — the \code{NA}
+\code{\link[=read_urps_demand_params]{read_urps_demand_params()}}). Cliff can call this unconditionally -- the \code{NA}
 propagates to \code{gap_fte} and the contract validator allows \code{NA} in optional
 columns, and it simply stops being \code{NA} after activation.
 }

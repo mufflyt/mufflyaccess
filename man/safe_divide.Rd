@@ -37,7 +37,7 @@ silent_error_guards.R)}
 for calculate_retirement_cliff_statistics.R)}
 }
 \value{
-\link{numeric vector} Same length as \code{denominator} (after
+\verb{numeric vector} Same length as \code{denominator} (after
 recycling). Non-zero-denominator elements hold the quotient;
 zero-denominator elements hold \code{default}.
 }

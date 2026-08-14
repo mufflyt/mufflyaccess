@@ -29,7 +29,7 @@ weighted_mean_all <- function(a, w) {
 #' Zero-access share (percent of weighted population with access EXACTLY 0).
 #' @param access numeric accessibility values.
 #' @param w numeric weights.
-#' @return percent in [0,100] under non-negative weights, or NA.
+#' @return percent in `[0,100]` under non-negative weights, or NA.
 #' @family accessibility-disparity statistics
 #' @seealso [weighted_mean_all()], [mc_weighted_ci()]
 #' @examples
@@ -77,7 +77,7 @@ tract_vintage_of <- function(year) ifelse(as.integer(year) >= 2020L, 2020L, 2010
 
 #' ACS 5-year data year for a study year (clamped to the 2013-2022 window).
 #' @param year integer-coercible study year(s).
-#' @return integer ACS data end-year(s), clamped to [2013, 2022].
+#' @return integer ACS data end-year(s), clamped to `[2013, 2022]`.
 #' @family accessibility-disparity statistics
 #' @seealso [tract_vintage_of()]
 #' @examples
