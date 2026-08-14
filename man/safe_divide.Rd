@@ -70,7 +70,7 @@ statistics, where a missing denominator must stay visibly missing.
 This paragraph used to say it returns \code{0}, and recommended it on
 the grounds that \code{"0\%"} displays better than \code{NA} --- that
 is the behaviour DEN-032 retracted, after \code{default = 0} made
-Step 4/11 report 0\% access wherever the denominator was absent and
+Step 4/11 report 0\\% access wherever the denominator was absent and
 manufactured care deserts that were not in the data.  The code has
 returned \code{NA_real_} since; only this summary lagged.  Do not
 restore the old wording without also reading the note on
