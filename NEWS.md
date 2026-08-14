@@ -1,5 +1,33 @@
 # mufflyaccess (development)
 
+* **ACS/Sheps share package: retirement schema + semantics corrected.** Two
+  distinct collaborator-facing changes to `share/acs_sheps/out/`, both in
+  `urps_national_series_v3.0.0.csv`:
+
+  1. **Schema change.** A new `retirement_status` column is added, carrying
+     `observed` / `partially_observed` / `not_ascertained` per row. Consumers
+     that read the file positionally, assume a fixed column count, or pin a
+     column order must be updated; consumers reading by name are unaffected
+     except for the value change below.
+  2. **Data-semantic correction.** `n_retired` is now `NA` (empty in the CSV)
+     wherever retirement was never ascertained. It was previously published as
+     `0`, which wrongly asserted a *known absence* of retirement rather than an
+     unknown quantity.
+
+  **`NA` here does not mean zero, and must not be substituted with zero.** Every
+  currently published row is `not_ascertained`: the pre-2023 series is a
+  survivorship-biased certification build-up, so treating the old `0` as a real
+  departure count understates attrition and inflates any retention or net-growth
+  figure derived from it. Downstream results computed from the previous file will
+  change, and that change is a correction.
+
+  The package itself has served these semantics since the 0.7.1 corrective
+  release (see *"Retirement is not a numeric zero"* below); the generated share
+  outputs were left behind, having been produced by an older build, so the
+  published artifact and the package disagreed until now. The regenerated files
+  are unchanged in every other respect -- no canonical count moved, and the
+  contract remains v3.0.0 from source commit `74085a9e6`.
+
 * **URPS clinical-FTE model (Phase 3).** Fills the `supply_clinical_fte` column the
   projection contract (0.10.0) reserves. New API: `URPS_FTE_PATHWAY_CLINICAL_TIME`
   (ABOG 1.0 / ABU 0.70), `urps_fte_age_curve()`, `urps_fte_weight()` (age productivity

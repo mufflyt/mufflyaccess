@@ -1,6 +1,6 @@
 URPS workforce SSOT -- provenance (contract v3.0.0)
 ===================================================
-package_version         : mufflyaccess 0.8.1
+package_version         : mufflyaccess 0.10.0
 artifact_source         : external
 contract_version        : 3.0.0
 artifact_version        : 3.0.0
