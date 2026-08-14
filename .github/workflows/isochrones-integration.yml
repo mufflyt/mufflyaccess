@@ -158,6 +158,20 @@ jobs:
       # usual setup-r-dependencies pass cannot be used here -- it fails with
       # "there is no package called 'pak'". Restore each consumer's own library
       # instead, so its dependencies are the ones it actually ships with.
+      # The consumers pull the geospatial stack (sf, terra, s2, exactextractr,
+      # units) plus doc/graphics packages, which need OS libraries the runner does
+      # not ship -- without them restore fails with e.g. "libproj.so.25: cannot
+      # open shared object file". renv prints the exact list it wants at restore
+      # time, so if a consumer adds a dependency and this starts failing on a
+      # missing .so, read the "required system packages" block in the log and
+      # extend this list.
+      - name: Install the consumers' system dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends \
+            cmake gdal-bin libabsl-dev libfontconfig1-dev libgdal-dev \
+            libgeos-dev libpng-dev libudunits2-dev libx11-dev pandoc
+
       - uses: r-lib/actions/setup-renv@v2
         with:
           working-directory: ${{ matrix.repo }}
