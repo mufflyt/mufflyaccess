@@ -265,6 +265,18 @@ jobs:
       # restore above therefore installs that pinned build into the project
       # library, where it would shadow the version under test and quietly turn
       # this job into a check of stale code. Overwrite it with THIS checkout.
+      # Install the consumer itself, so the tests below can attach it as a real
+      # package instead of loading it from source. Deliberately BEFORE the
+      # mufflyaccess install: installing the consumer resolves its dependencies
+      # and can pull the lockfile-pinned mufflyaccess into the library, so the
+      # checkout has to go in afterwards -- and the verify step after that is
+      # then the last word on which build the tests will load.
+      - name: Install the consumer package into its renv library
+        working-directory: ${{ matrix.repo }}
+        env:
+          RENV_PATHS_ROOT: ${{ github.workspace }}/.renv-cache
+        run: Rscript -e 'renv::install(".", prompt = FALSE)'
+
       - name: Install this checkout of mufflyaccess into the renv library
         working-directory: ${{ matrix.repo }}
         run: Rscript -e 'renv::install("../mufflyaccess", rebuild = TRUE)'
@@ -292,12 +304,30 @@ jobs:
         run: |
           Rscript -e '
             library(testthat)
-            # test_dir() does NOT load the package under test, so the consumers own
-            # exported functions were absent and every test calling one died with
-            # "could not find function urps_...". test_local() loads it via pkgload
-            # first. It loads the CONSUMER only -- mufflyaccess still resolves from
-            # the renv library, i.e. the checkout installed and verified above.
-            testthat::test_local(".",
+            # Attach the consumer as an INSTALLED package, then test_dir(). Both
+            # consumers need this, for different reasons, and neither plain
+            # test_dir() nor test_local() satisfies both:
+            #
+            #   test_dir() alone does not load the package under test, so
+            #   twostep tests calling its own exports died with "could not find
+            #   function urps_e2sfca_spar_summary".
+            #
+            #   test_local() loads via pkgload, which makes the test
+            #   environment topenv the CONSUMER namespace. cliff imports
+            #   data.table without setting .datatable.aware, so data.table
+            #   cedta() returns FALSE and `[` silently degrades to data.frame
+            #   semantics -- "could not find function \".\"" and NSE column
+            #   references failing, in tests that pass in cliff own CI.
+            #
+            # Attaching the installed package puts topenv back at globalenv, so
+            # data.table behaves, while the consumer exports are on the search
+            # path. It also matches how each consumer actually ships.
+            # mufflyaccess still resolves from the renv library -- the checkout
+            # installed and verified above.
+            pkg <- "${{ matrix.repo }}"
+            library(pkg, character.only = TRUE)
+            cat(pkg, "attached from", dirname(system.file(package = pkg)), "\n")
+            testthat::test_dir("tests/testthat",
               filter = "urps|baseline|unqualified|geography|engine|mufflyaccess", stop_on_failure = TRUE)
-            cat("${{ matrix.repo }} consumer contract: OK\n")
+            cat(pkg, "consumer contract: OK\n")
           '
