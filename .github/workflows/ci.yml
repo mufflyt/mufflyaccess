@@ -1,0 +1,364 @@
+name: CI
+
+# Comprehensive CI for mufflyaccess.
+#
+# mufflyaccess is the cross-repo SSOT: isochrones, cliff and twostep all read
+# their canonical constants from it. A defect here propagates silently into
+# three downstream repositories and, through them, into a manuscript. The
+# existing workflows (R-CMD-check, tests, isochrones-integration) each cover one
+# slice on a single platform; this covers the rest.
+#
+# DESIGN RULES, learned the hard way in isochrones during 2026-08-14/15. Each
+# maps to a real defect that shipped:
+#
+#   1. EVERY job sets timeout-minutes. A job timeout CANCELS the job, so
+#      `if: always()` steps never run -- no artifacts, no verification. Timing
+#      out is strictly worse than failing, so budget generously.
+#   2. Any test_dir() call lifts testthat's failure cap with
+#      testthat::set_max_fails(Inf). The default is 10, after which the
+#      ProgressReporter stops and the run reports a PREFIX of the suite as if it
+#      were the whole thing. options(testthat.max_fails=) does NOT do this:
+#      testthat reads getOption("testthat.progress.max_fails") -- note the dot.
+#   3. The full-suite job writes a COMPLETION SENTINEL as its last act, and a
+#      separate step fails when the sentinel is absent. A sourced script calling
+#      quit(status = 0) killed the isochrones suite at file 411 of ~4,800 and
+#      the job still reported success. quit() is not a condition and cannot be
+#      caught; only a positive end-of-run marker detects it.
+#   4. Accounting is written to FILES and uploaded, never left in the log.
+#      GitHub caps a step's retrievable log near 11 MB and a verbose reporter
+#      blows past it, taking the totals with it.
+#   5. Jobs whose first-run baseline is unknown (lint, spelling, coverage,
+#      pkgdown) start ADVISORY. A check that is red from birth trains everyone
+#      to ignore it, which is how a six-week-old syntax error survived in
+#      isochrones. Promote each to blocking once its baseline is clean.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 11 * * 1"   # Monday, catches upstream dependency drift
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  R_KEEP_PKG_SOURCE: yes
+
+jobs:
+  # ---------------------------------------------------------------- check ---
+  # The contract job: R CMD check across the platform/version matrix a package
+  # consumed by three repos should survive. error-on: warning, because a NOTE is
+  # discussable and a WARNING is not.
+  check:
+    name: check (${{ matrix.config.os }}, R ${{ matrix.config.r }})
+    runs-on: ${{ matrix.config.os }}
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false          # one platform failing must not hide the others
+      matrix:
+        config:
+          - { os: ubuntu-latest,  r: 'release' }
+          - { os: ubuntu-latest,  r: 'devel', http-user-agent: 'release' }
+          - { os: ubuntu-latest,  r: 'oldrel-1' }
+          - { os: macos-latest,   r: 'release' }
+          - { os: windows-latest, r: 'release' }
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: r-lib/actions/setup-pandoc@v2
+
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: ${{ matrix.config.r }}
+          http-user-agent: ${{ matrix.config.http-user-agent }}
+          use-public-rspm: true
+
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          extra-packages: any::rcmdcheck
+          needs: check
+
+      - uses: r-lib/actions/check-r-package@v2
+        with:
+          upload-snapshots: true
+          error-on: '"warning"'
+          args: 'c("--no-manual", "--as-cran")'
+
+  # -------------------------------------------------- full suite + accounting ---
+  # Runs the whole testthat suite with the cap lifted, then PROVES it finished.
+  test-suite:
+    name: full test suite (uncapped, with completion proof)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: release
+          use-public-rspm: true
+
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          extra-packages: any::testthat, any::checkmate
+          needs: check
+
+      - name: Run the suite and record the accounting
+        shell: Rscript {0}
+        run: |
+          library(testthat)
+
+          # RULE 2. Without this the run stops after 10 problems and reports a
+          # prefix. set_max_fails() is the public API; it sets TESTTHAT_MAX_FAILS,
+          # which is what testthat actually honours.
+          testthat::set_max_fails(Inf)
+
+          pkgload::load_all(".", quiet = TRUE)
+          res <- test_dir("tests/testthat", reporter = "progress",
+                          stop_on_failure = FALSE)
+          df <- as.data.frame(res)
+
+          # RULE 4. Persist before doing anything that might exit.
+          dir.create("test-results", showWarnings = FALSE, recursive = TRUE)
+          utils::write.csv(df, "test-results/results.csv", row.names = FALSE)
+
+          n_fail <- sum(df$failed); n_err <- sum(df$error)
+          n_pass <- sum(df$passed); n_skip <- sum(df$skipped)
+          n_files <- length(unique(df$file))
+          summary_line <- sprintf(
+            "== RESULTS: %d passed | %d failed | %d errors | %d skipped == (%d files, %d rows)",
+            n_pass, n_fail, n_err, n_skip, n_files, nrow(df))
+          writeLines(summary_line, "test-results/summary.txt")
+          cat("\n", summary_line, "\n", sep = "")
+
+          gs <- Sys.getenv("GITHUB_STEP_SUMMARY")
+          if (nzchar(gs)) {
+            cat(paste0("### full test suite\n\n```\n", summary_line, "\n```\n"),
+                file = gs, append = TRUE)
+          }
+
+          bad <- df[df$failed > 0 | df$error > 0, c("file", "test", "failed", "error")]
+          utils::write.csv(bad, "test-results/failing.csv", row.names = FALSE)
+
+          # RULE 3. Written ONLY if control reaches here, i.e. test_dir()
+          # returned and the accounting ran. Deliberately BEFORE the failure
+          # exit: a suite that finishes WITH failures still completed, so
+          # "did it finish" and "did it pass" stay independent signals.
+          writeLines(
+            c(sprintf("completed_at=%s", format(Sys.time(), "%Y-%m-%dT%H:%M:%S")),
+              sprintf("files=%d rows=%d", n_files, nrow(df)),
+              sprintf("failed=%d errors=%d", n_fail, n_err)),
+            "test-results/SUITE_COMPLETED")
+
+          if (n_fail + n_err > 0) {
+            cat("\nFailing tests:\n"); print(bad, row.names = FALSE)
+            quit(status = 1)
+          }
+
+      - name: Verify the suite ran to completion
+        if: always()
+        shell: bash
+        run: |
+          if [ ! -f test-results/SUITE_COMPLETED ]; then
+            echo "::error title=Suite terminated early::test-results/SUITE_COMPLETED is absent. The R process did not reach the end of the accounting block -- e.g. a sourced script called quit(). This result must NOT be read as a pass."
+            exit 1
+          fi
+          cat test-results/SUITE_COMPLETED
+
+      - name: Upload test accounting
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-accounting
+          path: test-results/
+          # error, not warn: a missing accounting file means the suite did not
+          # finish, which is exactly the condition worth failing on.
+          if-no-files-found: error
+
+  # ------------------------------------------------------------- coverage ---
+  coverage:
+    name: test coverage (advisory)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    continue-on-error: true      # advisory until a baseline exists; see RULE 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: r-lib/actions/setup-r@v2
+        with: { r-version: release, use-public-rspm: true }
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          extra-packages: any::covr, any::xml2
+          needs: coverage
+
+      - name: Measure coverage
+        shell: Rscript {0}
+        run: |
+          cov <- covr::package_coverage(quiet = FALSE, type = "tests")
+          dir.create("coverage", showWarnings = FALSE)
+          pct <- covr::percent_coverage(cov)
+          writeLines(sprintf("total coverage: %.2f%%", pct), "coverage/summary.txt")
+          utils::write.csv(covr::coverage_to_list(cov)$filecoverage,
+                           "coverage/by-file.csv")
+          cat(sprintf("\ntotal coverage: %.2f%%\n", pct))
+          gs <- Sys.getenv("GITHUB_STEP_SUMMARY")
+          if (nzchar(gs)) cat(sprintf("### coverage\n\n**%.2f%%**\n", pct),
+                              file = gs, append = TRUE)
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage
+          path: coverage/
+          if-no-files-found: warn
+
+  # ----------------------------------------------------------------- lint ---
+  lint:
+    name: lint (advisory)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    continue-on-error: true      # see RULE 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: r-lib/actions/setup-r@v2
+        with: { r-version: release, use-public-rspm: true }
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          extra-packages: any::lintr
+          needs: lint
+      - name: lintr
+        shell: Rscript {0}
+        run: |
+          l <- lintr::lint_package()
+          print(l)
+          cat(sprintf("\n%d lint(s)\n", length(l)))
+          gs <- Sys.getenv("GITHUB_STEP_SUMMARY")
+          if (nzchar(gs)) cat(sprintf("### lint\n\n%d finding(s)\n", length(l)),
+                              file = gs, append = TRUE)
+          if (length(l) > 0) quit(status = 1)
+
+  # ------------------------------------------------------------- spelling ---
+  spelling:
+    name: spelling (advisory)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    continue-on-error: true      # see RULE 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: r-lib/actions/setup-r@v2
+        with: { r-version: release, use-public-rspm: true }
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          extra-packages: any::spelling
+          needs: check
+      - name: spell check
+        shell: Rscript {0}
+        run: |
+          bad <- spelling::spell_check_package(".")
+          print(bad)
+          if (nrow(bad) > 0) {
+            cat("\nAdd genuine terms to inst/WORDLIST via spelling::update_wordlist()\n")
+            quit(status = 1)
+          }
+
+  # -------------------------------------------------------- docs in sync ----
+  # Roxygen must regenerate byte-identically. testthat never runs examples and
+  # never looks at Rd, so man/ can drift silently from R/ without any test
+  # noticing -- the class of defect that hid a broken example on main.
+  docs-in-sync:
+    name: man/ regenerates from R/
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: r-lib/actions/setup-r@v2
+        with: { r-version: release, use-public-rspm: true }
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          extra-packages: any::roxygen2
+          needs: roxygen2
+      - name: Regenerate and diff
+        shell: bash
+        run: |
+          Rscript -e 'roxygen2::roxygenise()'
+          if [ -n "$(git status --porcelain man NAMESPACE)" ]; then
+            echo "::error title=Docs out of sync::man/ or NAMESPACE differs after roxygenise(). Run roxygen2::roxygenise() and commit."
+            git --no-pager diff -- man NAMESPACE | head -100
+            exit 1
+          fi
+          echo "man/ and NAMESPACE are in sync"
+
+  # --------------------------------------------------- declared dependencies ---
+  # Every package referenced in R/ must be declared. An undeclared dependency
+  # does not fail locally (the author has it installed) and silently changes
+  # behaviour in CI: in isochrones an undeclared RANN sent the canonical
+  # coverage matcher down a geosphere fallback with different semantics.
+  deps-declared:
+    name: no undeclared dependencies
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: r-lib/actions/setup-r@v2
+        with: { r-version: release, use-public-rspm: true }
+      - name: Cross-check R/ usage against DESCRIPTION
+        shell: Rscript {0}
+        run: |
+          d <- read.dcf("DESCRIPTION")
+          declared <- unlist(lapply(c("Depends", "Imports", "Suggests", "LinkingTo"),
+            function(f) if (f %in% colnames(d))
+              sub("\\s*\\(.*", "", trimws(strsplit(d[1, f], ",")[[1]])) else character(0)))
+          declared <- c(declared[nzchar(declared)], "R", "base", "methods")
+
+          files <- list.files("R", pattern = "\\.R$", full.names = TRUE)
+          used <- character(0)
+          for (f in files) {
+            ln <- readLines(f, warn = FALSE)
+            ln <- ln[!grepl("^\\s*#", ln)]
+            txt <- paste(ln, collapse = "\n")
+            used <- c(used,
+              unlist(regmatches(txt, gregexpr("[A-Za-z][A-Za-z0-9.]*(?=::)", txt, perl = TRUE))),
+              gsub(".*(library|require)\\(([^)]*)\\).*", "\\2",
+                   grep("(library|require)\\(", ln, value = TRUE)))
+          }
+          used <- unique(gsub("[\"']", "", trimws(used)))
+          used <- used[nzchar(used) & !grepl("[^A-Za-z0-9.]", used)]
+
+          missing <- setdiff(used, declared)
+          if (length(missing)) {
+            cat("::error title=Undeclared dependencies::",
+                paste(missing, collapse = ", "), "\n")
+            quit(status = 1)
+          }
+          cat(sprintf("all %d referenced package(s) are declared\n", length(used)))
+
+  # -------------------------------------------------------------- pkgdown ---
+  pkgdown:
+    name: pkgdown builds (advisory)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    continue-on-error: true      # see RULE 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: r-lib/actions/setup-pandoc@v2
+      - uses: r-lib/actions/setup-r@v2
+        with: { r-version: release, use-public-rspm: true }
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          extra-packages: any::pkgdown
+          needs: website
+      - name: Build the site
+        shell: Rscript {0}
+        run: pkgdown::build_site(preview = FALSE, install = TRUE)
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: pkgdown-site
+          path: docs/
+          if-no-files-found: warn
