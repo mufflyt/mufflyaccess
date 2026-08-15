@@ -1,0 +1,18 @@
+# Keep GitHub Actions pinned versions current.
+#
+# Actions drift silently: a v4 action deprecating its Node runtime, or a
+# setup-r bump changing default behaviour, shows up as an unexplained CI change
+# months later. Weekly PRs keep the diff small enough to read.
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "chore(actions)"
+    labels:
+      - "dependencies"
+      - "ci"

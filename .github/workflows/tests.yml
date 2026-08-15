@@ -29,6 +29,9 @@ concurrency:
 jobs:
   full-suite:
     runs-on: ubuntu-latest
+    # RULE: every job needs a timeout. A job timeout CANCELS the job,
+    # so `if: always()` steps never run and no artifact survives.
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
       - uses: r-lib/actions/setup-r@v2
@@ -43,6 +46,7 @@ jobs:
       - name: Run the full testthat suite
         run: >
           Rscript -e 'library(testthat); library(mufflyaccess);
+          testthat::set_max_fails(Inf);
           testthat::test_dir("tests/testthat", stop_on_failure = TRUE)'
 
   # The collaborator-facing share package must match what the CURRENT source
@@ -55,6 +59,9 @@ jobs:
   # the drift is caught on every push and on fork PRs.
   share-drift:
     runs-on: ubuntu-latest
+    # RULE: every job needs a timeout. A job timeout CANCELS the job,
+    # so `if: always()` steps never run and no artifact survives.
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - uses: r-lib/actions/setup-r@v2
