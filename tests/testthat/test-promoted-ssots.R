@@ -3,11 +3,11 @@ test_that("ACS MOE z constants match the isochrones SSOT", {
   expect_equal(CI_Z95, 1.96)
   expect_identical(MOE90_TO_CI95_FACTOR, CI_Z95 / ACS_MOE_Z90)
   expect_equal(MOE90_TO_CI95_FACTOR, 1.96 / 1.645)
-  expect_false(isTRUE(all.equal(ACS_MOE_Z90, qnorm(0.95))))  # rounded convention, NOT qnorm
+  expect_false(isTRUE(all.equal(ACS_MOE_Z90, qnorm(0.95)))) # rounded convention, NOT qnorm
 })
 test_that("RUCA_NONMETRO_MIN is the 2-level metro/rural cut", {
   expect_identical(RUCA_NONMETRO_MIN, 4L)
-  expect_false(RUCA_NONMETRO_MIN == 7L)                      # not the 3-level suburban/rural split
+  expect_false(RUCA_NONMETRO_MIN == 7L) # not the 3-level suburban/rural split
 })
 test_that("Wu-2014 PFD prevalence table + accessors", {
   expect_equal(pfd_prevalence("any_PFD"), c(`65_79` = 0.368, `80plus` = 0.497))

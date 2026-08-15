@@ -40,13 +40,13 @@
 
 .urps_lfp_params_df <- function() {
   data.frame(
-    sex                = c("female",       "male"),
-    intercept          = c( 7.0127903962,   7.3433710865),
-    b_age              = c(-0.0884172927,  -0.0862887697),
-    anchor_age_lo      = c(40L,            40L),
-    anchor_p_lo        = c(0.97,           0.98),
-    anchor_age_hi      = c(65L,            65L),
-    anchor_p_hi        = c(0.78,           0.85),
+    sex                = c("female", "male"),
+    intercept          = c(7.0127903962, 7.3433710865),
+    b_age              = c(-0.0884172927, -0.0862887697),
+    anchor_age_lo      = c(40L, 40L),
+    anchor_p_lo        = c(0.97, 0.98),
+    anchor_age_hi      = c(65L, 65L),
+    anchor_p_hi        = c(0.78, 0.85),
     calibration_status = "calibrated_from_literature",
     stringsAsFactors   = FALSE
   )
@@ -55,8 +55,9 @@
 local({
   d <- .urps_lfp_params_df()
 
-  p_logistic <- function(intercept, b_age, age)
+  p_logistic <- function(intercept, b_age, age) {
     1 / (1 + exp(-(intercept + b_age * age)))
+  }
 
   stopifnot(
     "LFP params must have exactly 2 rows (female and male)" =
@@ -64,33 +65,42 @@ local({
     "sex must be 'female' and 'male'" =
       setequal(d$sex, c("female", "male")),
     "required columns present" =
-      all(c("intercept", "b_age", "anchor_age_lo", "anchor_p_lo",
-            "anchor_age_hi", "anchor_p_hi", "calibration_status") %in% names(d)),
+      all(c(
+        "intercept", "b_age", "anchor_age_lo", "anchor_p_lo",
+        "anchor_age_hi", "anchor_p_hi", "calibration_status"
+      ) %in% names(d)),
     "b_age must be negative (participation declines with age)" =
       all(d$b_age < 0),
     "anchor P values must be in (0, 1)" =
       all(d$anchor_p_lo > 0 & d$anchor_p_lo < 1 &
-          d$anchor_p_hi > 0 & d$anchor_p_hi < 1),
+        d$anchor_p_hi > 0 & d$anchor_p_hi < 1),
     "anchor_p_lo must exceed anchor_p_hi (participation falls with age)" =
       all(d$anchor_p_lo > d$anchor_p_hi),
     "male P(active) must exceed female P(active) at anchor ages" = {
-      r_f <- d[d$sex == "female", ]; r_m <- d[d$sex == "male", ]
+      r_f <- d[d$sex == "female", ]
+      r_m <- d[d$sex == "male", ]
       p_logistic(r_m$intercept, r_m$b_age, r_m$anchor_age_lo) >
         p_logistic(r_f$intercept, r_f$b_age, r_f$anchor_age_lo) &&
-      p_logistic(r_m$intercept, r_m$b_age, r_m$anchor_age_hi) >
-        p_logistic(r_f$intercept, r_f$b_age, r_f$anchor_age_hi)
+        p_logistic(r_m$intercept, r_m$b_age, r_m$anchor_age_hi) >
+          p_logistic(r_f$intercept, r_f$b_age, r_f$anchor_age_hi)
     },
     "coefficients must reproduce low anchor P within 1e-6" = {
       tol <- 1e-6
-      all(mapply(function(a, p, int, b)
-        abs(p_logistic(int, b, a) - p) < tol,
-        d$anchor_age_lo, d$anchor_p_lo, d$intercept, d$b_age))
+      all(mapply(
+        function(a, p, int, b) {
+          abs(p_logistic(int, b, a) - p) < tol
+        },
+        d$anchor_age_lo, d$anchor_p_lo, d$intercept, d$b_age
+      ))
     },
     "coefficients must reproduce high anchor P within 1e-6" = {
       tol <- 1e-6
-      all(mapply(function(a, p, int, b)
-        abs(p_logistic(int, b, a) - p) < tol,
-        d$anchor_age_hi, d$anchor_p_hi, d$intercept, d$b_age))
+      all(mapply(
+        function(a, p, int, b) {
+          abs(p_logistic(int, b, a) - p) < tol
+        },
+        d$anchor_age_hi, d$anchor_p_hi, d$intercept, d$b_age
+      ))
     },
     "LFP version must be semver" =
       grepl("^[0-9]+\\.[0-9]+\\.[0-9]+$", .URPS_LFP_VERSION)
@@ -143,7 +153,8 @@ urps_lfp_params <- function() {
     "ACOG 2021 Workforce Survey (active vs. inactive by age and sex, OB/GYN subspecialists);",
     "AMA 2022 Physician Practice Benchmark Survey (labor force status by age and sex);",
     "IHS Markit HWMM v5.19.20 Exhibit 16 (odds ratios predicting probability active).",
-    "Sharpen with: ABOG lapse/recertification panel or URPS practice survey.")
+    "Sharpen with: ABOG lapse/recertification panel or URPS practice survey."
+  )
   attr(d, "formula") <-
     "logit(P(active)) = intercept + b_age * age;  P = 1 / (1 + exp(-logit))"
   d
@@ -152,15 +163,18 @@ urps_lfp_params <- function() {
 # Internal: validate sex and return row indices into the params table.
 # Vectorized: sex may be length-1 or the same length as age.
 .urps_lfp_sex_index <- function(sex) {
-  if (!is.character(sex) || length(sex) < 1L)
+  if (!is.character(sex) || length(sex) < 1L) {
     stop("[urps_lfp] `sex` must be a non-empty character vector.", call. = FALSE)
-  d   <- .urps_lfp_params_df()
+  }
+  d <- .urps_lfp_params_df()
   idx <- match(sex, d$sex)
   bad <- unique(sex[is.na(idx)])
-  if (length(bad))
+  if (length(bad)) {
     stop(sprintf(
       "[urps_lfp] unknown sex value(s): %s (must be 'female' or 'male').",
-      paste(bad, collapse = ", ")), call. = FALSE)
+      paste(bad, collapse = ", ")
+    ), call. = FALSE)
+  }
   idx
 }
 
@@ -188,19 +202,21 @@ urps_lfp_params <- function() {
 #'   [urps_fte_weight_sex()]
 #' @family URPS LFP
 #' @examples
-#' urps_p_active(40, "female")   # ~0.97
-#' urps_p_active(65, "male")     # ~0.85
+#' urps_p_active(40, "female") # ~0.97
+#' urps_p_active(65, "male") # ~0.85
 #' urps_p_active(35:75, "female")
 #' # mixed-sex cohort:
 #' urps_p_active(c(45, 50), c("female", "male"))
 #' @export
 urps_p_active <- function(age, sex) {
-  if (!(is.numeric(age) || is.integer(age)) || length(age) < 1L)
+  if (!(is.numeric(age) || is.integer(age)) || length(age) < 1L) {
     stop("[urps_p_active] `age` must be a non-empty numeric or integer vector.",
-         call. = FALSE)
-  d   <- .urps_lfp_params_df()
+      call. = FALSE
+    )
+  }
+  d <- .urps_lfp_params_df()
   idx <- .urps_lfp_sex_index(sex)
-  a   <- as.numeric(age)
+  a <- as.numeric(age)
   logit <- d$intercept[idx] + d$b_age[idx] * a
   1 / (1 + exp(-logit))
 }
@@ -222,11 +238,13 @@ urps_p_active <- function(age, sex) {
 #' urps_lfp_curve("male", age_range = 40:70)
 #' @export
 urps_lfp_curve <- function(sex, age_range = 35:80) {
-  if (!(is.numeric(age_range) || is.integer(age_range)) || length(age_range) < 1L)
+  if (!(is.numeric(age_range) || is.integer(age_range)) || length(age_range) < 1L) {
     stop("[urps_lfp_curve] `age_range` must be a non-empty numeric or integer vector.",
-         call. = FALSE)
+      call. = FALSE
+    )
+  }
   data.frame(
-    age      = as.integer(age_range),
+    age = as.integer(age_range),
     p_active = urps_p_active(age_range, sex),
     stringsAsFactors = FALSE
   )
@@ -260,15 +278,19 @@ urps_lfp_curve <- function(sex, age_range = 35:80) {
 #'   age = c(45L, 62L, 45L, 62L),
 #'   sex = c("female", "female", "male", "male"),
 #'   pathway = c("ABOG", "ABOG", "ABU", "ABU"),
-#'   certified_n = c(350, 150, 100, 40))
+#'   certified_n = c(350, 150, 100, 40)
+#' )
 #' urps_apply_lfp(cohort)
 #' @export
 urps_apply_lfp <- function(cohort) {
   need <- c("age", "sex", "certified_n")
   miss <- setdiff(need, names(cohort))
-  if (length(miss))
-    stop(sprintf("[urps_apply_lfp] missing required column(s): %s.",
-                 paste(miss, collapse = ", ")), call. = FALSE)
+  if (length(miss)) {
+    stop(sprintf(
+      "[urps_apply_lfp] missing required column(s): %s.",
+      paste(miss, collapse = ", ")
+    ), call. = FALSE)
+  }
   cohort$practicing_n <- cohort$certified_n * urps_p_active(cohort$age, cohort$sex)
   cohort
 }

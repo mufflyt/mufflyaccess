@@ -18,8 +18,8 @@ CONUS_STATE_FIPS
 Contiguous-US state FIPS codes (48 states + DC)
 }
 \examples{
-length(CONUS_STATE_FIPS)          # 49 (48 states + DC)
-"02" \%in\% CONUS_STATE_FIPS        # FALSE (Alaska is non-contiguous)
+length(CONUS_STATE_FIPS) # 49 (48 states + DC)
+"02" \%in\% CONUS_STATE_FIPS # FALSE (Alaska is non-contiguous)
 }
 \seealso{
 \link{CONUS_STATE_ABBR} (the derived USPS form), \link{NON_CONTIGUOUS_FIPS}

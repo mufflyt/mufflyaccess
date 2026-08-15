@@ -30,7 +30,8 @@ cs <- data.frame(
   age     = c(45L, 62L, 45L, 62L),
   sex     = c("female", "female", "male", "male"),
   pathway = c("ABOG", "ABOG", "ABU", "ABU"),
-  n       = c(350, 150, 100, 40))
+  n       = c(350, 150, 100, 40)
+)
 urps_fte_scale_sex(cs)
 }
 \seealso{

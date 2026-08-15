@@ -36,8 +36,8 @@ schema, unique + complete 2013-2023 years, 64-hex hashes, and the
 \code{combined_active == abog_active + abu_net_new} identity.
 }
 \examples{
-validate_urps_ssot()                     # the active artifact
-validate_urps_ssot(urps_counts())        # a wide counts table
+validate_urps_ssot() # the active artifact
+validate_urps_ssot(urps_counts()) # a wide counts table
 # release gate (errors on the bundled bootstrap):
 try(validate_urps_ssot(require_external = TRUE, require_contract_version = "3.0.0"))
 }

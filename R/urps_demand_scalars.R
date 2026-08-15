@@ -35,32 +35,38 @@
 #              availability; requires state-level DUA)
 # ==============================================================================
 
-.URPS_DEMAND_SCALARS_VERSION <- "0.2.0"  # pre-calibration; bump to 1.0.0 on first fit
+.URPS_DEMAND_SCALARS_VERSION <- "0.2.0" # pre-calibration; bump to 1.0.0 on first fit
 
 .urps_demand_scalars_df <- function() {
   data.frame(
-    specialty            = "URPS",
-    setting              = c("office", "outpatient", "home_health", "inpatient", "ed",
-                             "retail_clinic"),
-    scalar               = c(1.0,      1.0,          1.0,          1.0,         1.0,
-                             1.0),
-    calibration_source   = c(
-      "NAMCS_2023",     # office         -- 2023 data available at CDC
-      "HCUP_SASD",      # outpatient     -- NHAMCS-OPD discontinued after 2017; use SASD (AHRQ DUA required)
-      "MEPS_2023",      # home_health    -- 2023 data available via IPUMS
-      "HCUP_NIS_2023",  # inpatient      -- NIS 2023 confirmed at hcup-us.ahrq.gov
-      "NHAMCS_ED_2022", # ed             -- NHAMCS ended after 2022; 2022 ED data is the final release
-      "NAMCS_2023"      # retail_clinic  -- retail health clinic visits (NAMCS supplement)
+    specialty = "URPS",
+    setting = c(
+      "office", "outpatient", "home_health", "inpatient", "ed",
+      "retail_clinic"
     ),
-    calibration_status   = "not_calibrated",
-    stringsAsFactors     = FALSE
+    scalar = c(
+      1.0, 1.0, 1.0, 1.0, 1.0,
+      1.0
+    ),
+    calibration_source = c(
+      "NAMCS_2023", # office         -- 2023 data available at CDC
+      "HCUP_SASD", # outpatient     -- NHAMCS-OPD discontinued after 2017; use SASD (AHRQ DUA required)
+      "MEPS_2023", # home_health    -- 2023 data available via IPUMS
+      "HCUP_NIS_2023", # inpatient      -- NIS 2023 confirmed at hcup-us.ahrq.gov
+      "NHAMCS_ED_2022", # ed             -- NHAMCS ended after 2022; 2022 ED data is the final release
+      "NAMCS_2023" # retail_clinic  -- retail health clinic visits (NAMCS supplement)
+    ),
+    calibration_status = "not_calibrated",
+    stringsAsFactors = FALSE
   )
 }
 
 local({
   d <- .urps_demand_scalars_df()
-  expected_settings <- c("office", "outpatient", "home_health", "inpatient", "ed",
-                         "retail_clinic")
+  expected_settings <- c(
+    "office", "outpatient", "home_health", "inpatient", "ed",
+    "retail_clinic"
+  )
   stopifnot(
     "demand scalars must have exactly 6 rows" =
       nrow(d) == 6L,
@@ -127,7 +133,8 @@ urps_demand_scalars <- function() {
     "HCUP NIS 2023 -- AHRQ National Inpatient Sample (hospitalizations);",
     "HCUP SASD -- State Ambulatory Surgery and Services Databases (outpatient; AHRQ DUA required);",
     "MEPS 2023 home health module (home health visits).",
-    "URPS-specific scalars pending data acquisition and specialty-code extraction.")
+    "URPS-specific scalars pending data acquisition and specialty-code extraction."
+  )
   attr(d, "formula_note") <-
     "scalar(setting) = NAMCS/NIS_total(setting) / sum_i(exp(Xb_i))"
   d
@@ -144,16 +151,20 @@ urps_demand_scalars <- function() {
 #' @seealso [urps_demand_scalars()]
 #' @family URPS demand
 #' @examples
-#' urps_demand_scalar("office")     # 1.0 until calibrated
+#' urps_demand_scalar("office") # 1.0 until calibrated
 #' urps_demand_scalar("inpatient")
 #' @export
 urps_demand_scalar <- function(setting) {
   d <- .urps_demand_scalars_df()
-  if (!is.character(setting) || length(setting) != 1L || is.na(setting))
+  if (!is.character(setting) || length(setting) != 1L || is.na(setting)) {
     stop("[urps_demand_scalar] `setting` must be a single string.", call. = FALSE)
+  }
   i <- match(setting, d$setting)
-  if (is.na(i))
-    stop(sprintf("[urps_demand_scalar] unknown setting '%s'; must be one of: %s.",
-                 setting, paste(d$setting, collapse = ", ")), call. = FALSE)
+  if (is.na(i)) {
+    stop(sprintf(
+      "[urps_demand_scalar] unknown setting '%s'; must be one of: %s.",
+      setting, paste(d$setting, collapse = ", ")
+    ), call. = FALSE)
+  }
   d$scalar[i]
 }

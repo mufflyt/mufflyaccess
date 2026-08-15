@@ -23,7 +23,7 @@ migration approach. Currently a placeholder identical to
 }
 \examples{
 shares <- urps_state_entrant_shares()
-sum(shares)    # 1
+sum(shares) # 1
 shares[["TX"]] # Texas share
 
 }

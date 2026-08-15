@@ -7,8 +7,10 @@ library(testthat)
 test_that("params table has required columns, 4 rows, and valid calibrated values", {
   d <- urps_retirement_params()
   expect_s3_class(d, "data.frame")
-  expect_setequal(names(d),
-    c("sex", "certification_pathway", "mu_years", "sigma_years", "calibration_status"))
+  expect_setequal(
+    names(d),
+    c("sex", "certification_pathway", "mu_years", "sigma_years", "calibration_status")
+  )
   expect_equal(nrow(d), 4L)
   expect_setequal(d$sex, c("female", "male"))
   expect_setequal(d$certification_pathway, c("ABOG", "ABU"))
@@ -30,9 +32,10 @@ test_that("female mu is less than male mu for each pathway (female physicians re
   d <- urps_retirement_params()
   for (pw in c("ABOG", "ABU")) {
     mu_f <- d$mu_years[d$sex == "female" & d$certification_pathway == pw]
-    mu_m <- d$mu_years[d$sex == "male"   & d$certification_pathway == pw]
+    mu_m <- d$mu_years[d$sex == "male" & d$certification_pathway == pw]
     expect_lt(mu_f, mu_m,
-      label = sprintf("female mu < male mu for %s", pw))
+      label = sprintf("female mu < male mu for %s", pw)
+    )
   }
 })
 
@@ -42,20 +45,24 @@ test_that("at age == mu, p_still_active equals exactly 0.5 (logistic definition)
   d <- urps_retirement_params()
   for (i in seq_len(nrow(d))) {
     p <- urps_p_still_active(d$mu_years[i], d$sex[i], d$certification_pathway[i])
-    expect_equal(p, 0.5, tolerance = 1e-9,
-      label = sprintf("p_still_active at mu for %s/%s", d$sex[i], d$certification_pathway[i]))
+    expect_equal(p, 0.5,
+      tolerance = 1e-9,
+      label = sprintf("p_still_active at mu for %s/%s", d$sex[i], d$certification_pathway[i])
+    )
   }
 })
 
 test_that("survival is near 1 at age 35 and near 0 at age 90 for all groups", {
   d <- urps_retirement_params()
   for (i in seq_len(nrow(d))) {
-    s_low  <- urps_p_still_active(35, d$sex[i], d$certification_pathway[i])
+    s_low <- urps_p_still_active(35, d$sex[i], d$certification_pathway[i])
     s_high <- urps_p_still_active(90, d$sex[i], d$certification_pathway[i])
     expect_gt(s_low, 0.99,
-      label = sprintf("S(35) > 0.99 for %s/%s", d$sex[i], d$certification_pathway[i]))
+      label = sprintf("S(35) > 0.99 for %s/%s", d$sex[i], d$certification_pathway[i])
+    )
     expect_lt(s_high, 0.01,
-      label = sprintf("S(90) < 0.01 for %s/%s", d$sex[i], d$certification_pathway[i]))
+      label = sprintf("S(90) < 0.01 for %s/%s", d$sex[i], d$certification_pathway[i])
+    )
   }
 })
 
@@ -67,9 +74,10 @@ test_that("survival is strictly decreasing with age (monotone)", {
 test_that("female p_still_active is lower than male at the same mid-retirement age", {
   for (pw in c("ABOG", "ABU")) {
     s_f <- urps_p_still_active(65, "female", pw)
-    s_m <- urps_p_still_active(65, "male",   pw)
+    s_m <- urps_p_still_active(65, "male", pw)
     expect_lt(s_f, s_m,
-      label = sprintf("female < male survival at 65 for %s", pw))
+      label = sprintf("female < male survival at 65 for %s", pw)
+    )
   }
 })
 
@@ -78,9 +86,11 @@ test_that("urps_p_still_active is correctly vectorized over age", {
   expect_length(out, 46L)
   expect_equal(
     urps_p_still_active(c(60, 65, 70), "female", "ABU"),
-    c(urps_p_still_active(60, "female", "ABU"),
+    c(
+      urps_p_still_active(60, "female", "ABU"),
       urps_p_still_active(65, "female", "ABU"),
-      urps_p_still_active(70, "female", "ABU"))
+      urps_p_still_active(70, "female", "ABU")
+    )
   )
 })
 
@@ -88,28 +98,28 @@ test_that("urps_p_still_active is correctly vectorized over age", {
 
 test_that("retirement_shift_years = 2 at age 68 matches shift = 0 at age 66", {
   # effective_age = age - shift_years = 68 - 2 = 66 — same computation
-  p_shifted  <- urps_p_still_active(68, "female", "ABOG", retirement_shift_years = 2L)
+  p_shifted <- urps_p_still_active(68, "female", "ABOG", retirement_shift_years = 2L)
   p_baseline <- urps_p_still_active(66, "female", "ABOG", retirement_shift_years = 0L)
   expect_equal(p_shifted, p_baseline, tolerance = 1e-12)
 })
 
 test_that("retirement_shift_years = -2 at age 64 matches shift = 0 at age 66", {
-  p_shifted  <- urps_p_still_active(64, "male", "ABOG", retirement_shift_years = -2L)
+  p_shifted <- urps_p_still_active(64, "male", "ABOG", retirement_shift_years = -2L)
   p_baseline <- urps_p_still_active(66, "male", "ABOG", retirement_shift_years = 0L)
   expect_equal(p_shifted, p_baseline, tolerance = 1e-12)
 })
 
 test_that("shift = -2 (retire earlier) produces lower survival than baseline at mid ages", {
-  ages     <- 60:72
-  s_early  <- urps_p_still_active(ages, "female", "ABOG", retirement_shift_years = -2L)
-  s_base   <- urps_p_still_active(ages, "female", "ABOG", retirement_shift_years =  0L)
+  ages <- 60:72
+  s_early <- urps_p_still_active(ages, "female", "ABOG", retirement_shift_years = -2L)
+  s_base <- urps_p_still_active(ages, "female", "ABOG", retirement_shift_years = 0L)
   expect_true(all(s_early < s_base))
 })
 
 test_that("shift = +2 (retire later) produces higher survival than baseline at mid ages", {
-  ages    <- 60:72
-  s_late  <- urps_p_still_active(ages, "male", "ABOG", retirement_shift_years = 2L)
-  s_base  <- urps_p_still_active(ages, "male", "ABOG", retirement_shift_years = 0L)
+  ages <- 60:72
+  s_late <- urps_p_still_active(ages, "male", "ABOG", retirement_shift_years = 2L)
+  s_base <- urps_p_still_active(ages, "male", "ABOG", retirement_shift_years = 0L)
   expect_true(all(s_late > s_base))
 })
 
@@ -117,13 +127,13 @@ test_that("scenario lever values from urps_scenario() integrate correctly", {
   shift_e <- urps_scenario("retire_2yr_earlier")$retirement_shift_years
   shift_l <- urps_scenario("retire_2yr_later")$retirement_shift_years
   expect_equal(shift_e, -2L)
-  expect_equal(shift_l,  2L)
+  expect_equal(shift_l, 2L)
   # at mu=65: earlier -> lower, later -> higher
   s_earlier <- urps_p_still_active(65, "female", "ABOG", retirement_shift_years = shift_e)
   s_baseline <- urps_p_still_active(65, "female", "ABOG")
-  s_later   <- urps_p_still_active(65, "female", "ABOG", retirement_shift_years = shift_l)
+  s_later <- urps_p_still_active(65, "female", "ABOG", retirement_shift_years = shift_l)
   expect_lt(s_earlier, s_baseline)
-  expect_gt(s_later,   s_baseline)
+  expect_gt(s_later, s_baseline)
 })
 
 # ---- urps_retirement_hazard --------------------------------------------------
@@ -133,9 +143,11 @@ test_that("annual_hazard is non-negative and at most 1 everywhere", {
     for (sx in c("female", "male")) {
       h <- urps_retirement_hazard(35:85, sx, pw)
       expect_true(all(h >= 0),
-        label = sprintf("h >= 0 for %s/%s", sx, pw))
+        label = sprintf("h >= 0 for %s/%s", sx, pw)
+      )
       expect_true(all(h <= 1),
-        label = sprintf("h <= 1 for %s/%s", sx, pw))
+        label = sprintf("h <= 1 for %s/%s", sx, pw)
+      )
     }
   }
 })
@@ -147,23 +159,24 @@ test_that("hazard is monotonically increasing with age (logistic IFR property)",
   for (i in seq_len(nrow(d))) {
     h <- urps_retirement_hazard(35:85, d$sex[i], d$certification_pathway[i])
     expect_true(all(diff(h) > 0),
-      label = sprintf("hazard monotone increasing for %s/%s", d$sex[i], d$certification_pathway[i]))
+      label = sprintf("hazard monotone increasing for %s/%s", d$sex[i], d$certification_pathway[i])
+    )
   }
 })
 
 test_that("hazard is consistent with the survival function: h = (S(age-1) - S(age)) / S(age-1)", {
   ages <- 55:75
   s_prev <- urps_p_still_active(ages - 1, "female", "ABOG")
-  s_curr <- urps_p_still_active(ages,     "female", "ABOG")
+  s_curr <- urps_p_still_active(ages, "female", "ABOG")
   expected_h <- (s_prev - s_curr) / s_prev
-  actual_h   <- urps_retirement_hazard(ages, "female", "ABOG")
+  actual_h <- urps_retirement_hazard(ages, "female", "ABOG")
   expect_equal(actual_h, pmin(pmax(expected_h, 0), 1), tolerance = 1e-12)
 })
 
 test_that("shift = -2 produces higher hazard than baseline at mid-retirement ages", {
-  ages    <- 60:70
+  ages <- 60:70
   h_early <- urps_retirement_hazard(ages, "female", "ABOG", retirement_shift_years = -2L)
-  h_base  <- urps_retirement_hazard(ages, "female", "ABOG", retirement_shift_years =  0L)
+  h_base <- urps_retirement_hazard(ages, "female", "ABOG", retirement_shift_years = 0L)
   expect_true(all(h_early > h_base))
 })
 
@@ -185,11 +198,16 @@ test_that("urps_survival_curve respects a custom age_range", {
 
 test_that("urps_survival_curve values match the component functions", {
   curve <- urps_survival_curve("female", "ABU",
-    retirement_shift_years = -2L, age_range = 55:75)
-  expect_equal(curve$p_still_active,
-    urps_p_still_active(55:75, "female", "ABU", retirement_shift_years = -2L))
-  expect_equal(curve$annual_hazard,
-    urps_retirement_hazard(55:75, "female", "ABU", retirement_shift_years = -2L))
+    retirement_shift_years = -2L, age_range = 55:75
+  )
+  expect_equal(
+    curve$p_still_active,
+    urps_p_still_active(55:75, "female", "ABU", retirement_shift_years = -2L)
+  )
+  expect_equal(
+    curve$annual_hazard,
+    urps_retirement_hazard(55:75, "female", "ABU", retirement_shift_years = -2L)
+  )
 })
 
 test_that("p_still_active in survival_curve is strictly decreasing with age", {
@@ -207,8 +225,8 @@ test_that("URPS_RETIREMENT_CURVE_VERSION is a semver string", {
 
 test_that("unknown sex produces a hard error mentioning 'female' and 'male'", {
   expect_error(urps_p_still_active(65, "nonbinary", "ABOG"), "female.*male|male.*female")
-  expect_error(urps_retirement_hazard(65, "F", "ABOG"),      "female.*male|male.*female")
-  expect_error(urps_survival_curve("Male", "ABOG"),          "female.*male|male.*female")
+  expect_error(urps_retirement_hazard(65, "F", "ABOG"), "female.*male|male.*female")
+  expect_error(urps_survival_curve("Male", "ABOG"), "female.*male|male.*female")
 })
 
 test_that("unknown pathway produces a hard error mentioning 'ABOG' and 'ABU'", {
@@ -218,7 +236,7 @@ test_that("unknown pathway produces a hard error mentioning 'ABOG' and 'ABU'", {
 })
 
 test_that("non-finite retirement_shift_years produces a hard error", {
-  expect_error(urps_p_still_active(65, "female", "ABOG", Inf),  "finite")
-  expect_error(urps_p_still_active(65, "female", "ABOG", NA),   "finite")
-  expect_error(urps_retirement_hazard(65, "male", "ABU",  NaN), "finite")
+  expect_error(urps_p_still_active(65, "female", "ABOG", Inf), "finite")
+  expect_error(urps_p_still_active(65, "female", "ABOG", NA), "finite")
+  expect_error(urps_retirement_hazard(65, "male", "ABU", NaN), "finite")
 })

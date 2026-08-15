@@ -89,15 +89,17 @@ documents the list contract.
 my_project_fn <- function(scenario_id, years, param_draw) {
   # apply param_draw perturbations inside your projection engine
   data.frame(
-    year             = years,
-    scenario_id      = scenario_id,
+    year = years,
+    scenario_id = scenario_id,
     supply_headcount = seq(1300, 1200, length.out = length(years)) *
       param_draw$entrant_scale,
     supply_clinical_fte = NA_real_
   )
 }
-ci <- urps_projection_ci(my_project_fn, scenarios = "baseline",
-                          years = 2025:2035, B = 50, seed = 1L)
+ci <- urps_projection_ci(my_project_fn,
+  scenarios = "baseline",
+  years = 2025:2035, B = 50, seed = 1L
+)
 head(ci)
 }
 }

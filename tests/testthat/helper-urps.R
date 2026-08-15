@@ -10,7 +10,9 @@ urps_fixture_dir <- function(name = "isochrones-v3.0.0") {
 # Resolve the real release: an env-pinned checkout (CI) else the checked-in fixture.
 real_isochrones_artifact_path <- function() {
   env <- Sys.getenv("MUFFLYACCESS_URPS_ARTIFACT_DIR", "")
-  if (nzchar(env) && file.exists(file.path(env, "urps_counts_by_year.csv"))) return(env)
+  if (nzchar(env) && file.exists(file.path(env, "urps_counts_by_year.csv"))) {
+    return(env)
+  }
   urps_fixture_dir()
 }
 
@@ -37,7 +39,8 @@ read_isochrones_manifest <- function(path) {
 }
 read_urps_counts_csv <- function(path) {
   utils::read.csv(file.path(path, "urps_counts_by_year.csv"),
-                  stringsAsFactors = FALSE, na.strings = c("", "NA"))
+    stringsAsFactors = FALSE, na.strings = c("", "NA")
+  )
 }
 
 # edit the manifest in place with a function(manifest) -> manifest
@@ -68,15 +71,16 @@ mutate_counts <- function(path, fn) {
 mutate_count_cell <- function(path, year, measure, geography, pathway, value) {
   mutate_counts(path, function(d) {
     i <- d$year == year & d$measure == measure & d$geography == geography &
-         d$board_pathway == pathway
+      d$board_pathway == pathway
     d$n_active[i] <- value
     d
   })
 }
 # drop all rows for a measure x geography
 remove_count_cells <- function(path, measure, geography) {
-  mutate_counts(path, function(d)
-    d[!(d$measure == measure & d$geography == geography), , drop = FALSE])
+  mutate_counts(path, function(d) {
+    d[!(d$measure == measure & d$geography == geography), , drop = FALSE]
+  })
 }
 
 # recompute the CSV SHA-256 into the manifest so ONLY semantics (not the
@@ -86,8 +90,9 @@ refresh_fixture_hashes <- function(path) {
   csv <- file.path(path, "urps_counts_by_year.csv")
   sha <- digest::digest(file = csv, algo = "sha256")
   edit_manifest(path, function(m) {
-    if (!is.null(m$output_files) && !is.null(m$output_files$urps_counts_by_year_csv))
+    if (!is.null(m$output_files) && !is.null(m$output_files$urps_counts_by_year_csv)) {
       m$output_files$urps_counts_by_year_csv$sha256 <- sha
+    }
     if (!is.null(m$artifact_sha256)) m$artifact_sha256 <- sha
     m
   })
@@ -97,10 +102,12 @@ refresh_fixture_hashes <- function(path) {
 read_provider_parquet <- function(path) {
   pq <- file.path(path, "urps_provider_snapshot.parquet")
   testthat::skip_if(!file.exists(pq), "no provider parquet in artifact")
-  if (requireNamespace("arrow", quietly = TRUE))
+  if (requireNamespace("arrow", quietly = TRUE)) {
     return(as.data.frame(arrow::read_parquet(pq)))
-  if (requireNamespace("nanoparquet", quietly = TRUE))
+  }
+  if (requireNamespace("nanoparquet", quietly = TRUE)) {
     return(as.data.frame(nanoparquet::read_parquet(pq)))
+  }
   testthat::skip("no parquet reader (arrow / nanoparquet) available")
 }
 
@@ -116,15 +123,19 @@ mutate_future_provider_activity <- function(path, active) {
   # BOTH cert columns + active_2023 so a genuinely future-certified provider is
   # made active-in-2023 regardless of the keying column (mutating only the primary
   # certification_year is inert under v3.0.0 and the rejection never fires).
-  cert_col <- if ("urps_subspecialty_cert_year" %in% names(d)) "urps_subspecialty_cert_year"
-              else "certification_year"
-  cy  <- suppressWarnings(as.integer(d[[cert_col]]))
+  cert_col <- if ("urps_subspecialty_cert_year" %in% names(d)) {
+    "urps_subspecialty_cert_year"
+  } else {
+    "certification_year"
+  }
+  cy <- suppressWarnings(as.integer(d[[cert_col]]))
   fut <- !is.na(cy) & cy >= 2024L
   if (isTRUE(active) && any(fut)) {
-    for (col in intersect(c("urps_subspecialty_cert_year", "certification_year"), names(d)))
+    for (col in intersect(c("urps_subspecialty_cert_year", "certification_year"), names(d))) {
       d[[col]][fut] <- 2023L
-    if ("active_2023"     %in% names(d)) d$active_2023[fut]     <- TRUE
-    if ("retirement_year" %in% names(d)) d$retirement_year[fut] <- NA  # ensure counted active
+    }
+    if ("active_2023" %in% names(d)) d$active_2023[fut] <- TRUE
+    if ("retirement_year" %in% names(d)) d$retirement_year[fut] <- NA # ensure counted active
   }
   arrow::write_parquet(d, pq)
   invisible(path)

@@ -17,8 +17,8 @@ Integer scalar -- \link{PRIMARY_ACCESS_BAND_MIN} (60) or
 Return the primary access band in the requested units.
 }
 \examples{
-get_primary_access_band()         # 60  (minutes)
-get_primary_access_band("sec")    # 3600 (seconds)
+get_primary_access_band() # 60  (minutes)
+get_primary_access_band("sec") # 3600 (seconds)
 }
 \seealso{
 \code{\link[=get_canonical_bands]{get_canonical_bands()}}, \link{PRIMARY_ACCESS_BAND_MIN}

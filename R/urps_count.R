@@ -27,12 +27,12 @@
 
 `%||%` <- function(a, b) if (is.null(a) || length(a) == 0L) b else a
 
-.urps_measures        <- c("board_certified_active", "roster_snapshot")
-.urps_geographies     <- c("national", "conus")
-.urps_pathways        <- c("ABOG", "ABU_NET_NEW", "ABOG_PLUS_ABU")
-.urps_bca_years       <- 2013:2023
-.urps_snapshot_year   <- 2025L
-.urps_contract_majors <- 3L                       # supported major contract version (current; v2.x retired)
+.urps_measures <- c("board_certified_active", "roster_snapshot")
+.urps_geographies <- c("national", "conus")
+.urps_pathways <- c("ABOG", "ABU_NET_NEW", "ABOG_PLUS_ABU")
+.urps_bca_years <- 2013:2023
+.urps_snapshot_year <- 2025L
+.urps_contract_majors <- 3L # supported major contract version (current; v2.x retired)
 
 # ---- artifact resolution ----------------------------------------------------
 
@@ -42,11 +42,17 @@
 }
 
 .urps_dir_error <- function(dir) {
-  if (is.null(dir) || !nzchar(dir)) return("empty path")
-  if (!dir.exists(dir)) return(sprintf("directory does not exist (%s)", dir))
+  if (is.null(dir) || !nzchar(dir)) {
+    return("empty path")
+  }
+  if (!dir.exists(dir)) {
+    return(sprintf("directory does not exist (%s)", dir))
+  }
   need <- c("urps_counts_by_year.csv", "urps_manifest.json")
   miss <- need[!file.exists(file.path(dir, need))]
-  if (length(miss)) return(sprintf("missing %s", paste(miss, collapse = ", ")))
+  if (length(miss)) {
+    return(sprintf("missing %s", paste(miss, collapse = ", ")))
+  }
   NULL
 }
 
@@ -55,19 +61,31 @@
 .urps_resolve <- function() {
   opt <- getOption("mufflyaccess.urps_artifact_dir", NULL)
   env <- Sys.getenv("MUFFLYACCESS_URPS_ARTIFACT_DIR", "")
-  requested <- if (!is.null(opt) && nzchar(opt)) opt
-               else if (nzchar(env)) env else NULL
+  requested <- if (!is.null(opt) && nzchar(opt)) {
+    opt
+  } else if (nzchar(env)) {
+    env
+  } else {
+    NULL
+  }
   bundled <- .urps_bundled_dir()
-  if (is.null(requested))
+  if (is.null(requested)) {
     return(list(dir = bundled, source = "bundled_bootstrap", error = NULL))
+  }
   err <- .urps_dir_error(requested)
-  if (is.null(err))
+  if (is.null(err)) {
     return(list(dir = requested, source = "external", error = NULL))
-  if (isTRUE(getOption("mufflyaccess.urps_artifact_strict", FALSE)))
-    stop(sprintf("[mufflyaccess] requested URPS artifact is unusable and strict mode is on (%s): %s",
-                 err, requested), call. = FALSE)
-  warning(sprintf("[mufflyaccess] requested URPS artifact is unusable (%s); serving the bundled bootstrap instead: %s",
-                  err, requested), call. = FALSE)
+  }
+  if (isTRUE(getOption("mufflyaccess.urps_artifact_strict", FALSE))) {
+    stop(sprintf(
+      "[mufflyaccess] requested URPS artifact is unusable and strict mode is on (%s): %s",
+      err, requested
+    ), call. = FALSE)
+  }
+  warning(sprintf(
+    "[mufflyaccess] requested URPS artifact is unusable (%s); serving the bundled bootstrap instead: %s",
+    err, requested
+  ), call. = FALSE)
   list(dir = bundled, source = "bundled_bootstrap", error = err)
 }
 
@@ -76,17 +94,21 @@
 .urps_path <- function(file, dir = .urps_artifact_dir()) {
   p <- file.path(dir, file)
   if (!file.exists(p)) {
-    alt <- file.path("inst", "extdata", file)                 # dev (load_all) fallback
-    if (file.exists(alt)) return(alt)
+    alt <- file.path("inst", "extdata", file) # dev (load_all) fallback
+    if (file.exists(alt)) {
+      return(alt)
+    }
   }
   p
 }
 
 .urps_read_long <- function(dir = .urps_artifact_dir()) {
   d <- utils::read.csv(.urps_path("urps_counts_by_year.csv", dir),
-                       stringsAsFactors = FALSE, na.strings = c("", "NA"))
-  for (col in intersect(c("year", "n_active", "n_ever_certified", "n_retired"), names(d)))
-    d[[col]] <- as.integer(d[[col]])                # coerce present numeric columns only
+    stringsAsFactors = FALSE, na.strings = c("", "NA")
+  )
+  for (col in intersect(c("year", "n_active", "n_ever_certified", "n_retired"), names(d))) {
+    d[[col]] <- as.integer(d[[col]])
+  } # coerce present numeric columns only
   d
 }
 
@@ -102,18 +124,24 @@
 # ---- small validators -------------------------------------------------------
 
 .urps_norm_choice <- function(x, arg, known) {
-  if (!is.character(x) || length(x) != 1L || is.na(x))
+  if (!is.character(x) || length(x) != 1L || is.na(x)) {
     stop(sprintf("[urps_count] `%s` must be a single string.", arg), call. = FALSE)
-  x <- tolower(trimws(x))                                     # case/space normalized
-  if (!x %in% known)
-    stop(sprintf("[urps_count] unknown %s '%s'; use one of %s.",
-                 arg, x, paste(known, collapse = ", ")), call. = FALSE)
+  }
+  x <- tolower(trimws(x)) # case/space normalized
+  if (!x %in% known) {
+    stop(sprintf(
+      "[urps_count] unknown %s '%s'; use one of %s.",
+      arg, x, paste(known, collapse = ", ")
+    ), call. = FALSE)
+  }
   x
 }
 
 .urps_semver <- function(v) {
   if (is.null(v) || length(v) != 1L || is.na(v) ||
-      !grepl("^[0-9]+\\.[0-9]+\\.[0-9]+([-+].*)?$", v)) return(NULL)
+    !grepl("^[0-9]+\\.[0-9]+\\.[0-9]+([-+].*)?$", v)) {
+    return(NULL)
+  }
   as.integer(strsplit(sub("[-+].*$", "", v), ".", fixed = TRUE)[[1]])
 }
 
@@ -123,10 +151,12 @@
 }
 
 .urps_parquet_reader <- function() {
-  if (requireNamespace("arrow", quietly = TRUE))
+  if (requireNamespace("arrow", quietly = TRUE)) {
     return(function(p) as.data.frame(arrow::read_parquet(p)))
-  if (requireNamespace("nanoparquet", quietly = TRUE))
+  }
+  if (requireNamespace("nanoparquet", quietly = TRUE)) {
     return(function(p) as.data.frame(nanoparquet::read_parquet(p)))
+  }
   NULL
 }
 
@@ -134,12 +164,18 @@
 
 .urps_release_flags <- function(dir, source) {
   m <- .urps_manifest(dir)
-  is_external    <- identical(source, "external")
-  looks_boot     <- grepl("bootstrap", m$method_version %||% "", ignore.case = TRUE)
-  canonical <- if (!is.null(m$canonical_release)) isTRUE(m$canonical_release)
-               else is_external && !looks_boot
-  suitable  <- if (!is.null(m$suitable_for_release)) isTRUE(m$suitable_for_release)
-               else canonical
+  is_external <- identical(source, "external")
+  looks_boot <- grepl("bootstrap", m$method_version %||% "", ignore.case = TRUE)
+  canonical <- if (!is.null(m$canonical_release)) {
+    isTRUE(m$canonical_release)
+  } else {
+    is_external && !looks_boot
+  }
+  suitable <- if (!is.null(m$suitable_for_release)) {
+    isTRUE(m$suitable_for_release)
+  } else {
+    canonical
+  }
   list(canonical_release = canonical, suitable_for_release = suitable)
 }
 
@@ -148,37 +184,53 @@
 # normalize the manifest's source_files (named list OR data.frame) to a tidy
 # data.frame(name, path, sha256)
 .urps_source_files_df <- function(sf) {
-  if (is.null(sf)) return(NULL)
-  if (is.data.frame(sf))
-    return(data.frame(name = rownames(sf) %||% seq_len(nrow(sf)),
-                      path = sf$path %||% NA_character_, sha256 = sf$sha256 %||% NA_character_,
-                      row.names = NULL, stringsAsFactors = FALSE))
-  if (is.list(sf))
-    return(do.call(rbind, lapply(names(sf), function(nm) data.frame(
-      name = nm, path = sf[[nm]]$path %||% NA_character_,
-      sha256 = sf[[nm]]$sha256 %||% NA_character_, stringsAsFactors = FALSE))))
+  if (is.null(sf)) {
+    return(NULL)
+  }
+  if (is.data.frame(sf)) {
+    return(data.frame(
+      name = rownames(sf) %||% seq_len(nrow(sf)),
+      path = sf$path %||% NA_character_, sha256 = sf$sha256 %||% NA_character_,
+      row.names = NULL, stringsAsFactors = FALSE
+    ))
+  }
+  if (is.list(sf)) {
+    return(do.call(rbind, lapply(names(sf), function(nm) {
+      data.frame(
+        name = nm, path = sf[[nm]]$path %||% NA_character_,
+        sha256 = sf[[nm]]$sha256 %||% NA_character_, stringsAsFactors = FALSE
+      )
+    })))
+  }
   NULL
 }
 
 # live integrity check: recompute the served CSV hash and compare to the manifest
 .urps_integrity <- function(dir, m) {
-  of  <- m$output_files
+  of <- m$output_files
   exp_csv <- m$artifact_sha256 %||% of$urps_counts_by_year_csv$sha256
-  exp_pq  <- of$urps_provider_snapshot_parquet$sha256
+  exp_pq <- of$urps_provider_snapshot_parquet$sha256
   csv <- .urps_path("urps_counts_by_year.csv", dir)
-  pq  <- file.path(dir, "urps_provider_snapshot.parquet")
-  got_csv <- if (requireNamespace("digest", quietly = TRUE) && file.exists(csv))
-    digest::digest(file = csv, algo = "sha256") else NA_character_
-  got_pq  <- if (requireNamespace("digest", quietly = TRUE) && file.exists(pq))
-    digest::digest(file = pq, algo = "sha256") else NA_character_
+  pq <- file.path(dir, "urps_provider_snapshot.parquet")
+  got_csv <- if (requireNamespace("digest", quietly = TRUE) && file.exists(csv)) {
+    digest::digest(file = csv, algo = "sha256")
+  } else {
+    NA_character_
+  }
+  got_pq <- if (requireNamespace("digest", quietly = TRUE) && file.exists(pq)) {
+    digest::digest(file = pq, algo = "sha256")
+  } else {
+    NA_character_
+  }
   list(
     counts_csv_sha256_expected = exp_csv %||% NA_character_,
     counts_csv_sha256_observed = got_csv,
-    counts_csv_verified        = if (is.na(got_csv) || is.null(exp_csv)) NA else identical(got_csv, exp_csv),
-    provider_parquet_present   = file.exists(pq),
+    counts_csv_verified = if (is.na(got_csv) || is.null(exp_csv)) NA else identical(got_csv, exp_csv),
+    provider_parquet_present = file.exists(pq),
     provider_parquet_sha256_expected = exp_pq %||% NA_character_,
     provider_parquet_sha256_observed = got_pq,
-    provider_parquet_verified  = if (is.na(got_pq) || is.null(exp_pq)) NA else identical(got_pq, exp_pq))
+    provider_parquet_verified = if (is.na(got_pq) || is.null(exp_pq)) NA else identical(got_pq, exp_pq)
+  )
 }
 
 # the full provenance chain: source rosters (hashed) -> combined hash -> git
@@ -186,20 +238,21 @@
 # provider-snapshot reconstruction stats -> known limitations.
 .urps_provenance_detail <- function(r, m, ct) {
   list(
-    artifact_dir           = r$dir,
-    created_at             = m$created_at,
-    measure_year           = if (!is.null(m$measure_year)) as.integer(m$measure_year),
-    model_baseline_year    = m$model_baseline_year,
-    roster_snapshot_date   = if (!is.null(m$roster_snapshot_date)) as.Date(m$roster_snapshot_date),
+    artifact_dir = r$dir,
+    created_at = m$created_at,
+    measure_year = if (!is.null(m$measure_year)) as.integer(m$measure_year),
+    model_baseline_year = m$model_baseline_year,
+    roster_snapshot_date = if (!is.null(m$roster_snapshot_date)) as.Date(m$roster_snapshot_date),
     geography_resolution_rule = m$geography_resolution_rule,
-    state_source_counts    = m$state_source_counts,
-    cohort_definition      = m$urps_subspecialty_cert_year,
-    provider_snapshot      = m$provider_snapshot,
-    source_files           = .urps_source_files_df(m$source_files),
+    state_source_counts = m$state_source_counts,
+    cohort_definition = m$urps_subspecialty_cert_year,
+    provider_snapshot = m$provider_snapshot,
+    source_files = .urps_source_files_df(m$source_files),
     combined_source_sha256 = m$combined_source_sha256,
-    output_files           = m$output_files,
-    integrity              = .urps_integrity(r$dir, m),
-    known_limitations      = m$known_limitations)
+    output_files = m$output_files,
+    integrity = .urps_integrity(r$dir, m),
+    known_limitations = m$known_limitations
+  )
 }
 
 # ---- exported API -----------------------------------------------------------
@@ -223,9 +276,9 @@
 #' @family URPS workforce
 #' @examples
 #' \dontrun{
-#' use_urps_artifact("path/to/isochrones/artifacts/workforce")  # validated; fails closed
-#' urps_provenance()$artifact_source                            # "external"
-#' use_urps_artifact(NULL)                                      # back to the bundled bootstrap
+#' use_urps_artifact("path/to/isochrones/artifacts/workforce") # validated; fails closed
+#' urps_provenance()$artifact_source # "external"
+#' use_urps_artifact(NULL) # back to the bundled bootstrap
 #' }
 #' @export
 use_urps_artifact <- function(dir = NULL) {
@@ -235,13 +288,20 @@ use_urps_artifact <- function(dir = NULL) {
   }
   dir <- normalizePath(dir, mustWork = TRUE)
   err <- .urps_dir_error(dir)
-  if (!is.null(err))
+  if (!is.null(err)) {
     stop("[use_urps_artifact] ", err, ": ", dir,
-         "\nThe previous source is unchanged.", call. = FALSE)
-  tryCatch(validate_urps_artifact(dir),                       # validate BEFORE adopting
-           error = function(e)
-             stop("[use_urps_artifact] artifact failed validation; the previous ",
-                  "source is unchanged.\n", conditionMessage(e), call. = FALSE))
+      "\nThe previous source is unchanged.",
+      call. = FALSE
+    )
+  }
+  tryCatch(validate_urps_artifact(dir), # validate BEFORE adopting
+    error = function(e) {
+      stop("[use_urps_artifact] artifact failed validation; the previous ",
+        "source is unchanged.\n", conditionMessage(e),
+        call. = FALSE
+      )
+    }
+  )
   options(mufflyaccess.urps_artifact_dir = dir)
   message("mufflyaccess: using URPS artifact ", dir)
   invisible(dir)
@@ -315,63 +375,79 @@ use_urps_artifact <- function(dir = NULL) {
 #'   [validate_urps_ssot()], [use_urps_artifact()]
 #' @family URPS workforce
 #' @examples
-#' urps_count(2023, "board_certified_active", "national", FALSE)  # 1027 (ABOG only)
-#' urps_count(2023, "board_certified_active", "national", TRUE)   # 1306 (with urology)
-#' urps_count(2023, "board_certified_active", "conus",    TRUE)   # 1303
-#' urps_count(2025, "roster_snapshot",        "national", TRUE)   # 1339 (2025 roster)
+#' urps_count(2023, "board_certified_active", "national", FALSE) # 1027 (ABOG only)
+#' urps_count(2023, "board_certified_active", "national", TRUE) # 1306 (with urology)
+#' urps_count(2023, "board_certified_active", "conus", TRUE) # 1303
+#' urps_count(2025, "roster_snapshot", "national", TRUE) # 1339 (2025 roster)
 #'
 #' # a labelled record for a footnote / caption (never a context-free 1306):
 #' str(urps_count(2023, "board_certified_active", "national", TRUE, details = TRUE))
 #'
 #' # out-of-window requests are hard errors (a measure is only valid in its window):
-#' try(urps_count(2025, "board_certified_active"))  # error: bca is 2013-2023
-#' try(urps_count(2023, "roster_snapshot"))         # error: roster is 2025 only
+#' try(urps_count(2025, "board_certified_active")) # error: bca is 2013-2023
+#' try(urps_count(2023, "roster_snapshot")) # error: roster is 2025 only
 #' @export
 urps_count <- function(year = 2023L, measure = "board_certified_active",
                        geography = "national", include_urology = FALSE,
                        incomplete = c("error", "na"), details = FALSE) {
   incomplete <- match.arg(incomplete)
-  if (length(year) != 1L)   stop("[urps_count] `year` must be a single value.", call. = FALSE)
-  if (!is.numeric(year))    stop("[urps_count] `year` must be an integer/numeric value.", call. = FALSE)
-  if (is.na(year))          stop("[urps_count] `year` must not be NA.", call. = FALSE)
-  measure   <- .urps_norm_choice(measure,   "measure",   .urps_measures)
+  if (length(year) != 1L) stop("[urps_count] `year` must be a single value.", call. = FALSE)
+  if (!is.numeric(year)) stop("[urps_count] `year` must be an integer/numeric value.", call. = FALSE)
+  if (is.na(year)) stop("[urps_count] `year` must not be NA.", call. = FALSE)
+  measure <- .urps_norm_choice(measure, "measure", .urps_measures)
   geography <- .urps_norm_choice(geography, "geography", .urps_geographies)
   if (length(include_urology) != 1L) stop("[urps_count] `include_urology` must be a single logical.", call. = FALSE)
-  if (!is.logical(include_urology))  stop("[urps_count] `include_urology` must be logical.", call. = FALSE)
-  if (is.na(include_urology))        stop("[urps_count] `include_urology` must not be NA.", call. = FALSE)
+  if (!is.logical(include_urology)) stop("[urps_count] `include_urology` must be logical.", call. = FALSE)
+  if (is.na(include_urology)) stop("[urps_count] `include_urology` must not be NA.", call. = FALSE)
 
   year <- as.integer(year)
-  if (measure == "board_certified_active" && !(year %in% .urps_bca_years))
-    stop(sprintf("[urps_count] board_certified_active is defined for %d-%d; year %d is an unsupported year.",
-                 min(.urps_bca_years), max(.urps_bca_years), year), call. = FALSE)
-  if (measure == "roster_snapshot" && year != .urps_snapshot_year)
-    stop(sprintf("[urps_count] roster_snapshot is the %d roster snapshot; year %d is not available for that measure.",
-                 .urps_snapshot_year, year), call. = FALSE)
+  if (measure == "board_certified_active" && !(year %in% .urps_bca_years)) {
+    stop(sprintf(
+      "[urps_count] board_certified_active is defined for %d-%d; year %d is an unsupported year.",
+      min(.urps_bca_years), max(.urps_bca_years), year
+    ), call. = FALSE)
+  }
+  if (measure == "roster_snapshot" && year != .urps_snapshot_year) {
+    stop(sprintf(
+      "[urps_count] roster_snapshot is the %d roster snapshot; year %d is not available for that measure.",
+      .urps_snapshot_year, year
+    ), call. = FALSE)
+  }
 
   d <- .urps_read_long()
   pathway <- if (include_urology) "ABOG_PLUS_ABU" else "ABOG"
   sel <- d$year == year & d$measure == measure &
-         d$geography == geography & d$board_pathway == pathway
+    d$geography == geography & d$board_pathway == pathway
   val <- d$n_active[sel]
   if (length(val) == 0L || is.na(val[1])) {
-    if (incomplete == "na") return(NA_integer_)
-    stop(sprintf("[urps_count] no published %s / %s / %s count for year %d. Pass incomplete = \"na\" for NA.",
-                 measure, geography, pathway, year), call. = FALSE)
+    if (incomplete == "na") {
+      return(NA_integer_)
+    }
+    stop(sprintf(
+      "[urps_count] no published %s / %s / %s count for year %d. Pass incomplete = \"na\" for NA.",
+      measure, geography, pathway, year
+    ), call. = FALSE)
   }
   val <- as.integer(val[1])
-  if (!isTRUE(details)) return(val)
+  if (!isTRUE(details)) {
+    return(val)
+  }
 
-  r <- .urps_resolve(); m <- .urps_manifest(r$dir); ct <- .urps_contract(r$dir)
+  r <- .urps_resolve()
+  m <- .urps_manifest(r$dir)
+  ct <- .urps_contract(r$dir)
   fl <- .urps_release_flags(r$dir, r$source)
-  list(count = val, year = year, measure = measure, geography = geography,
-       include_urology = include_urology, board_pathway = pathway,
-       value_status = if (pathway == "ABOG_PLUS_ABU") "derived" else "observed",
-       snapshot_date = as.Date(d$snapshot_date[sel][1]),
-       contract_version = .urps_effective_contract_version(m, ct),
-       artifact_version = m$artifact_version,
-       source_git_commit = m$git_commit %||% m$source_git_commit,
-       canonical_release = fl$canonical_release,
-       artifact_source = r$source)
+  list(
+    count = val, year = year, measure = measure, geography = geography,
+    include_urology = include_urology, board_pathway = pathway,
+    value_status = if (pathway == "ABOG_PLUS_ABU") "derived" else "observed",
+    snapshot_date = as.Date(d$snapshot_date[sel][1]),
+    contract_version = .urps_effective_contract_version(m, ct),
+    artifact_version = m$artifact_version,
+    source_git_commit = m$git_commit %||% m$source_git_commit,
+    canonical_release = fl$canonical_release,
+    artifact_source = r$source
+  )
 }
 
 #' A wide URPS workforce slice for one measure x geography
@@ -400,39 +476,47 @@ urps_count <- function(year = 2023L, measure = "board_certified_active",
 #' @seealso [urps_count()], [urps_counts_long()], [urps_provenance()]
 #' @family URPS workforce
 #' @examples
-#' urps_counts()                                   # board_certified_active / national
+#' urps_counts() # board_certified_active / national
 #' utils::tail(urps_counts("board_certified_active", "conus"), 3)
 #' @export
 urps_counts <- function(measure = "board_certified_active", geography = "national") {
-  measure   <- .urps_norm_choice(measure,   "measure",   .urps_measures)
+  measure <- .urps_norm_choice(measure, "measure", .urps_measures)
   geography <- .urps_norm_choice(geography, "geography", .urps_geographies)
   d <- .urps_read_long()
   d <- d[d$measure == measure & d$geography == geography, , drop = FALSE]
-  if (!any(d$board_pathway == "ABOG"))
+  if (!any(d$board_pathway == "ABOG")) {
     stop("[mufflyaccess] artifact has no ABOG rows for ", measure, " / ", geography,
-         " -- check the artifact schema (measure/geography/board_pathway casing).", call. = FALSE)
-  ys  <- sort(unique(d$year))
-  nat <- function(y, p) { v <- d$n_active[d$year == y & d$board_pathway == p]
-                          if (length(v) == 1L) as.integer(v) else NA_integer_ }
-  fld <- function(y, col) { v <- d[[col]][d$year == y & d$board_pathway == "ABOG"]
-                            if (length(v)) as.character(v[1]) else NA_character_ }
-  abu  <- vapply(ys, nat, integer(1), p = "ABU_NET_NEW")
+      " -- check the artifact schema (measure/geography/board_pathway casing).",
+      call. = FALSE
+    )
+  }
+  ys <- sort(unique(d$year))
+  nat <- function(y, p) {
+    v <- d$n_active[d$year == y & d$board_pathway == p]
+    if (length(v) == 1L) as.integer(v) else NA_integer_
+  }
+  fld <- function(y, col) {
+    v <- d[[col]][d$year == y & d$board_pathway == "ABOG"]
+    if (length(v)) as.character(v[1]) else NA_character_
+  }
+  abu <- vapply(ys, nat, integer(1), p = "ABU_NET_NEW")
   comb <- vapply(ys, nat, integer(1), p = "ABOG_PLUS_ABU")
   data.frame(
-    year                   = ys,
-    measure                = measure,
-    geography              = geography,
-    abog_active            = vapply(ys, nat, integer(1), p = "ABOG"),
-    abu_net_new            = abu,
-    combined_active        = comb,
-    measure_year           = ys,
-    snapshot_date          = as.Date(vapply(ys, fld, character(1), col = "snapshot_date")),
-    method_version         = vapply(ys, fld, character(1), col = "method_version"),
-    source_sha256          = vapply(ys, fld, character(1), col = "source_sha256"),
-    abog_active_status     = "observed",
-    abu_net_new_status     = ifelse(is.na(abu),  "unavailable", "observed"),
+    year = ys,
+    measure = measure,
+    geography = geography,
+    abog_active = vapply(ys, nat, integer(1), p = "ABOG"),
+    abu_net_new = abu,
+    combined_active = comb,
+    measure_year = ys,
+    snapshot_date = as.Date(vapply(ys, fld, character(1), col = "snapshot_date")),
+    method_version = vapply(ys, fld, character(1), col = "method_version"),
+    source_sha256 = vapply(ys, fld, character(1), col = "source_sha256"),
+    abog_active_status = "observed",
+    abu_net_new_status = ifelse(is.na(abu), "unavailable", "observed"),
     combined_active_status = ifelse(is.na(comb), "unavailable", "derived"),
-    stringsAsFactors = FALSE)
+    stringsAsFactors = FALSE
+  )
 }
 
 #' The complete long URPS workforce table (all measures x geographies)
@@ -450,12 +534,13 @@ urps_counts <- function(measure = "board_certified_active", geography = "nationa
 #' d[d$year == 2023 & d$geography == "national", c("measure", "board_pathway", "n_active")]
 #' @export
 urps_counts_long <- function() {
-  d  <- .urps_read_long()
+  d <- .urps_read_long()
   st <- tryCatch(urps_retirement_status(), error = function(e) "not_ascertained")
   # Unavailable retirement must never be served as a placeholder count (the
   # artifact ships n_retired = 0). Serve it as NA and attach the explicit status.
-  if (!identical(st, "observed") && "n_retired" %in% names(d))
+  if (!identical(st, "observed") && "n_retired" %in% names(d)) {
     d$n_retired <- NA_integer_
+  }
   d$retirement_status <- st
   d
 }
@@ -526,45 +611,49 @@ urps_counts_long <- function() {
 #'
 #' # the full chain, with a live SHA-256 integrity check of the served bytes:
 #' d <- urps_provenance(detailed = TRUE)$detail
-#' d$source_files                      # enriched rosters + hashes
-#' d$cohort_definition$source_counts   # how the active cohort was dated
-#' d$integrity$counts_csv_verified     # TRUE: served bytes match the manifest
+#' d$source_files # enriched rosters + hashes
+#' d$cohort_definition$source_counts # how the active cohort was dated
+#' d$integrity$counts_csv_verified # TRUE: served bytes match the manifest
 #' @export
 urps_provenance <- function(detailed = FALSE) {
-  r  <- .urps_resolve()
-  m  <- .urps_manifest(r$dir)
+  r <- .urps_resolve()
+  m <- .urps_manifest(r$dir)
   ct <- .urps_contract(r$dir)
   fl <- .urps_release_flags(r$dir, r$source)
   sf <- m$source_files
   src_sha <- m$combined_source_sha256 %||%
-    (if (is.data.frame(sf)) sf$sha256[1]
-     else if (is.list(sf) && length(sf)) sf[[1]]$sha256
-     else m$source_sha256)
+    (if (is.data.frame(sf)) {
+      sf$sha256[1]
+    } else if (is.list(sf) && length(sf)) {
+      sf[[1]]$sha256
+    } else {
+      m$source_sha256
+    })
   out <- list(
-    artifact_version          = m$artifact_version,
-    contract_version          = .urps_effective_contract_version(m, ct),
-    artifact_source           = r$source,
-    canonical_release         = fl$canonical_release,
-    suitable_for_release      = fl$suitable_for_release,
-    canonical_2023_estimand   = m$canonical_2023_estimand %||% (if (!is.null(ct)) ct$canonical_2023_estimand),
-    external_artifact_error   = r$error,
-    measure_years             = as.integer(m$measure_years),
-    measures                  = m$measures,
-    geographies               = m$geographies,
-    snapshot_date             = as.Date(m$snapshot_date),
+    artifact_version = m$artifact_version,
+    contract_version = .urps_effective_contract_version(m, ct),
+    artifact_source = r$source,
+    canonical_release = fl$canonical_release,
+    suitable_for_release = fl$suitable_for_release,
+    canonical_2023_estimand = m$canonical_2023_estimand %||% (if (!is.null(ct)) ct$canonical_2023_estimand),
+    external_artifact_error = r$error,
+    measure_years = as.integer(m$measure_years),
+    measures = m$measures,
+    geographies = m$geographies,
+    snapshot_date = as.Date(m$snapshot_date),
     roster_reflects_certifications_through = m$roster_reflects_certifications_through,
-    boards                    = m$boards,
-    geographic_scope          = m$geographic_scope,
+    boards = m$boards,
+    geographic_scope = m$geographic_scope,
     active_in_year_definition = m$active_in_year_definition,
-    deduplication_rule        = m$deduplication_rule,
-    source_sha256             = src_sha,
-    source_git_commit         = m$git_commit %||% m$source_git_commit,
-    git_commit_semantics      = m$git_commit_semantics,
-    source_description        = m$source_description,
-    source_systems            = m$source_systems,
-    retired_cells             = m$retired_cells,
-    method_version            = m$method_version,
-    package_version           = as.character(utils::packageVersion("mufflyaccess"))
+    deduplication_rule = m$deduplication_rule,
+    source_sha256 = src_sha,
+    source_git_commit = m$git_commit %||% m$source_git_commit,
+    git_commit_semantics = m$git_commit_semantics,
+    source_description = m$source_description,
+    source_systems = m$source_systems,
+    retired_cells = m$retired_cells,
+    method_version = m$method_version,
+    package_version = as.character(utils::packageVersion("mufflyaccess"))
   )
   if (isTRUE(detailed)) out$detail <- .urps_provenance_detail(r, m, ct)
   out
@@ -597,7 +686,8 @@ urps_provenance <- function(detailed = FALSE) {
 #' urps_lineage()
 #' @export
 urps_lineage <- function() {
-  r <- .urps_resolve(); m <- .urps_manifest(r$dir)
+  r <- .urps_resolve()
+  m <- .urps_manifest(r$dir)
   cur_v <- .urps_effective_contract_version(m, .urps_contract(r$dir))
   hc <- m$headline_counts$board_certified_active_2023
   rows <- data.frame(
@@ -606,7 +696,8 @@ urps_lineage <- function() {
     conus_active     = as.integer(hc$conus$combined),
     status           = "current",
     basis            = "URPS subspecialty cert year",
-    stringsAsFactors = FALSE)
+    stringsAsFactors = FALSE
+  )
   rc <- m$retired_cells
   if (!is.null(rc) && !is.null(rc$v2_1_0_national)) {
     rows <- rbind(rows, data.frame(
@@ -615,7 +706,8 @@ urps_lineage <- function() {
       conus_active     = as.integer(rc$v2_1_0_conus),
       status           = "retired",
       basis            = "primary board cert year",
-      stringsAsFactors = FALSE))
+      stringsAsFactors = FALSE
+    ))
   }
   rows[order(rows$status != "current"), , drop = FALSE]
 }
@@ -634,11 +726,13 @@ urps_lineage <- function() {
 #' urps_retired_values()
 #' # a consumer-side guard:
 #' stopifnot(!urps_count(2023, "board_certified_active", "national", TRUE) %in%
-#'           urps_retired_values())
+#'   urps_retired_values())
 #' @export
 urps_retired_values <- function() {
   rc <- .urps_manifest()$retired_cells
-  if (is.null(rc)) return(integer(0))
+  if (is.null(rc)) {
+    return(integer(0))
+  }
   as.integer(stats::na.omit(c(rc$v2_1_0_national, rc$v2_1_0_conus)))
 }
 
@@ -680,123 +774,175 @@ urps_retired_values <- function() {
 validate_urps_artifact <- function(path) {
   err <- .urps_dir_error(path)
   if (!is.null(err)) stop("[validate_urps_artifact] ", err, ": ", path, call. = FALSE)
-  m  <- .urps_manifest(path)
+  m <- .urps_manifest(path)
   ct <- .urps_contract(path)
 
   # contract version: present, valid semver, supported major, and self-consistent
   cv <- .urps_effective_contract_version(m, ct)
-  if (is.null(cv) || is.na(cv))
+  if (is.null(cv) || is.na(cv)) {
     stop("[validate_urps_artifact] missing contract_version / artifact_version.", call. = FALSE)
+  }
   sv <- .urps_semver(cv)
-  if (is.null(sv))
+  if (is.null(sv)) {
     stop(sprintf("[validate_urps_artifact] invalid semantic version '%s'.", cv), call. = FALSE)
-  if (!sv[1] %in% .urps_contract_majors)
-    stop(sprintf("[validate_urps_artifact] unsupported contract version %s (supported major: %s).",
-                 cv, paste(.urps_contract_majors, collapse = ", ")), call. = FALSE)
+  }
+  if (!sv[1] %in% .urps_contract_majors) {
+    stop(sprintf(
+      "[validate_urps_artifact] unsupported contract version %s (supported major: %s).",
+      cv, paste(.urps_contract_majors, collapse = ", ")
+    ), call. = FALSE)
+  }
   if (!is.null(m$contract_version) && !is.null(ct) && !is.null(ct$contract_version) &&
-      !identical(as.character(m$contract_version), as.character(ct$contract_version)))
-    stop(sprintf("[validate_urps_artifact] manifest and release-contract versions disagree (%s vs %s).",
-                 m$contract_version, ct$contract_version), call. = FALSE)
+    !identical(as.character(m$contract_version), as.character(ct$contract_version))) {
+    stop(sprintf(
+      "[validate_urps_artifact] manifest and release-contract versions disagree (%s vs %s).",
+      m$contract_version, ct$contract_version
+    ), call. = FALSE)
+  }
 
   d <- .urps_read_long(path)
-  req <- c("year", "measure", "geography", "board_pathway", "n_active",
-           "snapshot_date", "source_sha256", "method_version")
-  if (!all(req %in% names(d)))
+  req <- c(
+    "year", "measure", "geography", "board_pathway", "n_active",
+    "snapshot_date", "source_sha256", "method_version"
+  )
+  if (!all(req %in% names(d))) {
     stop("[validate_urps_artifact] counts table is missing required columns; ",
-         "the measure x geography schema needs measure + geography (fused-geography contracts are unsupported schema).",
-         call. = FALSE)
-  if (!all(d$geography %in% .urps_geographies))
+      "the measure x geography schema needs measure + geography (fused-geography contracts are unsupported schema).",
+      call. = FALSE
+    )
+  }
+  if (!all(d$geography %in% .urps_geographies)) {
     stop("[validate_urps_artifact] unknown geography value(s): ",
-         paste(setdiff(unique(d$geography), .urps_geographies), collapse = ", "), call. = FALSE)
-  if (!all(d$measure %in% .urps_measures))
+      paste(setdiff(unique(d$geography), .urps_geographies), collapse = ", "),
+      call. = FALSE
+    )
+  }
+  if (!all(d$measure %in% .urps_measures)) {
     stop("[validate_urps_artifact] unknown measure value(s): ",
-         paste(setdiff(unique(d$measure), .urps_measures), collapse = ", "), call. = FALSE)
-  if (!all(d$board_pathway %in% .urps_pathways))
+      paste(setdiff(unique(d$measure), .urps_measures), collapse = ", "),
+      call. = FALSE
+    )
+  }
+  if (!all(d$board_pathway %in% .urps_pathways)) {
     stop("[validate_urps_artifact] unknown board_pathway value(s): ",
-         paste(setdiff(unique(d$board_pathway), .urps_pathways), collapse = ", "), call. = FALSE)
+      paste(setdiff(unique(d$board_pathway), .urps_pathways), collapse = ", "),
+      call. = FALSE
+    )
+  }
 
   # temporal windows
   bca <- d[d$measure == "board_certified_active", ]
-  if (nrow(bca) && !setequal(unique(bca$year), .urps_bca_years))
-    stop(sprintf("[validate_urps_artifact] board_certified_active must cover %d-%d exactly (got %s).",
-                 min(.urps_bca_years), max(.urps_bca_years),
-                 paste(sort(unique(bca$year)), collapse = ", ")), call. = FALSE)
+  if (nrow(bca) && !setequal(unique(bca$year), .urps_bca_years)) {
+    stop(sprintf(
+      "[validate_urps_artifact] board_certified_active must cover %d-%d exactly (got %s).",
+      min(.urps_bca_years), max(.urps_bca_years),
+      paste(sort(unique(bca$year)), collapse = ", ")
+    ), call. = FALSE)
+  }
   ros <- d[d$measure == "roster_snapshot", ]
-  if (nrow(ros) && !all(ros$year == .urps_snapshot_year))
-    stop(sprintf("[validate_urps_artifact] roster_snapshot must be year %d only.",
-                 .urps_snapshot_year), call. = FALSE)
+  if (nrow(ros) && !all(ros$year == .urps_snapshot_year)) {
+    stop(sprintf(
+      "[validate_urps_artifact] roster_snapshot must be year %d only.",
+      .urps_snapshot_year
+    ), call. = FALSE)
+  }
 
   # no duplicate count keys
   kd <- paste(d$year, d$measure, d$geography, d$board_pathway, sep = "|")
-  if (anyDuplicated(kd))
+  if (anyDuplicated(kd)) {
     stop("[validate_urps_artifact] duplicate count key (year/measure/geography/board_pathway).",
-         call. = FALSE)
+      call. = FALSE
+    )
+  }
 
   # per-cell pathway completeness: every (measure,year,geography) needs all three
   # pathways (missing a pathway row would silently break reconciliation).
   cells <- unique(d[, c("year", "measure", "geography")])
   for (i in seq_len(nrow(cells))) {
     sel <- d$year == cells$year[i] & d$measure == cells$measure[i] &
-           d$geography == cells$geography[i]
-    if (!all(.urps_pathways %in% d$board_pathway[sel]))
-      stop(sprintf("[validate_urps_artifact] missing pathway row for %s/%s/%d (need %s).",
-                   cells$measure[i], cells$geography[i], cells$year[i],
-                   paste(.urps_pathways, collapse = ", ")), call. = FALSE)
+      d$geography == cells$geography[i]
+    if (!all(.urps_pathways %in% d$board_pathway[sel])) {
+      stop(sprintf(
+        "[validate_urps_artifact] missing pathway row for %s/%s/%d (need %s).",
+        cells$measure[i], cells$geography[i], cells$year[i],
+        paste(.urps_pathways, collapse = ", ")
+      ), call. = FALSE)
+    }
   }
 
   # snapshot date consistency between manifest and counts table
   if (!is.null(m$snapshot_date) &&
-      !(as.character(m$snapshot_date) %in% as.character(unique(d$snapshot_date))))
+    !(as.character(m$snapshot_date) %in% as.character(unique(d$snapshot_date)))) {
     stop("[validate_urps_artifact] manifest snapshot_date does not match the counts table.",
-         call. = FALSE)
+      call. = FALSE
+    )
+  }
 
   # geography completeness: every (measure,year,pathway) in one geography must
   # exist in both -- mufflyaccess must never derive CONUS from national.
-  key <- function(g) unique(paste(d$measure[d$geography == g], d$year[d$geography == g],
-                                   d$board_pathway[d$geography == g], sep = "|"))
-  kn <- key("national"); kc <- key("conus")
+  key <- function(g) {
+    unique(paste(d$measure[d$geography == g], d$year[d$geography == g],
+      d$board_pathway[d$geography == g],
+      sep = "|"
+    ))
+  }
+  kn <- key("national")
+  kc <- key("conus")
   if (!setequal(kn, kc)) {
-    only_nat <- setdiff(kn, kc); only_con <- setdiff(kc, kn)
+    only_nat <- setdiff(kn, kc)
+    only_con <- setdiff(kc, kn)
     ex <- c(only_nat, only_con)[1] %||% "n/a"
-    stop(sprintf("[validate_urps_artifact] incomplete geography coverage: national and conus cells differ (missing conus: %d, missing national: %d; e.g. %s).",
-                 length(only_nat), length(only_con), ex), call. = FALSE)
+    stop(sprintf(
+      "[validate_urps_artifact] incomplete geography coverage: national and conus cells differ (missing conus: %d, missing national: %d; e.g. %s).",
+      length(only_nat), length(only_con), ex
+    ), call. = FALSE)
   }
 
   # reconciliation ABOG_PLUS_ABU == ABOG + ABU_NET_NEW within (year,measure,geography)
   w <- stats::reshape(d[, c("year", "measure", "geography", "board_pathway", "n_active")],
-                      idvar = c("year", "measure", "geography"),
-                      timevar = "board_pathway", direction = "wide")
+    idvar = c("year", "measure", "geography"),
+    timevar = "board_pathway", direction = "wide"
+  )
   cn <- function(p) w[[paste0("n_active.", p)]]
   ok <- is.na(cn("ABOG_PLUS_ABU")) | is.na(cn("ABOG")) | is.na(cn("ABU_NET_NEW")) |
-        (cn("ABOG_PLUS_ABU") == cn("ABOG") + cn("ABU_NET_NEW"))
-  if (!all(ok))
+    (cn("ABOG_PLUS_ABU") == cn("ABOG") + cn("ABU_NET_NEW"))
+  if (!all(ok)) {
     stop("[validate_urps_artifact] ABOG_PLUS_ABU does not reconcile as ABOG + ABU_NET_NEW ",
-         "(semantic/provider mismatch).", call. = FALSE)
+      "(semantic/provider mismatch).",
+      call. = FALSE
+    )
+  }
 
   sh <- d$source_sha256[!is.na(d$source_sha256)]
-  if (!all(grepl("^[0-9a-f]{64}$", sh)))
+  if (!all(grepl("^[0-9a-f]{64}$", sh))) {
     stop("[validate_urps_artifact] malformed source_sha256 (each must be 64-hex).", call. = FALSE)
+  }
 
   # retirement ascertainment: an artifact that claims retirement is OBSERVED must
   # actually carry retirement counts; an artifact that does NOT observe retirement
   # must not be presented (post-serving) as a concrete count. This is the guard
   # that stops an "unknown retirement" from ever being read as zero downstream.
   ra <- tolower(trimws(as.character(m$retirement_ascertainment %||%
-                                    m$retirement_status %||% "not_ascertained")[1]))
+    m$retirement_status %||% "not_ascertained")[1]))
   if (identical(ra, "observed")) {
-    if (!("n_retired" %in% names(d)) || all(is.na(d$n_retired)))
+    if (!("n_retired" %in% names(d)) || all(is.na(d$n_retired))) {
       stop("[validate_urps_artifact] retirement_ascertainment='observed' but n_retired is absent/all-NA.",
-           call. = FALSE)
+        call. = FALSE
+      )
+    }
   }
 
   # release-contract canonical cell must agree with the counts table
   if (!is.null(ct) && !is.null(ct$canonical)) {
     cc <- ct$canonical
     served <- d$n_active[d$year == as.integer(cc$year) & d$measure == cc$measure &
-                         d$geography == cc$geography & d$board_pathway == cc$board_pathway]
-    if (length(served) != 1L || served != as.integer(cc$n_active))
-      stop(sprintf("[validate_urps_artifact] release-contract canonical cell (%s) disagrees with the counts table (served %s).",
-                   cc$n_active, if (length(served)) served else "missing"), call. = FALSE)
+      d$geography == cc$geography & d$board_pathway == cc$board_pathway]
+    if (length(served) != 1L || served != as.integer(cc$n_active)) {
+      stop(sprintf(
+        "[validate_urps_artifact] release-contract canonical cell (%s) disagrees with the counts table (served %s).",
+        cc$n_active, if (length(served)) served else "missing"
+      ), call. = FALSE)
+    }
   }
 
   # CSV SHA-256 vs manifest
@@ -804,8 +950,9 @@ validate_urps_artifact <- function(path) {
     expected <- m$artifact_sha256 %||% m$output_files$urps_counts_by_year_csv$sha256
     if (!is.null(expected)) {
       got <- digest::digest(file = .urps_path("urps_counts_by_year.csv", path), algo = "sha256")
-      if (!identical(got, expected))
+      if (!identical(got, expected)) {
         stop("[validate_urps_artifact] counts CSV SHA-256 does not match the manifest.", call. = FALSE)
+      }
     }
   }
 
@@ -817,29 +964,41 @@ validate_urps_artifact <- function(path) {
     # v3.0.0 keys board_certified_active on the URPS SUBSPECIALTY cert year
     # (training-accurate); v2.x used the primary certification_year. Reconstruct
     # on whichever basis this artifact ships.
-    cert_col <- if ("urps_subspecialty_cert_year" %in% names(pv)) "urps_subspecialty_cert_year"
-                else "certification_year"
+    cert_col <- if ("urps_subspecialty_cert_year" %in% names(pv)) {
+      "urps_subspecialty_cert_year"
+    } else {
+      "certification_year"
+    }
     if (all(c(cert_col, "retirement_year") %in% names(pv))) {
       cy <- suppressWarnings(as.integer(pv[[cert_col]]))
       ry <- suppressWarnings(as.integer(pv$retirement_year))
       active <- !is.na(cy) & cy <= 2023L & (is.na(ry) | ry > 2023L)
       served_nat <- d$n_active[d$year == 2023L & d$measure == "board_certified_active" &
-                               d$geography == "national" & d$board_pathway == "ABOG_PLUS_ABU"]
-      if (length(served_nat) == 1L && sum(active) != served_nat)
-        stop(sprintf("[validate_urps_artifact] provider reconstruction: active_2023 national (%d) != served count (%d) -- certification/temporal mismatch.",
-                     sum(active), served_nat), call. = FALSE)
+        d$geography == "national" & d$board_pathway == "ABOG_PLUS_ABU"]
+      if (length(served_nat) == 1L && sum(active) != served_nat) {
+        stop(sprintf(
+          "[validate_urps_artifact] provider reconstruction: active_2023 national (%d) != served count (%d) -- certification/temporal mismatch.",
+          sum(active), served_nat
+        ), call. = FALSE)
+      }
       if ("is_conus" %in% names(pv)) {
         served_conus <- d$n_active[d$year == 2023L & d$measure == "board_certified_active" &
-                                   d$geography == "conus" & d$board_pathway == "ABOG_PLUS_ABU"]
-        if (length(served_conus) == 1L && sum(active & as.logical(pv$is_conus)) != served_conus)
-          stop(sprintf("[validate_urps_artifact] provider reconstruction: active_2023 conus (%d) != served count (%d).",
-                       sum(active & as.logical(pv$is_conus)), served_conus), call. = FALSE)
+          d$geography == "conus" & d$board_pathway == "ABOG_PLUS_ABU"]
+        if (length(served_conus) == 1L && sum(active & as.logical(pv$is_conus)) != served_conus) {
+          stop(sprintf(
+            "[validate_urps_artifact] provider reconstruction: active_2023 conus (%d) != served count (%d).",
+            sum(active & as.logical(pv$is_conus)), served_conus
+          ), call. = FALSE)
+        }
       }
       served_snap <- d$n_active[d$year == 2025L & d$measure == "roster_snapshot" &
-                                d$geography == "national" & d$board_pathway == "ABOG_PLUS_ABU"]
-      if (length(served_snap) == 1L && nrow(pv) != served_snap)
-        stop(sprintf("[validate_urps_artifact] provider snapshot rows (%d) != served roster_snapshot (%d).",
-                     nrow(pv), served_snap), call. = FALSE)
+        d$geography == "national" & d$board_pathway == "ABOG_PLUS_ABU"]
+      if (length(served_snap) == 1L && nrow(pv) != served_snap) {
+        stop(sprintf(
+          "[validate_urps_artifact] provider snapshot rows (%d) != served roster_snapshot (%d).",
+          nrow(pv), served_snap
+        ), call. = FALSE)
+      }
     }
   }
   invisible(TRUE)
@@ -863,8 +1022,8 @@ validate_urps_artifact <- function(path) {
 #' @seealso [validate_urps_artifact()], [urps_provenance()], [use_urps_artifact()]
 #' @family URPS workforce
 #' @examples
-#' validate_urps_ssot()                     # the active artifact
-#' validate_urps_ssot(urps_counts())        # a wide counts table
+#' validate_urps_ssot() # the active artifact
+#' validate_urps_ssot(urps_counts()) # a wide counts table
 #' # release gate (errors on the bundled bootstrap):
 #' try(validate_urps_ssot(require_external = TRUE, require_contract_version = "3.0.0"))
 #' @export
@@ -874,46 +1033,65 @@ validate_urps_ssot <- function(counts = NULL, require_external = FALSE,
                                require_source_git_commit = NULL) {
   if (isTRUE(require_external)) {
     r <- .urps_resolve()
-    if (!identical(r$source, "external"))
+    if (!identical(r$source, "external")) {
       stop("[validate] require_external = TRUE but the active artifact is the bundled ",
-           "bootstrap (not a canonical release); call use_urps_artifact('<released dir>') first.",
-           call. = FALSE)
+        "bootstrap (not a canonical release); call use_urps_artifact('<released dir>') first.",
+        call. = FALSE
+      )
+    }
   }
-  if (!is.null(counts)) return(.urps_validate_wide(counts))
+  if (!is.null(counts)) {
+    return(.urps_validate_wide(counts))
+  }
 
   validate_urps_artifact(.urps_artifact_dir())
   p <- urps_provenance()
-  if (isTRUE(require_canonical) && !isTRUE(p$canonical_release))
+  if (isTRUE(require_canonical) && !isTRUE(p$canonical_release)) {
     stop("[validate] require_canonical = TRUE but the active artifact is not a canonical release.",
-         call. = FALSE)
+      call. = FALSE
+    )
+  }
   if (!is.null(require_contract_version) &&
-      !identical(as.character(p$contract_version), as.character(require_contract_version)))
-    stop(sprintf("[validate] contract version %s does not match the required %s.",
-                 p$contract_version, require_contract_version), call. = FALSE)
+    !identical(as.character(p$contract_version), as.character(require_contract_version))) {
+    stop(sprintf(
+      "[validate] contract version %s does not match the required %s.",
+      p$contract_version, require_contract_version
+    ), call. = FALSE)
+  }
   if (!is.null(require_source_git_commit) &&
-      !identical(as.character(p$source_git_commit), as.character(require_source_git_commit)))
-    stop(sprintf("[validate] source git commit %s does not match the required %s.",
-                 p$source_git_commit, require_source_git_commit), call. = FALSE)
+    !identical(as.character(p$source_git_commit), as.character(require_source_git_commit))) {
+    stop(sprintf(
+      "[validate] source git commit %s does not match the required %s.",
+      p$source_git_commit, require_source_git_commit
+    ), call. = FALSE)
+  }
   invisible(TRUE)
 }
 
 .urps_validate_wide <- function(w) {
   req <- c("year", "abog_active", "abu_net_new", "combined_active", "source_sha256")
-  if (!all(req %in% names(w)))
+  if (!all(req %in% names(w))) {
     stop("[validate] counts table is missing required columns.", call. = FALSE)
-  if (anyDuplicated(w$year))
+  }
+  if (anyDuplicated(w$year)) {
     stop("[validate] measure years must be unique (duplicate year found).", call. = FALSE)
+  }
   miss <- setdiff(.urps_bca_years, w$year)
-  if (length(miss))
-    stop(sprintf("[validate] missing measure year(s) %s; the series must cover 2013:2023.",
-                 paste(miss, collapse = ", ")), call. = FALSE)
+  if (length(miss)) {
+    stop(sprintf(
+      "[validate] missing measure year(s) %s; the series must cover 2013:2023.",
+      paste(miss, collapse = ", ")
+    ), call. = FALSE)
+  }
   sh <- w$source_sha256[!is.na(w$source_sha256)]
-  if (!all(grepl("^[0-9a-f]{64}$", sh)))
+  if (!all(grepl("^[0-9a-f]{64}$", sh))) {
     stop("[validate] malformed source_sha256 (each must be a 64-character hex hash).", call. = FALSE)
+  }
   ok <- is.na(w$combined_active) | is.na(w$abu_net_new) |
-        (w$combined_active == w$abog_active + w$abu_net_new)
-  if (!all(ok))
+    (w$combined_active == w$abog_active + w$abu_net_new)
+  if (!all(ok)) {
     stop("[validate] combined_active must reconcile as abog_active + abu_net_new.", call. = FALSE)
+  }
   invisible(TRUE)
 }
 
@@ -944,9 +1122,11 @@ validate_urps_ssot <- function(counts = NULL, require_external = FALSE,
 #' }
 #' @export
 compare_urps_artifacts <- function(old, candidate) {
-  co <- .urps_read_long(old); cc <- .urps_read_long(candidate)
+  co <- .urps_read_long(old)
+  cc <- .urps_read_long(candidate)
   key <- function(x) paste(x$year, x$measure, x$geography, x$board_pathway, sep = "|")
-  ko <- stats::setNames(co$n_active, key(co)); kc <- stats::setNames(cc$n_active, key(cc))
+  ko <- stats::setNames(co$n_active, key(co))
+  kc <- stats::setNames(cc$n_active, key(cc))
   shared <- intersect(names(ko), names(kc))
   changed_counts <- shared[ko[shared] != kc[shared]]
 
@@ -955,20 +1135,29 @@ compare_urps_artifacts <- function(old, candidate) {
   po <- file.path(old, "urps_provider_snapshot.parquet")
   pc <- file.path(candidate, "urps_provider_snapshot.parquet")
   if (!is.null(reader) && file.exists(po) && file.exists(pc)) {
-    a <- reader(po); b <- reader(pc)
+    a <- reader(po)
+    b <- reader(pc)
     if ("npi" %in% names(a) && "npi" %in% names(b)) {
-      added   <- setdiff(b$npi, a$npi)
+      added <- setdiff(b$npi, a$npi)
       removed <- setdiff(a$npi, b$npi)
-      common  <- intersect(a$npi, b$npi)
-      ia <- match(common, a$npi); ib <- match(common, b$npi)
-      chg <- function(col) if (col %in% names(a) && col %in% names(b))
-        common[which(as.character(a[[col]][ia]) != as.character(b[[col]][ib]))] else character(0)
+      common <- intersect(a$npi, b$npi)
+      ia <- match(common, a$npi)
+      ib <- match(common, b$npi)
+      chg <- function(col) {
+        if (col %in% names(a) && col %in% names(b)) {
+          common[which(as.character(a[[col]][ia]) != as.character(b[[col]][ib]))]
+        } else {
+          character(0)
+        }
+      }
       changed_cert <- chg("certification_year")
-      changed_geo  <- chg("is_conus")
+      changed_geo <- chg("is_conus")
       changed_path <- chg("board_pathway")
     }
   }
-  list(added_providers = added, removed_providers = removed,
-       changed_certification_year = changed_cert, changed_geography = changed_geo,
-       changed_pathway = changed_path, changed_counts = changed_counts)
+  list(
+    added_providers = added, removed_providers = removed,
+    changed_certification_year = changed_cert, changed_geography = changed_geo,
+    changed_pathway = changed_path, changed_counts = changed_counts
+  )
 }

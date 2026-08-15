@@ -53,14 +53,14 @@ checked.
 
 \examples{
 \dontrun{
-  generate_isochrones <- function(points) {
-    assert_travel_time_eligible(points, context = "generate_isochrones()")
-    # ...
-  }
+generate_isochrones <- function(points) {
+  assert_travel_time_eligible(points, context = "generate_isochrones()")
+  # ...
+}
 
-  # Deliberate exclusion, which must then be reported:
-  routable <- subset(providers, !grepl("centroid", coord_source))
-  message(nrow(providers) - nrow(routable), " excluded: centroid geocodes")
+# Deliberate exclusion, which must then be reported:
+routable <- subset(providers, !grepl("centroid", coord_source))
+message(nrow(providers) - nrow(routable), " excluded: centroid geocodes")
 }
 }
 \seealso{

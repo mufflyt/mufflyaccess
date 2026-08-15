@@ -27,10 +27,22 @@ name: CI
 #   4. Accounting is written to FILES and uploaded, never left in the log.
 #      GitHub caps a step's retrievable log near 11 MB and a verbose reporter
 #      blows past it, taking the totals with it.
-#   5. Jobs whose first-run baseline is unknown (lint, spelling, coverage,
-#      pkgdown) start ADVISORY. A check that is red from birth trains everyone
-#      to ignore it, which is how a six-week-old syntax error survived in
-#      isochrones. Promote each to blocking once its baseline is clean.
+#   5. A job goes BLOCKING only once its baseline is known-clean. A check that
+#      is red from birth trains everyone to ignore red, which is how a
+#      six-week-old syntax error survived in isochrones. lint, spelling,
+#      coverage and pkgdown started advisory and were promoted on 2026-08-15
+#      after being run locally against this tree:
+#
+#        R CMD check  0 errors, 0 warnings, 2 notes
+#        test suite   1697 passed | 0 failed | 0 errors | 3 skipped (uncapped)
+#        coverage     90.06%
+#        lint         0 findings
+#        spelling     0 (after inst/WORDLIST, 144 domain terms)
+#        pkgdown      builds
+#        docs-in-sync roxygenise() is idempotent
+#
+#      Every job in this file is therefore blocking. Reaching those baselines
+#      required four real fixes, recorded in the commit message.
 
 on:
   push:
@@ -89,7 +101,10 @@ jobs:
         with:
           upload-snapshots: true
           error-on: '"warning"'
-          args: 'c("--no-manual", "--as-cran")'
+          # NOT --as-cran: this package is not going to CRAN, and --as-cran adds
+          # notes that are pure noise here ("New submission", "unable to verify
+          # current time"). Noise is what makes a check ignorable.
+          args: 'c("--no-manual")'
 
   # -------------------------------------------------- full suite + accounting ---
   # Runs the whole testthat suite with the cap lifted, then PROVES it finished.
@@ -184,10 +199,9 @@ jobs:
 
   # ------------------------------------------------------------- coverage ---
   coverage:
-    name: test coverage (advisory)
+    name: test coverage (floor 85%)
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    continue-on-error: true      # advisory until a baseline exists; see RULE 5
     steps:
       - uses: actions/checkout@v4
       - uses: r-lib/actions/setup-r@v2
@@ -211,6 +225,17 @@ jobs:
           if (nzchar(gs)) cat(sprintf("### coverage\n\n**%.2f%%**\n", pct),
                               file = gs, append = TRUE)
 
+          # A ratchet, not a target. The measured baseline on 2026-08-15 was
+          # 90.06%; the floor sits below it so ordinary churn does not fail the
+          # build, but a real gutting of the suite does. Raise it when the
+          # baseline rises; never lower it to make a red build green.
+          FLOOR <- 85
+          if (pct < FLOOR) {
+            cat(sprintf(
+              "::error title=Coverage below floor::%.2f%% < %d%%\n", pct, FLOOR))
+            quit(status = 1)
+          }
+
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -220,10 +245,9 @@ jobs:
 
   # ----------------------------------------------------------------- lint ---
   lint:
-    name: lint (advisory)
+    name: lint
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    continue-on-error: true      # see RULE 5
     steps:
       - uses: actions/checkout@v4
       - uses: r-lib/actions/setup-r@v2
@@ -245,10 +269,9 @@ jobs:
 
   # ------------------------------------------------------------- spelling ---
   spelling:
-    name: spelling (advisory)
+    name: spelling
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    continue-on-error: true      # see RULE 5
     steps:
       - uses: actions/checkout@v4
       - uses: r-lib/actions/setup-r@v2
@@ -314,9 +337,21 @@ jobs:
           declared <- unlist(lapply(c("Depends", "Imports", "Suggests", "LinkingTo"),
             function(f) if (f %in% colnames(d))
               sub("\\s*\\(.*", "", trimws(strsplit(d[1, f], ",")[[1]])) else character(0)))
-          declared <- c(declared[nzchar(declared)], "R", "base", "methods")
+          # The package's own name is not a dependency of itself, and tests
+          # legitimately write mufflyaccess::fn() to exercise the exported API
+          # exactly as a consumer would.
+          declared <- c(declared[nzchar(declared)], "R", "base", "methods",
+                        d[1, "Package"])
 
-          files <- list.files("R", pattern = "\\.R$", full.names = TRUE)
+          # tests/ as well as R/. Scanning only R/ missed `withr::` in
+          # tests/testthat/test-state-and-fingerprint.R, which R CMD check
+          # reported as a WARNING ("'::' or ':::' import not declared from:
+          # 'withr'") on 2026-08-15. A dependency used only by the tests is
+          # still a dependency.
+          files <- c(
+            list.files("R", pattern = "\\.R$", full.names = TRUE),
+            list.files("tests", pattern = "\\.R$", full.names = TRUE,
+                       recursive = TRUE))
           used <- character(0)
           for (f in files) {
             ln <- readLines(f, warn = FALSE)
@@ -340,10 +375,9 @@ jobs:
 
   # -------------------------------------------------------------- pkgdown ---
   pkgdown:
-    name: pkgdown builds (advisory)
+    name: pkgdown builds
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    continue-on-error: true      # see RULE 5
     steps:
       - uses: actions/checkout@v4
       - uses: r-lib/actions/setup-pandoc@v2
@@ -355,10 +389,15 @@ jobs:
           needs: website
       - name: Build the site
         shell: Rscript {0}
+        # Writes to pkgdown-site/, NOT docs/. docs/ holds hand-written,
+        # git-tracked documentation, so pkgdown refused to build into it and
+        # build_site() had never once succeeded here. The remedy its error
+        # message recommends -- pkgdown::clean_site() -- would have DELETED
+        # CHARTER_URPS_SSOT.md and CROSS_REPO_USAGE.md. See _pkgdown.yml.
         run: pkgdown::build_site(preview = FALSE, install = TRUE)
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: pkgdown-site
-          path: docs/
-          if-no-files-found: warn
+          path: pkgdown-site/
+          if-no-files-found: error

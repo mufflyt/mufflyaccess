@@ -25,7 +25,8 @@ retirement is never served as zero departures).
 }
 \examples{
 ex <- system.file("extdata", "urps_observed_departures_example.csv",
-                  package = "mufflyaccess")
+  package = "mufflyaccess"
+)
 old <- options(mufflyaccess.urps_departures_path = ex)
 head(urps_departures())
 head(urps_departures(start_year = 2022))

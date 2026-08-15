@@ -32,7 +32,9 @@ inspecting_namespace <- function() {
   for (i in seq_len(sys.nframe())) {
     env <- tryCatch(environment(sys.function(i)), error = function(e) NULL)
     if (is.null(env)) next
-    if (environmentName(topenv(env)) %in% c("tools", "codetools")) return(TRUE)
+    if (environmentName(topenv(env)) %in% c("tools", "codetools")) {
+      return(TRUE)
+    }
   }
   FALSE
 }
@@ -40,10 +42,13 @@ inspecting_namespace <- function() {
 .onLoad <- function(libname, pkgname) {
   ns <- asNamespace(pkgname)
   make_dep <- function(name, value, hint) {
-    force(name); force(value); force(hint)
+    force(name)
+    force(value)
+    force(hint)
     getter <- function() {
-      if (!inspecting_namespace())
+      if (!inspecting_namespace()) {
         warning(sprintf("%s is deprecated; use %s.", name, hint), call. = FALSE)
+      }
       value
     }
     if (exists(name, envir = ns, inherits = FALSE)) {
@@ -56,8 +61,12 @@ inspecting_namespace <- function() {
   # canonical 2023 board_certified_active counts (1027 / 1306, contract v3.0.0;
   # 1332 was the retired v2.1.0 combined cell). The migration hint points at the
   # matching roster_snapshot cell.
-  make_dep("URPS_COUNT_ABOG_ONLY_2025", 1031L,
-           'urps_count(2025L, "roster_snapshot", "national", include_urology = FALSE)')
-  make_dep("URPS_COUNT_ABOG_PLUS_ABU_2025", 1339L,
-           'urps_count(2025L, "roster_snapshot", "national", include_urology = TRUE)')
+  make_dep(
+    "URPS_COUNT_ABOG_ONLY_2025", 1031L,
+    'urps_count(2025L, "roster_snapshot", "national", include_urology = FALSE)'
+  )
+  make_dep(
+    "URPS_COUNT_ABOG_PLUS_ABU_2025", 1339L,
+    'urps_count(2025L, "roster_snapshot", "national", include_urology = TRUE)'
+  )
 }

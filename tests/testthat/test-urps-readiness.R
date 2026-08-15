@@ -10,7 +10,7 @@ test_that("bundled provenance is honestly labeled a non-release bootstrap", {
   expect_identical(p$artifact_source, "bundled_bootstrap")
   expect_false(p$canonical_release)
   expect_false(p$suitable_for_release)
-  expect_identical(p$contract_version, "3.0.0")   # the bundled numbers ARE v3.0.0
+  expect_identical(p$contract_version, "3.0.0") # the bundled numbers ARE v3.0.0
   expect_null(p$external_artifact_error)
 })
 
@@ -23,17 +23,20 @@ test_that("an unusable option source warns, falls back, and reveals it", {
   p <- suppressWarnings(urps_provenance())
   expect_identical(p$artifact_source, "bundled_bootstrap")
   expect_match(p$external_artifact_error, "does not exist")
-  expect_equal(suppressWarnings(urps_count(2023L)), 1027L)     # still resolves
+  expect_equal(suppressWarnings(urps_count(2023L)), 1027L) # still resolves
 })
 
 test_that("strict mode turns a bad option source into an error", {
   bad <- file.path(tempdir(), "no_such_urps_dir_strict")
-  old  <- getOption("mufflyaccess.urps_artifact_dir")
+  old <- getOption("mufflyaccess.urps_artifact_dir")
   olds <- getOption("mufflyaccess.urps_artifact_strict")
-  on.exit({
-    options(mufflyaccess.urps_artifact_dir = old)
-    options(mufflyaccess.urps_artifact_strict = olds)
-  }, add = TRUE)
+  on.exit(
+    {
+      options(mufflyaccess.urps_artifact_dir = old)
+      options(mufflyaccess.urps_artifact_strict = olds)
+    },
+    add = TRUE
+  )
   options(mufflyaccess.urps_artifact_dir = bad, mufflyaccess.urps_artifact_strict = TRUE)
   expect_error(urps_count(2023L), "strict mode")
 })

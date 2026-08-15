@@ -20,7 +20,9 @@
 #' canon_npi(c("1234567893", "12-3456 7890", "abc", NA), verbose = FALSE)
 #' @export
 canon_npi <- function(x, verbose = TRUE) {
-  if (is.null(x)) return(character(0))
+  if (is.null(x)) {
+    return(character(0))
+  }
   if (!is.atomic(x)) {
     stop("canon_npi: input must be an atomic vector, not a ", class(x)[1], call. = FALSE)
   }
@@ -68,9 +70,9 @@ canon_npi <- function(x, verbose = TRUE) {
   if (verbose) {
     rejected <- !is.na(rejection_reasons) & !empty_mask
     if (any(rejected)) {
-      n_total    <- length(x)
+      n_total <- length(x)
       n_rejected <- sum(rejected)
-      pct        <- n_rejected / n_total * 100
+      pct <- n_rejected / n_total * 100
       # One summary line, then per-reason breakdown
       message(sprintf(
         "canon_npi: %d of %d values (%.1f%%) rejected as invalid NPI",

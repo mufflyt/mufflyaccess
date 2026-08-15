@@ -16,10 +16,10 @@ named numeric \verb{c(}65_79\verb{=, }80plus\verb{=)}.
 Two-bracket Wu-2014 PFD prevalence for one condition
 }
 \examples{
-pfd_prevalence()          # any_PFD: c(`65_79` = 0.368, `80plus` = 0.497)
-pfd_prevalence("UI")      # urinary incontinence: c(`65_79` = 0.272, `80plus` = 0.382)
+pfd_prevalence() # any_PFD: c(`65_79` = 0.368, `80plus` = 0.497)
+pfd_prevalence("UI") # urinary incontinence: c(`65_79` = 0.272, `80plus` = 0.382)
 \dontrun{
-pfd_prevalence("nope")    # errors: unknown condition
+pfd_prevalence("nope") # errors: unknown condition
 }
 }
 \seealso{

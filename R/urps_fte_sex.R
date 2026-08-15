@@ -56,16 +56,16 @@ URPS_FTE_REFERENCE_HOURS_PER_WEEK <- 40.0
 # to three anchor points per sex (see file header). Never define numbers twice.
 .urps_fte_sex_hours_params_df <- function() {
   data.frame(
-    sex                = c("female",   "male"),
-    intercept          = c(-41.8750000000,  -39.2175925926),
-    b_age              = c(  4.0000000000,    4.1370370370),
-    c_age_sq           = c( -0.0450000000,   -0.0453703704),
-    anchor_age_lo      = c(35L,       35L),
-    anchor_hours_lo    = c(43.0,      50.0),
-    anchor_age_peak    = c(45L,       47L),
-    anchor_hours_peak  = c(47.0,      55.0),
-    anchor_age_hi      = c(65L,       65L),
-    anchor_hours_hi    = c(28.0,      38.0),
+    sex                = c("female", "male"),
+    intercept          = c(-41.8750000000, -39.2175925926),
+    b_age              = c(4.0000000000, 4.1370370370),
+    c_age_sq           = c(-0.0450000000, -0.0453703704),
+    anchor_age_lo      = c(35L, 35L),
+    anchor_hours_lo    = c(43.0, 50.0),
+    anchor_age_peak    = c(45L, 47L),
+    anchor_hours_peak  = c(47.0, 55.0),
+    anchor_age_hi      = c(65L, 65L),
+    anchor_hours_hi    = c(28.0, 38.0),
     calibration_status = "calibrated_from_literature",
     stringsAsFactors   = FALSE
   )
@@ -73,7 +73,7 @@ URPS_FTE_REFERENCE_HOURS_PER_WEEK <- 40.0
 
 # Load-time validation.
 local({
-  d   <- .urps_fte_sex_hours_params_df()
+  d <- .urps_fte_sex_hours_params_df()
   ref <- URPS_FTE_REFERENCE_HOURS_PER_WEEK
 
   # Derived values used in checks.
@@ -84,7 +84,7 @@ local({
   }
   evaluate <- function(a, b, c, age) a + b * age + c * age^2
   r_f <- d[d$sex == "female", ]
-  r_m <- d[d$sex == "male",   ]
+  r_m <- d[d$sex == "male", ]
 
   stopifnot(
     "sex hours params must have exactly 2 rows (female and male)" =
@@ -115,25 +115,29 @@ local({
     },
     "male peak hours must exceed female peak hours" =
       peak_hrs(r_m$intercept, r_m$b_age, r_m$c_age_sq) >
-      peak_hrs(r_f$intercept, r_f$b_age, r_f$c_age_sq),
+        peak_hrs(r_f$intercept, r_f$b_age, r_f$c_age_sq),
     "reference hours must be positive" =
       is.numeric(ref) && length(ref) == 1L && ref > 0,
     "coefficients must reproduce female anchor points (within 0.01 hrs)" = {
       tol <- 0.01
-      a <- r_f$intercept; b <- r_f$b_age; c <- r_f$c_age_sq
+      a <- r_f$intercept
+      b <- r_f$b_age
+      c <- r_f$c_age_sq
       all(c(
-        abs(evaluate(a, b, c, r_f$anchor_age_lo)   - r_f$anchor_hours_lo)   < tol,
+        abs(evaluate(a, b, c, r_f$anchor_age_lo) - r_f$anchor_hours_lo) < tol,
         abs(evaluate(a, b, c, r_f$anchor_age_peak) - r_f$anchor_hours_peak) < tol,
-        abs(evaluate(a, b, c, r_f$anchor_age_hi)   - r_f$anchor_hours_hi)   < tol
+        abs(evaluate(a, b, c, r_f$anchor_age_hi) - r_f$anchor_hours_hi) < tol
       ))
     },
     "coefficients must reproduce male anchor points (within 0.01 hrs)" = {
       tol <- 0.01
-      a <- r_m$intercept; b <- r_m$b_age; c <- r_m$c_age_sq
+      a <- r_m$intercept
+      b <- r_m$b_age
+      c <- r_m$c_age_sq
       all(c(
-        abs(evaluate(a, b, c, r_m$anchor_age_lo)   - r_m$anchor_hours_lo)   < tol,
+        abs(evaluate(a, b, c, r_m$anchor_age_lo) - r_m$anchor_hours_lo) < tol,
         abs(evaluate(a, b, c, r_m$anchor_age_peak) - r_m$anchor_hours_peak) < tol,
-        abs(evaluate(a, b, c, r_m$anchor_age_hi)   - r_m$anchor_hours_hi)   < tol
+        abs(evaluate(a, b, c, r_m$anchor_age_hi) - r_m$anchor_hours_hi) < tol
       ))
     },
     "sex hours version must be semver" =
@@ -190,8 +194,9 @@ urps_fte_sex_hours_params <- function() {
     "ACOG 2021 Workforce Survey (weekly hours by age and sex, OB/GYN subspecialists);",
     "AMA 2022 Physician Practice Benchmark Survey (weekly patient care hours);",
     "IHS Markit HWMM v5.19.20 Exhibits 14-15 (OLS hours-worked model structure).",
-    "Sharpen with: ABOG lapse/recertification panel or URPS practice survey.")
-  attr(d, "formula")         <- "hours(age) = intercept + b_age * age + c_age_sq * age^2"
+    "Sharpen with: ABOG lapse/recertification panel or URPS practice survey."
+  )
+  attr(d, "formula") <- "hours(age) = intercept + b_age * age + c_age_sq * age^2"
   attr(d, "reference_hours") <- URPS_FTE_REFERENCE_HOURS_PER_WEEK
   d
 }
@@ -199,24 +204,29 @@ urps_fte_sex_hours_params <- function() {
 # Internal: validate and index into the params table for a sex vector.
 # Vectorized: sex can be length-1 or the same length as age.
 .urps_fte_sex_index <- function(sex) {
-  if (!is.character(sex) || length(sex) < 1L)
+  if (!is.character(sex) || length(sex) < 1L) {
     stop("[urps_fte_sex] `sex` must be a non-empty character vector.", call. = FALSE)
-  d   <- .urps_fte_sex_hours_params_df()
+  }
+  d <- .urps_fte_sex_hours_params_df()
   idx <- match(sex, d$sex)
   bad <- unique(sex[is.na(idx)])
-  if (length(bad))
+  if (length(bad)) {
     stop(sprintf(
       "[urps_fte_sex] unknown sex value(s): %s (must be 'female' or 'male').",
-      paste(bad, collapse = ", ")), call. = FALSE)
+      paste(bad, collapse = ", ")
+    ), call. = FALSE)
+  }
   idx
 }
 
 # Internal: single-sex scalar lookup (used by load-time validator and handoff).
 .urps_fte_sex_lookup <- function(sex) {
-  if (!is.character(sex) || length(sex) != 1L || !sex %in% c("female", "male"))
+  if (!is.character(sex) || length(sex) != 1L || !sex %in% c("female", "male")) {
     stop(sprintf(
       "[urps_fte_sex] `sex` must be 'female' or 'male', not '%s'.",
-      as.character(sex)[1L]), call. = FALSE)
+      as.character(sex)[1L]
+    ), call. = FALSE)
+  }
   d <- .urps_fte_sex_hours_params_df()
   d[d$sex == sex, , drop = FALSE]
 }
@@ -240,17 +250,19 @@ urps_fte_sex_hours_params <- function() {
 #' @family URPS FTE sex
 #' @examples
 #' urps_fte_predicted_hours(35:75, "female")
-#' urps_fte_predicted_hours(47, "male")          # peak: ~55 hrs/week
+#' urps_fte_predicted_hours(47, "male") # peak: ~55 hrs/week
 #' # mixed-sex cohort vector:
 #' urps_fte_predicted_hours(c(45, 55), c("female", "male"))
 #' @export
 urps_fte_predicted_hours <- function(age, sex) {
-  if (!(is.numeric(age) || is.integer(age)) || length(age) < 1L)
+  if (!(is.numeric(age) || is.integer(age)) || length(age) < 1L) {
     stop("[urps_fte_predicted_hours] `age` must be a non-empty numeric or integer vector.",
-         call. = FALSE)
-  d   <- .urps_fte_sex_hours_params_df()
+      call. = FALSE
+    )
+  }
+  d <- .urps_fte_sex_hours_params_df()
   idx <- .urps_fte_sex_index(sex)
-  a   <- as.numeric(age)
+  a <- as.numeric(age)
   d$intercept[idx] + d$b_age[idx] * a + d$c_age_sq[idx] * a^2
 }
 
@@ -299,22 +311,34 @@ urps_fte_predicted_hours <- function(age, sex) {
 #' sc <- urps_scenario("lower_late_career_fte")
 #' urps_fte_weight_sex(62, "female", "ABOG",
 #'   late_from_age = sc$late_career_fte_onset_age,
-#'   late_factor   = sc$late_career_fte_factor)
+#'   late_factor   = sc$late_career_fte_factor
+#' )
 #' @export
 urps_fte_weight_sex <- function(age, sex, pathway = "ABOG",
                                 late_from_age = NULL, late_factor = 1) {
-  if (!(is.numeric(age) || is.integer(age)) || length(age) < 1L)
+  if (!(is.numeric(age) || is.integer(age)) || length(age) < 1L) {
     stop("[urps_fte_weight_sex] `age` must be a non-empty numeric or integer vector.",
-         call. = FALSE)
-  if (!is.character(pathway) || !all(pathway %in% c("ABOG", "ABU")))
-    stop(sprintf("[urps_fte_weight_sex] `pathway` must be 'ABOG' or 'ABU', not '%s'.",
-                 paste(unique(pathway[!pathway %in% c("ABOG","ABU")]), collapse=", ")),
-         call. = FALSE)
+      call. = FALSE
+    )
+  }
+  if (!is.character(pathway) || !all(pathway %in% c("ABOG", "ABU"))) {
+    stop(
+      sprintf(
+        "[urps_fte_weight_sex] `pathway` must be 'ABOG' or 'ABU', not '%s'.",
+        paste(unique(pathway[!pathway %in% c("ABOG", "ABU")]), collapse = ", ")
+      ),
+      call. = FALSE
+    )
+  }
 
-  hrs  <- pmax(urps_fte_predicted_hours(age, sex), 0)
-  ct   <- unname(URPS_FTE_PATHWAY_CLINICAL_TIME[pathway]); ct[is.na(ct)] <- 1.0
-  late <- if (!is.null(late_from_age))
-    ifelse(as.numeric(age) >= late_from_age, late_factor, 1) else 1
+  hrs <- pmax(urps_fte_predicted_hours(age, sex), 0)
+  ct <- unname(URPS_FTE_PATHWAY_CLINICAL_TIME[pathway])
+  ct[is.na(ct)] <- 1.0
+  late <- if (!is.null(late_from_age)) {
+    ifelse(as.numeric(age) >= late_from_age, late_factor, 1)
+  } else {
+    1
+  }
 
   (hrs / URPS_FTE_REFERENCE_HOURS_PER_WEEK) * ct * late
 }
@@ -340,18 +364,24 @@ urps_fte_weight_sex <- function(age, sex, pathway = "ABOG",
 #'   age     = c(45L, 62L, 45L, 62L),
 #'   sex     = c("female", "female", "male", "male"),
 #'   pathway = c("ABOG", "ABOG", "ABU", "ABU"),
-#'   n       = c(350, 150, 100, 40))
+#'   n       = c(350, 150, 100, 40)
+#' )
 #' urps_effective_fte_sex(cs, scale = urps_fte_scale_sex(cs))
 #' @export
 urps_effective_fte_sex <- function(counts, scale = 1,
                                    late_from_age = NULL, late_factor = 1) {
   need <- c("age", "sex", "pathway", "n")
   miss <- setdiff(need, names(counts))
-  if (length(miss))
-    stop(sprintf("[urps_effective_fte_sex] missing required column(s): %s.",
-                 paste(miss, collapse = ", ")), call. = FALSE)
-  w <- urps_fte_weight_sex(counts$age, counts$sex, counts$pathway,
-                            late_from_age, late_factor)
+  if (length(miss)) {
+    stop(sprintf(
+      "[urps_effective_fte_sex] missing required column(s): %s.",
+      paste(miss, collapse = ", ")
+    ), call. = FALSE)
+  }
+  w <- urps_fte_weight_sex(
+    counts$age, counts$sex, counts$pathway,
+    late_from_age, late_factor
+  )
   as.numeric(scale) * sum(counts$n * w)
 }
 
@@ -374,15 +404,18 @@ urps_effective_fte_sex <- function(counts, scale = 1,
 #'   age     = c(45L, 62L, 45L, 62L),
 #'   sex     = c("female", "female", "male", "male"),
 #'   pathway = c("ABOG", "ABOG", "ABU", "ABU"),
-#'   n       = c(350, 150, 100, 40))
+#'   n       = c(350, 150, 100, 40)
+#' )
 #' urps_fte_scale_sex(cs)
 #' @export
 urps_fte_scale_sex <- function(reference_counts,
-                                target_headcount = sum(reference_counts$n)) {
+                               target_headcount = sum(reference_counts$n)) {
   raw <- urps_effective_fte_sex(reference_counts, scale = 1)
-  if (!is.finite(raw) || raw <= 0)
+  if (!is.finite(raw) || raw <= 0) {
     stop("[urps_fte_scale_sex] reference cohort has non-positive weighted FTE.",
-         call. = FALSE)
+      call. = FALSE
+    )
+  }
   as.numeric(target_headcount) / raw
 }
 
@@ -422,28 +455,35 @@ urps_fte_scale_sex <- function(reference_counts,
 #'   age = c(45L, 62L, 45L, 62L),
 #'   sex = c("female", "female", "male", "male"),
 #'   pathway = c("ABOG", "ABOG", "ABU", "ABU"),
-#'   certified_n = c(350, 150, 100, 40))
+#'   certified_n = c(350, 150, 100, 40)
+#' )
 #' scale <- urps_fte_scale_sex(
 #'   cbind(cohort, n = cohort$certified_n *
-#'     urps_p_active(cohort$age, cohort$sex)))
+#'     urps_p_active(cohort$age, cohort$sex))
+#' )
 #' urps_supply_fte_sex(cohort, scale)
 #' @export
 urps_supply_fte_sex <- function(cohort, baseline_scale,
-                                 late_from_age = NULL, late_factor = 1) {
+                                late_from_age = NULL, late_factor = 1) {
   need <- c("age", "sex", "pathway", "certified_n")
   miss <- setdiff(need, names(cohort))
-  if (length(miss))
-    stop(sprintf("[urps_supply_fte_sex] missing required column(s): %s.",
-                 paste(miss, collapse = ", ")), call. = FALSE)
+  if (length(miss)) {
+    stop(sprintf(
+      "[urps_supply_fte_sex] missing required column(s): %s.",
+      paste(miss, collapse = ", ")
+    ), call. = FALSE)
+  }
   practicing <- urps_apply_lfp(cohort)
   urps_effective_fte_sex(
-    data.frame(age     = practicing$age,
-               sex     = practicing$sex,
-               pathway = practicing$pathway,
-               n       = practicing$practicing_n,
-               stringsAsFactors = FALSE),
-    scale         = baseline_scale,
+    data.frame(
+      age = practicing$age,
+      sex = practicing$sex,
+      pathway = practicing$pathway,
+      n = practicing$practicing_n,
+      stringsAsFactors = FALSE
+    ),
+    scale = baseline_scale,
     late_from_age = late_from_age,
-    late_factor   = late_factor
+    late_factor = late_factor
   )
 }

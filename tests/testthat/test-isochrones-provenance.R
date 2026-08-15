@@ -45,16 +45,25 @@ test_that("the release gate passes for the real release and fails for the bootst
   path <- real_isochrones_artifact_path()
   suppressMessages(use_urps_artifact(path))
   expect_true(validate_urps_ssot(require_external = TRUE))
-  expect_true(validate_urps_ssot(require_external = TRUE, require_canonical = TRUE,
-                                 require_contract_version = "3.0.0"))
+  expect_true(validate_urps_ssot(
+    require_external = TRUE, require_canonical = TRUE,
+    require_contract_version = "3.0.0"
+  ))
   manifest <- read_isochrones_manifest(path)
-  expect_true(validate_urps_ssot(require_external = TRUE,
-                                 require_source_git_commit = manifest$git_commit))
+  expect_true(validate_urps_ssot(
+    require_external = TRUE,
+    require_source_git_commit = manifest$git_commit
+  ))
   # a wrong pin fails
-  expect_error(validate_urps_ssot(require_external = TRUE,
-                                  require_source_git_commit = paste(rep("0", 40), collapse = "")),
-               "git commit")
+  expect_error(
+    validate_urps_ssot(
+      require_external = TRUE,
+      require_source_git_commit = paste(rep("0", 40), collapse = "")
+    ),
+    "git commit"
+  )
   reset_urps_artifact()
   expect_error(validate_urps_ssot(require_external = TRUE),
-               regexp = "external|canonical|bootstrap", ignore.case = TRUE)
+    regexp = "external|canonical|bootstrap", ignore.case = TRUE
+  )
 })

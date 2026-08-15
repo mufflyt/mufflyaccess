@@ -13,13 +13,15 @@ sc <- function(id) urps_scenario(id)
 # ---- SEMANTIC: directions and orderings -------------------------------------
 
 test_that("retirement scenarios are ordered earlier < baseline < later", {
-  expect_lt(sc("retire_5yr_earlier")$retirement_shift_years,
-            sc("retire_2yr_earlier")$retirement_shift_years)
-  expect_lt(sc("retire_2yr_earlier")$retirement_shift_years, 0L)          # earlier = negative
-  expect_gt(sc("retire_2yr_later")$retirement_shift_years, 0L)            # later   = positive
+  expect_lt(
+    sc("retire_5yr_earlier")$retirement_shift_years,
+    sc("retire_2yr_earlier")$retirement_shift_years
+  )
+  expect_lt(sc("retire_2yr_earlier")$retirement_shift_years, 0L) # earlier = negative
+  expect_gt(sc("retire_2yr_later")$retirement_shift_years, 0L) # later   = positive
   # the named magnitudes are exactly what the labels claim
   expect_equal(sc("retire_5yr_earlier")$retirement_shift_years, -5L)
-  expect_equal(sc("retire_2yr_later")$retirement_shift_years,  2L)
+  expect_equal(sc("retire_2yr_later")$retirement_shift_years, 2L)
 })
 
 test_that("entry scenarios bracket the baseline entrant rate", {
@@ -27,20 +29,20 @@ test_that("entry scenarios bracket the baseline entrant rate", {
   expect_lt(sc("fellowship_constrained")$entrant_multiplier, 1)
   # expansion and constraint are symmetric 10% moves
   expect_equal(sc("fellowship_plus_10pct")$entrant_multiplier +
-               sc("fellowship_constrained")$entrant_multiplier, 2.0)
+    sc("fellowship_constrained")$entrant_multiplier, 2.0)
 })
 
 test_that("composites point the right way on every axis they touch", {
-  inv <- sc("combined_investment")     # favourable: more entrants AND later exit
+  inv <- sc("combined_investment") # favourable: more entrants AND later exit
   expect_gte(inv$entrant_multiplier, 1)
   expect_gte(inv$retirement_shift_years, 0L)
-  pes <- sc("combined_pessimistic")    # adverse: fewer entrants, earlier exit, lower FTE
+  pes <- sc("combined_pessimistic") # adverse: fewer entrants, earlier exit, lower FTE
   expect_lte(pes$entrant_multiplier, 1)
   expect_lte(pes$retirement_shift_years, 0L)
   expect_lte(pes$late_career_fte_factor, 1)
   # the pessimistic composite is adverse on strictly more axes than any single lever
   expect_true(pes$entrant_multiplier < 1 && pes$retirement_shift_years < 0L &&
-              pes$late_career_fte_factor < 1)
+    pes$late_career_fte_factor < 1)
 })
 
 # ---- SEMANTIC: family coherence + no accidental baseline clones -------------
@@ -59,20 +61,24 @@ test_that("baseline is the unique neutral origin; every other scenario moves a l
   d <- urps_scenarios()
   # neutral across BOTH the supply levers and the demand levers -- baseline alone
   neutral <- d$entrant_multiplier == 1 & d$retirement_shift_years == 0L &
-             d$late_career_fte_factor == 1 &
-             d$demand_obesity_prev_shift == 0 & d$demand_insurance_expansion_factor == 1 &
-             d$demand_managed_care_factor == 1 & d$demand_retail_clinic_share == 0
-  expect_identical(d$scenario_id[neutral], "baseline")     # exactly one fully-neutral row
-  expect_true(all(d$family[!neutral] != "reference"))       # non-neutral => not reference
+    d$late_career_fte_factor == 1 &
+    d$demand_obesity_prev_shift == 0 & d$demand_insurance_expansion_factor == 1 &
+    d$demand_managed_care_factor == 1 & d$demand_retail_clinic_share == 0
+  expect_identical(d$scenario_id[neutral], "baseline") # exactly one fully-neutral row
+  expect_true(all(d$family[!neutral] != "reference")) # non-neutral => not reference
 })
 
 test_that("requires_fte_model marks exactly the FTE-touching scenarios", {
   d <- urps_scenarios()
-  expect_identical(sort(d$scenario_id[d$requires_fte_model]),
-                   sort(d$scenario_id[d$late_career_fte_factor != 1]))
+  expect_identical(
+    sort(d$scenario_id[d$requires_fte_model]),
+    sort(d$scenario_id[d$late_career_fte_factor != 1])
+  )
   # and those are the only rows carrying an onset age
-  expect_identical(sort(d$scenario_id[!is.na(d$late_career_fte_onset_age)]),
-                   sort(d$scenario_id[d$requires_fte_model]))
+  expect_identical(
+    sort(d$scenario_id[!is.na(d$late_career_fte_onset_age)]),
+    sort(d$scenario_id[d$requires_fte_model])
+  )
 })
 
 # ---- ADVERSARIAL: near-miss and hostile ids must be rejected ----------------
@@ -81,10 +87,12 @@ test_that("membership is exact: case, whitespace, and partials do not match", {
   # every valid id is accepted...
   expect_true(all(is_urps_scenario(urps_scenario_ids())))
   # ...but nothing near it is
-  hostile <- c("Baseline", "BASELINE", " baseline", "baseline ", "baseline\t",
-               "base", "baselin", "baseline_x", "fellowship_plus_10",
-               "fellowship+10pct", "retire_2yr_early", "earlier_retirement",
-               "combined-investment", "", "  ")
+  hostile <- c(
+    "Baseline", "BASELINE", " baseline", "baseline ", "baseline\t",
+    "base", "baselin", "baseline_x", "fellowship_plus_10",
+    "fellowship+10pct", "retire_2yr_early", "earlier_retirement",
+    "combined-investment", "", "  "
+  )
   expect_false(any(is_urps_scenario(hostile)))
   for (h in hostile) expect_error(urps_scenario(h), "unknown scenario_id")
 })

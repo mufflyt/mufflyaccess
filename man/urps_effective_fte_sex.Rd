@@ -35,7 +35,8 @@ cs <- data.frame(
   age     = c(45L, 62L, 45L, 62L),
   sex     = c("female", "female", "male", "male"),
   pathway = c("ABOG", "ABOG", "ABU", "ABU"),
-  n       = c(350, 150, 100, 40))
+  n       = c(350, 150, 100, 40)
+)
 urps_effective_fte_sex(cs, scale = urps_fte_scale_sex(cs))
 }
 \seealso{

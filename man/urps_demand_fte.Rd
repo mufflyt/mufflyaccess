@@ -47,7 +47,7 @@ columns, and it simply stops being \code{NA} after activation.
 }
 \examples{
 pop <- data.frame(age = 50, sex = "female", n = 10000)
-urps_demand_fte(pop, visits_per_fte = 2000)                           # NA
+urps_demand_fte(pop, visits_per_fte = 2000) # NA
 urps_demand_fte(pop, visits_per_fte = 2000, scenario_id = "baseline") # NA
 urps_demand_fte(pop, 2000, scenario_id = "demand_managed_care_increase") # NA
 }

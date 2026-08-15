@@ -98,11 +98,11 @@ not multiply by 100, and from \code{safe_rate()} in that it has no
 }
 
 \examples{
-safe_divide(10, 2)                 # 5
-safe_divide(1, 0)                  # NA_real_ (no Inf)
-safe_divide(1, 0, default = 0)     # 0
-safe_divide(c(10, 20), c(2, 0))    # c(5, NA)  -- vectorised, element-wise guard
-safe_divide(1, 1e-12)              # NA (denominator below zero_threshold)
+safe_divide(10, 2) # 5
+safe_divide(1, 0) # NA_real_ (no Inf)
+safe_divide(1, 0, default = 0) # 0
+safe_divide(c(10, 20), c(2, 0)) # c(5, NA)  -- vectorised, element-wise guard
+safe_divide(1, 1e-12) # NA (denominator below zero_threshold)
 }
 \seealso{
 \code{\link[=safe_percent]{safe_percent()}}, \code{\link[=safe_rate]{safe_rate()}}, \code{\link[=safe_ratio]{safe_ratio()}} for rounded

@@ -24,8 +24,8 @@ scheme's DISTINCT suburban/rural split (RUCA 7) is a SEPARATE threshold and
 is intentionally NOT derived from this constant.
 }
 \examples{
-RUCA_NONMETRO_MIN                   # 4L (codes 1-3 metro, 4-10 rural)
-rurality_from_ruca(c(3, 4))         # "Metropolitan" "Rural"
+RUCA_NONMETRO_MIN # 4L (codes 1-3 metro, 4-10 rural)
+rurality_from_ruca(c(3, 4)) # "Metropolitan" "Rural"
 }
 \seealso{
 \code{\link[=rurality_from_ruca]{rurality_from_ruca()}}, which uses this breakpoint to classify codes.

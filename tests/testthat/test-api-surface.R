@@ -26,8 +26,8 @@ test_that("the recorded surface file is well formed", {
 
 test_that("no export has been removed or renamed", {
   recorded <- read_recorded_surface()
-  current  <- sort(getNamespaceExports("mufflyaccess"))
-  removed  <- setdiff(recorded, current)
+  current <- sort(getNamespaceExports("mufflyaccess"))
+  removed <- setdiff(recorded, current)
 
   if (length(removed)) {
     fail(paste0(
@@ -37,7 +37,8 @@ test_that("no export has been removed or renamed", {
       "rename breaks them at run time rather than here. If it is intended: bump ",
       "the version, add a NEWS entry saying what replaces it, update ",
       "tests/testthat/api-surface.txt, and open an issue on each consumer that ",
-      "uses it."))
+      "uses it."
+    ))
   } else {
     succeed()
   }
@@ -45,8 +46,8 @@ test_that("no export has been removed or renamed", {
 
 test_that("no export has been added without recording it", {
   recorded <- read_recorded_surface()
-  current  <- sort(getNamespaceExports("mufflyaccess"))
-  added    <- setdiff(current, recorded)
+  current <- sort(getNamespaceExports("mufflyaccess"))
+  added <- setdiff(current, recorded)
 
   if (length(added)) {
     fail(paste0(
@@ -55,7 +56,8 @@ test_that("no export has been added without recording it", {
       "Adding to a shared contract should be visible in review. Regenerate with ",
       "Rscript -e 'writeLines(sort(getNamespaceExports(\"mufflyaccess\")))' > ",
       "tests/testthat/api-surface.txt (keeping the header), and describe the ",
-      "addition in NEWS.md."))
+      "addition in NEWS.md."
+    ))
   } else {
     succeed()
   }
@@ -68,6 +70,7 @@ test_that("every recorded export actually resolves in the namespace", {
   recorded <- read_recorded_surface()
   ns <- asNamespace("mufflyaccess")
   missing <- recorded[!vapply(recorded, exists, logical(1),
-                              envir = ns, inherits = FALSE)]
+    envir = ns, inherits = FALSE
+  )]
   expect_identical(missing, character(0))
 })
