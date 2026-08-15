@@ -15,7 +15,7 @@ The single drive-time threshold behind every headline access / coverage /
 \link{CANONICAL_BANDS}; MUST be one of its members.
 }
 \examples{
-PRIMARY_ACCESS_BAND_MIN  # 60
+PRIMARY_ACCESS_BAND_MIN # 60
 }
 \seealso{
 \link{PRIMARY_ACCESS_BAND_SEC} (the derived seconds form), \link{CANONICAL_BANDS}

@@ -40,7 +40,7 @@ urps_ci_param_draw(seed = 1L)
 # reproducible draw
 a <- urps_ci_param_draw(seed = 42L)
 b <- urps_ci_param_draw(seed = 42L)
-identical(a, b)  # TRUE
+identical(a, b) # TRUE
 }
 \seealso{
 \code{\link[=urps_projection_ci]{urps_projection_ci()}}, \code{\link[=urps_retirement_params]{urps_retirement_params()}},

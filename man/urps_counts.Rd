@@ -35,7 +35,7 @@ canonical \code{board_certified_active} / \code{national} slice (years 2013-2023
 \code{\link[=urps_count]{urps_count()}} for a single value.
 }
 \examples{
-urps_counts()                                   # board_certified_active / national
+urps_counts() # board_certified_active / national
 utils::tail(urps_counts("board_certified_active", "conus"), 3)
 }
 \seealso{

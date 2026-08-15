@@ -9,8 +9,10 @@
 test_that("interpolation hits the anchors exactly", {
   par <- mufflyaccess:::.obstetric_extdata("us_completed_parity_by_cohort.csv")
   for (i in seq_len(nrow(par))) {
-    expect_equal(completed_parity_for_cohort(par$birth_cohort[i]),
-                 par$mean_completed_parity[i])
+    expect_equal(
+      completed_parity_for_cohort(par$birth_cohort[i]),
+      par$mean_completed_parity[i]
+    )
   }
 })
 
@@ -20,11 +22,16 @@ test_that("outside the anchor range it CLAMPS rather than extrapolating", {
   # point, produce a confidently wrong number for any cohort past the last
   # anchor -- which is every cohort the projection actually cares about.
   par <- mufflyaccess:::.obstetric_extdata("us_completed_parity_by_cohort.csv")
-  lo <- min(par$birth_cohort); hi <- max(par$birth_cohort)
-  expect_equal(completed_parity_for_cohort(lo - 50),
-               par$mean_completed_parity[which.min(par$birth_cohort)])
-  expect_equal(completed_parity_for_cohort(hi + 50),
-               par$mean_completed_parity[which.max(par$birth_cohort)])
+  lo <- min(par$birth_cohort)
+  hi <- max(par$birth_cohort)
+  expect_equal(
+    completed_parity_for_cohort(lo - 50),
+    par$mean_completed_parity[which.min(par$birth_cohort)]
+  )
+  expect_equal(
+    completed_parity_for_cohort(hi + 50),
+    par$mean_completed_parity[which.max(par$birth_cohort)]
+  )
 })
 
 test_that("the parity series still says what it said when it was adopted", {
@@ -39,10 +46,14 @@ test_that("the parity series still says what it said when it was adopted", {
 test_that("the cesarean series interpolates and clamps the same way", {
   ces <- mufflyaccess:::.obstetric_extdata("us_cesarean_rate_by_year.csv")
   expect_equal(cesarean_rate_for_year(ces$year[1]), ces$cesarean_rate[1])
-  expect_equal(cesarean_rate_for_year(min(ces$year) - 20),
-               ces$cesarean_rate[which.min(ces$year)])
-  expect_equal(cesarean_rate_for_year(max(ces$year) + 20),
-               ces$cesarean_rate[which.max(ces$year)])
+  expect_equal(
+    cesarean_rate_for_year(min(ces$year) - 20),
+    ces$cesarean_rate[which.min(ces$year)]
+  )
+  expect_equal(
+    cesarean_rate_for_year(max(ces$year) + 20),
+    ces$cesarean_rate[which.max(ces$year)]
+  )
   expect_true(all(cesarean_rate_for_year(1970:2020) >= 0))
   expect_true(all(cesarean_rate_for_year(1970:2020) <= 1))
 })
@@ -66,7 +77,9 @@ test_that("cohort exposure splits parity into vaginal and cesarean", {
   expect_equal(nrow(e), 2L)
   # The split is exhaustive: the two components reconstitute total parity.
   expect_equal(e$mean_vaginal_deliveries + e$mean_cesarean_deliveries,
-               e$mean_total_parity, tolerance = 1e-3)
+    e$mean_total_parity,
+    tolerance = 1e-3
+  )
   expect_true(all(e$cohort_cesarean_fraction >= 0 & e$cohort_cesarean_fraction <= 1))
 })
 
@@ -86,8 +99,10 @@ test_that("cohort exposure averages over the childbearing window, not one year",
   expect_equal(mufflyaccess:::OBSTETRIC_CHILDBEAR_AGE_HI, 35L)
   c0 <- 1960
   window <- mean(cesarean_rate_for_year((c0 + 20):(c0 + 35)))
-  expect_equal(cohort_vaginal_exposure(c0)$cohort_cesarean_fraction,
-               round(window, 4))
+  expect_equal(
+    cohort_vaginal_exposure(c0)$cohort_cesarean_fraction,
+    round(window, 4)
+  )
 })
 
 test_that("empty or NA cohorts are refused", {

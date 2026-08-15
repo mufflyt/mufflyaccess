@@ -22,7 +22,7 @@ Thin alias of \code{\link[=safe_divide]{safe_divide()}} using the \code{num}/\co
 argument names used across \verb{manuscript/R/}.
 }
 \examples{
-safe_divide_manu(10, 5)               # 2
+safe_divide_manu(10, 5) # 2
 safe_divide_manu(10, 0, fallback = 0) # 0
 }
 \seealso{

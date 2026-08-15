@@ -20,5 +20,7 @@ even if the inputs did not. Order-independent (paths are sorted) and content-
 based.
 }
 \examples{
-\dontrun{fingerprint_files(c("R/foo.R", "R/bar.R"))}
+\dontrun{
+fingerprint_files(c("R/foo.R", "R/bar.R"))
+}
 }

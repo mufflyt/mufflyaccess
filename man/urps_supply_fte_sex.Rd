@@ -51,10 +51,12 @@ cohort <- data.frame(
   age = c(45L, 62L, 45L, 62L),
   sex = c("female", "female", "male", "male"),
   pathway = c("ABOG", "ABOG", "ABU", "ABU"),
-  certified_n = c(350, 150, 100, 40))
+  certified_n = c(350, 150, 100, 40)
+)
 scale <- urps_fte_scale_sex(
   cbind(cohort, n = cohort$certified_n *
-    urps_p_active(cohort$age, cohort$sex)))
+    urps_p_active(cohort$age, cohort$sex))
+)
 urps_supply_fte_sex(cohort, scale)
 }
 \seealso{

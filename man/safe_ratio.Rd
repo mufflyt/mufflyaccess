@@ -24,8 +24,8 @@ with a zero/NA-denominator guard. Unlike \code{\link[=safe_percent]{safe_percent
 by 100, and unlike \code{\link[=safe_rate]{safe_rate()}} it has no \code{multiplier}.
 }
 \examples{
-safe_ratio(1339, 1031)  # 1.30  (with-urology : without-urology URPS)
-safe_ratio(1, 0)        # NA_real_
+safe_ratio(1339, 1031) # 1.30  (with-urology : without-urology URPS)
+safe_ratio(1, 0) # NA_real_
 }
 \seealso{
 \code{\link[=safe_divide]{safe_divide()}}, \code{\link[=safe_percent]{safe_percent()}}, \code{\link[=safe_rate]{safe_rate()}}

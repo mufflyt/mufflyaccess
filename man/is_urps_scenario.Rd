@@ -17,7 +17,7 @@ A non-erroring, vectorised membership test against the registry --
 the building block for a fail-loud guard or a filter.
 }
 \examples{
-is_urps_scenario(c("baseline", "typo", NA))  # TRUE FALSE FALSE
+is_urps_scenario(c("baseline", "typo", NA)) # TRUE FALSE FALSE
 }
 \seealso{
 \code{\link[=validate_urps_scenarios]{validate_urps_scenarios()}}, \code{\link[=urps_scenario_ids]{urps_scenario_ids()}}

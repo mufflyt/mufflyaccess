@@ -32,8 +32,8 @@ supply_fte_cell <- practicing_n * urps_fte_weight_sex(age, sex, pathway, ...)
 }\if{html}{\out{</div>}}
 }
 \examples{
-urps_p_active(40, "female")   # ~0.97
-urps_p_active(65, "male")     # ~0.85
+urps_p_active(40, "female") # ~0.97
+urps_p_active(65, "male") # ~0.85
 urps_p_active(35:75, "female")
 # mixed-sex cohort:
 urps_p_active(c(45, 50), c("female", "male"))

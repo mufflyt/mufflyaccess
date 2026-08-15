@@ -31,7 +31,9 @@ fingerprint_object <- function(x) {
 #' @return 64-character hex digest over the (sorted) per-file digests, or
 #'   `NA_character_` if no path exists.
 #' @examples
-#' \dontrun{fingerprint_files(c("R/foo.R", "R/bar.R"))}
+#' \dontrun{
+#' fingerprint_files(c("R/foo.R", "R/bar.R"))
+#' }
 #' @export
 fingerprint_files <- function(paths) {
   existing <- paths[file.exists(paths)]

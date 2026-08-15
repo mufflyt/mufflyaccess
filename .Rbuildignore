@@ -17,3 +17,5 @@
 ^CITATION\.cff$
 ^CITATION\.bib$
 ^LICENSE\.md$
+^\.lintr$
+^pkgdown-site$

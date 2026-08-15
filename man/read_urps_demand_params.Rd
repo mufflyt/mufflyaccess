@@ -25,7 +25,8 @@ with real coefficients and \code{calibration_status != "not_calibrated"}.
 }
 \examples{
 ex <- system.file("extdata", "urps_demand_params_example.csv",
-                  package = "mufflyaccess")
+  package = "mufflyaccess"
+)
 if (nzchar(ex)) {
   p <- read_urps_demand_params(ex)
   attr(p, "calibration_status")

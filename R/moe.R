@@ -16,9 +16,9 @@
 #'   `ACS_MOE_Z90` to recover the standard error it resamples.
 #' @family margin-of-error
 #' @examples
-#' ACS_MOE_Z90                         # 1.645
+#' ACS_MOE_Z90 # 1.645
 #' moe_90 <- 500
-#' se <- moe_90 / ACS_MOE_Z90          # ACS MOE -> standard error
+#' se <- moe_90 / ACS_MOE_Z90 # ACS MOE -> standard error
 #' ci95_halfwidth <- moe_90 * MOE90_TO_CI95_FACTOR
 #' @export
 ACS_MOE_Z90 <- 1.645

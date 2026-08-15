@@ -4,11 +4,13 @@ library(mufflyaccess)
 test_that("the registry is a well-formed, versioned dictionary", {
   d <- urps_scenarios()
   expect_s3_class(d, "data.frame")
-  req <- c("scenario_id", "family", "label", "entrant_multiplier",
-           "retirement_shift_years", "late_career_fte_factor",
-           "late_career_fte_onset_age",
-           "demand_obesity_prev_shift", "demand_insurance_expansion_factor",
-           "requires_fte_model", "requires_demand_model", "description")
+  req <- c(
+    "scenario_id", "family", "label", "entrant_multiplier",
+    "retirement_shift_years", "late_career_fte_factor",
+    "late_career_fte_onset_age",
+    "demand_obesity_prev_shift", "demand_insurance_expansion_factor",
+    "requires_fte_model", "requires_demand_model", "description"
+  )
   expect_true(all(req %in% names(d)))
   expect_false(anyDuplicated(d$scenario_id) > 0)
   expect_match(URPS_SCENARIO_REGISTRY_VERSION, "^[0-9]+\\.[0-9]+\\.[0-9]+$")
@@ -50,15 +52,21 @@ test_that("composites reconstruct from their components (un-driftable)", {
     expect_equal(got$entrant_multiplier, prod(cr$entrant_multiplier))
     expect_equal(got$retirement_shift_years, as.integer(sum(cr$retirement_shift_years)))
     expect_equal(got$late_career_fte_factor, prod(cr$late_career_fte_factor))
-    expect_equal(got$late_career_fte_onset_age,
-                 if (length(onset)) as.integer(min(onset)) else NA_integer_)
+    expect_equal(
+      got$late_career_fte_onset_age,
+      if (length(onset)) as.integer(min(onset)) else NA_integer_
+    )
     expect_equal(got$requires_fte_model, any(cr$requires_fte_model))
   }
-  compose("combined_pessimistic",
-          c("retire_2yr_earlier", "fellowship_constrained", "lower_late_career_fte"))
+  compose(
+    "combined_pessimistic",
+    c("retire_2yr_earlier", "fellowship_constrained", "lower_late_career_fte")
+  )
   compose("combined_investment", c("retire_2yr_later", "fellowship_plus_10pct"))
-  expect_identical(urps_scenario("combined_pessimistic")$components,
-                   c("retire_2yr_earlier", "fellowship_constrained", "lower_late_career_fte"))
+  expect_identical(
+    urps_scenario("combined_pessimistic")$components,
+    c("retire_2yr_earlier", "fellowship_constrained", "lower_late_career_fte")
+  )
 })
 
 test_that("requires_fte_model iff an FTE adjustment is present", {
@@ -91,9 +99,9 @@ test_that("demand scenario lever definitions match the named scenarios", {
 test_that("requires_demand_model iff a demand lever is active", {
   d <- urps_scenarios()
   active <- d$demand_obesity_prev_shift != 0 |
-            d$demand_insurance_expansion_factor != 1.0 |
-            d$demand_managed_care_factor != 1.0 |
-            d$demand_retail_clinic_share != 0.0
+    d$demand_insurance_expansion_factor != 1.0 |
+    d$demand_managed_care_factor != 1.0 |
+    d$demand_retail_clinic_share != 0.0
   expect_equal(d$requires_demand_model, active)
 })
 
@@ -103,16 +111,18 @@ test_that("all demand scenarios belong to the 'demand' family", {
 })
 
 test_that("supply-only scenarios have neutral demand levers", {
-  supply_ids <- c("retire_2yr_earlier", "retire_5yr_earlier", "retire_2yr_later",
-                  "fellowship_plus_10pct", "fellowship_constrained", "lower_late_career_fte")
+  supply_ids <- c(
+    "retire_2yr_earlier", "retire_5yr_earlier", "retire_2yr_later",
+    "fellowship_plus_10pct", "fellowship_constrained", "lower_late_career_fte"
+  )
   d <- urps_scenarios()
   for (id in supply_ids) {
     r <- d[d$scenario_id == id, ]
-    expect_equal(r$demand_obesity_prev_shift,         0.0, label = paste("obesity shift == 0 for",    id))
+    expect_equal(r$demand_obesity_prev_shift, 0.0, label = paste("obesity shift == 0 for", id))
     expect_equal(r$demand_insurance_expansion_factor, 1.0, label = paste("insurance factor == 1 for", id))
-    expect_equal(r$demand_managed_care_factor,        1.0, label = paste("managed care factor == 1 for", id))
-    expect_equal(r$demand_retail_clinic_share,        0.0, label = paste("retail clinic share == 0 for", id))
-    expect_false(r$requires_demand_model,                  label = paste("requires_demand_model FALSE for", id))
+    expect_equal(r$demand_managed_care_factor, 1.0, label = paste("managed care factor == 1 for", id))
+    expect_equal(r$demand_retail_clinic_share, 0.0, label = paste("retail clinic share == 0 for", id))
+    expect_false(r$requires_demand_model, label = paste("requires_demand_model FALSE for", id))
   }
 })
 
@@ -166,9 +176,11 @@ test_that("executable-today filter excludes demand and FTE scenarios", {
   executable <- d[!d$requires_fte_model & !d$requires_demand_model, ]
   expect_true("baseline" %in% executable$scenario_id)
   expect_false(any(executable$scenario_id %in%
-    c("lower_late_career_fte", "combined_pessimistic",
+    c(
+      "lower_late_career_fte", "combined_pessimistic",
       "demand_insurance_expansion", "demand_obesity_increase", "demand_equity",
-      "demand_managed_care_increase", "demand_retail_clinic_shift")))
+      "demand_managed_care_increase", "demand_retail_clinic_shift"
+    )))
 })
 
 test_that("urps_scenario() is a fail-loud single lookup", {
@@ -187,7 +199,8 @@ test_that("is_urps_scenario() is a vectorised, non-erroring predicate", {
 test_that("validate_urps_scenarios() guards vectors and data.frames", {
   expect_true(validate_urps_scenarios(urps_scenario_ids()))
   expect_true(validate_urps_scenarios(
-    data.frame(scenario_id = c("baseline", "retire_2yr_later"), v = 1:2)))
+    data.frame(scenario_id = c("baseline", "retire_2yr_later"), v = 1:2)
+  ))
   expect_error(validate_urps_scenarios("earlier_retirement"), "unregistered scenario_id")
   expect_error(validate_urps_scenarios(data.frame(x = 1)), "no `scenario_id` column")
   expect_error(validate_urps_scenarios(character(0)), "no scenario_id values")

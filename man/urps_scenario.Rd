@@ -23,7 +23,7 @@ lever meaning. Unknown ids are a hard error listing the valid ids.
 \examples{
 urps_scenario("fellowship_plus_10pct")
 urps_scenario("combined_pessimistic")$components
-try(urps_scenario("no_such_scenario"))  # hard error
+try(urps_scenario("no_such_scenario")) # hard error
 }
 \seealso{
 \code{\link[=urps_scenarios]{urps_scenarios()}}, \code{\link[=validate_urps_scenarios]{validate_urps_scenarios()}}

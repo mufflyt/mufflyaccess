@@ -29,7 +29,9 @@
 
 isochrones_dir <- function() {
   d <- Sys.getenv("MUFFLYACCESS_ISOCHRONES_DIR", "")
-  if (!nzchar(d) || !dir.exists(d)) return(NULL)
+  if (!nzchar(d) || !dir.exists(d)) {
+    return(NULL)
+  }
   d
 }
 
@@ -39,11 +41,15 @@ isochrones_dir <- function() {
 # intended and permanent, so comparing it would leave this guard failing forever
 # on a difference nobody wants removed. Stripped from BOTH sides so what is
 # compared is the logic.
-SIDE_EFFECT_CALLS <- c("cat", "message", "print", "beep", "maybe_beep",
-                       "packageStartupMessage", "flush.console")
+SIDE_EFFECT_CALLS <- c(
+  "cat", "message", "print", "beep", "maybe_beep",
+  "packageStartupMessage", "flush.console"
+)
 
 strip_side_effects <- function(e) {
-  if (!is.call(e)) return(e)
+  if (!is.call(e)) {
+    return(e)
+  }
   head <- as.character(e[[1L]])[1L]
   if (identical(head, "function")) {
     # element 2 is the formals pairlist and must not be walked; element 3 is
@@ -64,14 +70,18 @@ strip_side_effects <- function(e) {
 # Pull one top-level `name <- function(...)` definition out of a file, without
 # evaluating anything in it.
 fn_source <- function(path, name) {
-  if (!file.exists(path)) return(NULL)
+  if (!file.exists(path)) {
+    return(NULL)
+  }
   exprs <- tryCatch(parse(path), error = function(e) NULL)
-  if (is.null(exprs)) return(NULL)
+  if (is.null(exprs)) {
+    return(NULL)
+  }
   for (e in exprs) {
     if (is.call(e) && length(e) == 3L &&
-        as.character(e[[1L]])[1L] %in% c("<-", "=") &&
-        is.name(e[[2L]]) && identical(as.character(e[[2L]]), name) &&
-        is.call(e[[3L]]) && identical(as.character(e[[3L]][[1L]])[1L], "function")) {
+      as.character(e[[1L]])[1L] %in% c("<-", "=") &&
+      is.name(e[[2L]]) && identical(as.character(e[[2L]]), name) &&
+      is.call(e[[3L]]) && identical(as.character(e[[3L]][[1L]])[1L], "function")) {
       return(paste(deparse(strip_side_effects(e[[3L]])), collapse = "\n"))
     }
   }
@@ -93,20 +103,24 @@ compare_promoted <- function(fn, origin_relpath, here_relpath) {
 
   origin_path <- file.path(dir, origin_relpath)
   theirs <- fn_source(origin_path, fn)
-  mine   <- fn_source(test_path("..", "..", here_relpath), fn)
+  mine <- fn_source(test_path("..", "..", here_relpath), fn)
 
   # Once a checkout is supplied, anything other than a clean comparison is a
   # failure -- never a skip.
   if (is.null(mine)) {
-    fail(paste0("could not find ", fn, "() in this package's ", here_relpath,
-                " -- the parity guard cannot verify what it cannot parse."))
+    fail(paste0(
+      "could not find ", fn, "() in this package's ", here_relpath,
+      " -- the parity guard cannot verify what it cannot parse."
+    ))
     return(invisible(NULL))
   }
   if (is.null(theirs)) {
-    fail(paste0("could not find ", fn, "() in isochrones ", origin_relpath,
-                " (looked in '", origin_path, "'). If isochrones removed its ",
-                "duplicate copy the promotion is finally complete -- delete ",
-                "this guard deliberately rather than leaving it green and inert."))
+    fail(paste0(
+      "could not find ", fn, "() in isochrones ", origin_relpath,
+      " (looked in '", origin_path, "'). If isochrones removed its ",
+      "duplicate copy the promotion is finally complete -- delete ",
+      "this guard deliberately rather than leaving it green and inert."
+    ))
     return(invisible(NULL))
   }
 
@@ -115,18 +129,23 @@ compare_promoted <- function(fn, origin_relpath, here_relpath) {
     info = paste0(
       fn, "() has diverged from the isochrones copy it was promoted from. ",
       "Two implementations of an SSOT function is the drift this package ",
-      "exists to prevent: reconcile them, or retire the isochrones copy.")
+      "exists to prevent: reconcile them, or retire the isochrones copy."
+    )
   )
 }
 
 test_that("canon_npi() matches the isochrones copy it was promoted from", {
-  compare_promoted("canon_npi",
-                   file.path("R", "join_standards.R"),
-                   file.path("R", "npi.R"))
+  compare_promoted(
+    "canon_npi",
+    file.path("R", "join_standards.R"),
+    file.path("R", "npi.R")
+  )
 })
 
 test_that("standardize_state_name() matches the isochrones copy it was promoted from", {
-  compare_promoted("standardize_state_name",
-                   file.path("R", "utils_standardized.R"),
-                   file.path("R", "state.R"))
+  compare_promoted(
+    "standardize_state_name",
+    file.path("R", "utils_standardized.R"),
+    file.path("R", "state.R")
+  )
 })

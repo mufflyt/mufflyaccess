@@ -43,7 +43,8 @@ urps_p_still_active(65, "female", "ABOG")
 urps_p_still_active(35:80, "male", "ABU")
 # retire-2-years-earlier scenario
 urps_p_still_active(65, "female", "ABOG",
-  retirement_shift_years = urps_scenario("retire_2yr_earlier")$retirement_shift_years)
+  retirement_shift_years = urps_scenario("retire_2yr_earlier")$retirement_shift_years
+)
 }
 \seealso{
 \code{\link[=urps_retirement_hazard]{urps_retirement_hazard()}}, \code{\link[=urps_survival_curve]{urps_survival_curve()}},

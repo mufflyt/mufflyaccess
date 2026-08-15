@@ -21,7 +21,8 @@ or \code{MUFFLYACCESS_URPS_EXIT_HAZARD}; fail-loud when unset.
 }
 \examples{
 ex <- system.file("extdata", "urps_exit_hazard_by_age_year_example.csv",
-                  package = "mufflyaccess")
+  package = "mufflyaccess"
+)
 old <- options(mufflyaccess.urps_exit_hazard_path = ex)
 head(urps_exit_hazard_by_age_year())
 options(old)

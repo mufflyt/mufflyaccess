@@ -19,11 +19,13 @@ test_that("params table has required columns and 2 rows", {
   expect_s3_class(d, "data.frame")
   expect_equal(nrow(d), 2L)
   expect_setequal(d$sex, c("female", "male"))
-  expect_true(all(c("intercept", "b_age", "c_age_sq",
-                    "anchor_age_lo", "anchor_hours_lo",
-                    "anchor_age_peak", "anchor_hours_peak",
-                    "anchor_age_hi", "anchor_hours_hi",
-                    "calibration_status") %in% names(d)))
+  expect_true(all(c(
+    "intercept", "b_age", "c_age_sq",
+    "anchor_age_lo", "anchor_hours_lo",
+    "anchor_age_peak", "anchor_hours_peak",
+    "anchor_age_hi", "anchor_hours_hi",
+    "calibration_status"
+  ) %in% names(d)))
   expect_true(all(d$calibration_status == "calibrated_from_literature"))
 })
 
@@ -37,14 +39,20 @@ test_that("params table carries source, formula, and reference_hours attributes"
 test_that("coefficients reproduce all anchor points within 0.01 hrs", {
   d <- urps_fte_sex_hours_params()
   for (sx in c("female", "male")) {
-    r    <- d[d$sex == sx, ]
+    r <- d[d$sex == sx, ]
     eval_q <- function(age) r$intercept + r$b_age * age + r$c_age_sq * age^2
-    expect_equal(eval_q(r$anchor_age_lo),   r$anchor_hours_lo,   tolerance = 0.01,
-                 label = paste("lo anchor", sx))
-    expect_equal(eval_q(r$anchor_age_peak), r$anchor_hours_peak, tolerance = 0.01,
-                 label = paste("peak anchor", sx))
-    expect_equal(eval_q(r$anchor_age_hi),   r$anchor_hours_hi,   tolerance = 0.01,
-                 label = paste("hi anchor", sx))
+    expect_equal(eval_q(r$anchor_age_lo), r$anchor_hours_lo,
+      tolerance = 0.01,
+      label = paste("lo anchor", sx)
+    )
+    expect_equal(eval_q(r$anchor_age_peak), r$anchor_hours_peak,
+      tolerance = 0.01,
+      label = paste("peak anchor", sx)
+    )
+    expect_equal(eval_q(r$anchor_age_hi), r$anchor_hours_hi,
+      tolerance = 0.01,
+      label = paste("hi anchor", sx)
+    )
   }
 })
 
@@ -81,16 +89,18 @@ test_that("predicted hours are positive at plausible working ages 35:70", {
   for (sx in c("female", "male")) {
     h <- urps_fte_predicted_hours(35:70, sx)
     expect_true(all(h > 0),
-      label = paste("hours > 0 at ages 35:70 for", sx))
+      label = paste("hours > 0 at ages 35:70 for", sx)
+    )
   }
 })
 
 test_that("hours decline after peak for both sexes (quadratic shape)", {
   for (sx in c("female", "male")) {
     h_peak <- max(urps_fte_predicted_hours(35:80, sx))
-    h_65   <- urps_fte_predicted_hours(65, sx)
+    h_65 <- urps_fte_predicted_hours(65, sx)
     expect_lt(h_65, h_peak,
-      label = paste("hours at 65 < peak for", sx))
+      label = paste("hours at 65 < peak for", sx)
+    )
   }
 })
 
@@ -99,9 +109,11 @@ test_that("predicted_hours is vectorized over age", {
   expect_length(out, 41L)
   expect_equal(
     urps_fte_predicted_hours(c(40, 50, 60), "male"),
-    c(urps_fte_predicted_hours(40, "male"),
+    c(
+      urps_fte_predicted_hours(40, "male"),
       urps_fte_predicted_hours(50, "male"),
-      urps_fte_predicted_hours(60, "male"))
+      urps_fte_predicted_hours(60, "male")
+    )
   )
 })
 
@@ -130,8 +142,10 @@ test_that("FTE weight applies reference division correctly", {
   for (sx in c("female", "male")) {
     h <- urps_fte_predicted_hours(47, sx)
     w <- urps_fte_weight_sex(47, sx, "ABOG")
-    expect_equal(w, h / 40, tolerance = 1e-9,
-      label = paste("w = h/40 for", sx, "ABOG at 47"))
+    expect_equal(w, h / 40,
+      tolerance = 1e-9,
+      label = paste("w = h/40 for", sx, "ABOG at 47")
+    )
   }
 })
 
@@ -139,34 +153,39 @@ test_that("ABU weight is 0.7 times ABOG weight at same age and sex", {
   for (sx in c("female", "male")) {
     for (age in c(40, 55, 65)) {
       w_abog <- urps_fte_weight_sex(age, sx, "ABOG")
-      w_abu  <- urps_fte_weight_sex(age, sx, "ABU")
-      expect_equal(w_abu, w_abog * 0.7, tolerance = 1e-9,
-        label = sprintf("ABU = 0.7 * ABOG for %s at %d", sx, age))
+      w_abu <- urps_fte_weight_sex(age, sx, "ABU")
+      expect_equal(w_abu, w_abog * 0.7,
+        tolerance = 1e-9,
+        label = sprintf("ABU = 0.7 * ABOG for %s at %d", sx, age)
+      )
     }
   }
 })
 
 test_that("late_factor reduces FTE weight at ages >= late_from_age", {
   # At age 62 >= 60: weight should be reduced by late_factor 0.75
-  w_no_late   <- urps_fte_weight_sex(62, "female", "ABOG")
+  w_no_late <- urps_fte_weight_sex(62, "female", "ABOG")
   w_with_late <- urps_fte_weight_sex(62, "female", "ABOG",
-    late_from_age = 60, late_factor = 0.75)
+    late_from_age = 60, late_factor = 0.75
+  )
   expect_equal(w_with_late, w_no_late * 0.75, tolerance = 1e-9)
 })
 
 test_that("late_factor does NOT apply below late_from_age", {
-  w_no_late   <- urps_fte_weight_sex(55, "male", "ABOG")
+  w_no_late <- urps_fte_weight_sex(55, "male", "ABOG")
   w_with_late <- urps_fte_weight_sex(55, "male", "ABOG",
-    late_from_age = 60, late_factor = 0.75)
+    late_from_age = 60, late_factor = 0.75
+  )
   expect_equal(w_with_late, w_no_late, tolerance = 1e-9)
 })
 
 test_that("late_factor from scenario registry integrates correctly", {
   sc <- urps_scenario("lower_late_career_fte")
   w_base <- urps_fte_weight_sex(62, "female", "ABOG")
-  w_sc   <- urps_fte_weight_sex(62, "female", "ABOG",
+  w_sc <- urps_fte_weight_sex(62, "female", "ABOG",
     late_from_age = sc$late_career_fte_onset_age,
-    late_factor   = sc$late_career_fte_factor)
+    late_factor   = sc$late_career_fte_factor
+  )
   expect_equal(w_sc, w_base * sc$late_career_fte_factor, tolerance = 1e-9)
 })
 
@@ -185,7 +204,8 @@ test_that("FTE weight is positive at ages 35:70 for all sex x pathway combinatio
     for (pw in c("ABOG", "ABU")) {
       w <- urps_fte_weight_sex(35:70, sx, pw)
       expect_true(all(w > 0),
-        label = sprintf("w > 0 at ages 35:70 for %s/%s", sx, pw))
+        label = sprintf("w > 0 at ages 35:70 for %s/%s", sx, pw)
+      )
     }
   }
 })
@@ -202,7 +222,8 @@ test_that("effective FTE sex anchors reference cohort to headcount via scale", {
     age     = c(45L, 62L, 45L, 62L),
     sex     = c("female", "female", "male", "male"),
     pathway = c("ABOG", "ABOG", "ABU", "ABU"),
-    n       = c(350, 150, 100, 40))
+    n       = c(350, 150, 100, 40)
+  )
   scale <- urps_fte_scale_sex(cs)
   expect_equal(urps_effective_fte_sex(cs, scale), sum(cs$n), tolerance = 1e-9)
 })
@@ -212,24 +233,27 @@ test_that("effective FTE sex is additive across sex and pathway slices", {
     age     = c(45L, 62L, 45L, 62L),
     sex     = c("female", "female", "male", "male"),
     pathway = c("ABOG", "ABOG", "ABOG", "ABOG"),
-    n       = c(400, 200, 300, 100))
+    n       = c(400, 200, 300, 100)
+  )
   scale <- urps_fte_scale_sex(cs)
-  f  <- cs[cs$sex == "female", ]
-  m  <- cs[cs$sex == "male",   ]
+  f <- cs[cs$sex == "female", ]
+  m <- cs[cs$sex == "male", ]
   expect_equal(
     urps_effective_fte_sex(f, scale) + urps_effective_fte_sex(m, scale),
     urps_effective_fte_sex(cs, scale),
-    tolerance = 1e-9)
+    tolerance = 1e-9
+  )
 })
 
 test_that("effective FTE sex applies late-career lever correctly", {
   cs <- data.frame(age = 62L, sex = "female", pathway = "ABOG", n = 100)
-  scale  <- urps_fte_scale_sex(cs)
-  sc     <- urps_scenario("lower_late_career_fte")
+  scale <- urps_fte_scale_sex(cs)
+  sc <- urps_scenario("lower_late_career_fte")
   fte_base <- urps_effective_fte_sex(cs, scale)
   fte_late <- urps_effective_fte_sex(cs, scale,
     late_from_age = sc$late_career_fte_onset_age,
-    late_factor   = sc$late_career_fte_factor)
+    late_factor   = sc$late_career_fte_factor
+  )
   expect_equal(fte_late, fte_base * sc$late_career_fte_factor, tolerance = 1e-9)
 })
 
@@ -241,10 +265,12 @@ test_that("urps_fte_scale_sex fails loud on a zero-headcount cohort", {
 test_that("effective_fte_sex fails loud on missing required columns", {
   expect_error(
     urps_effective_fte_sex(data.frame(age = 45L, pathway = "ABOG", n = 10)),
-    "sex")
+    "sex"
+  )
   expect_error(
     urps_effective_fte_sex(data.frame(age = 45L, sex = "female", n = 10)),
-    "pathway")
+    "pathway"
+  )
 })
 
 test_that("a sex-stratified FTE projection satisfies the projection contract", {
@@ -252,18 +278,20 @@ test_that("a sex-stratified FTE projection satisfies the projection contract", {
     age     = c(45L, 62L, 45L, 62L),
     sex     = c("female", "female", "male", "male"),
     pathway = c("ABOG", "ABOG", "ABU", "ABU"),
-    n       = c(500, 250, 150, 79))
+    n       = c(500, 250, 150, 79)
+  )
   scale <- urps_fte_scale_sex(cs)
-  fte0  <- urps_effective_fte_sex(cs, scale)
-  proj  <- data.frame(
+  fte0 <- urps_effective_fte_sex(cs, scale)
+  proj <- data.frame(
     year = c(2023L, 2024L), scenario_id = "baseline", specialty = "URPS",
     certification_pathway = "ABOG_PLUS_ABU",
     geography_type = "national", geography_id = "US",
-    supply_headcount    = c(sum(cs$n), sum(cs$n) + 50L - 12L),
+    supply_headcount = c(sum(cs$n), sum(cs$n) + 50L - 12L),
     supply_clinical_fte = c(round(fte0, 1), NA),
     lower_95 = c(NA, NA), upper_95 = c(NA, NA),
     entrants = c(NA, 50L), exits = c(NA, 12L), net_change = c(NA, 38L),
-    stringsAsFactors = FALSE)
+    stringsAsFactors = FALSE
+  )
   expect_true(validate_urps_projection(proj))
 })
 
@@ -276,21 +304,25 @@ test_that("urps_supply_fte_sex equals urps_effective_fte_sex applied to practici
     age = c(45L, 62L, 45L, 62L),
     sex = c("female", "female", "male", "male"),
     pathway = c("ABOG", "ABOG", "ABU", "ABU"),
-    certified_n = c(350, 150, 100, 40))
+    certified_n = c(350, 150, 100, 40)
+  )
   p_n <- cohort$certified_n * urps_p_active(cohort$age, cohort$sex)
   ref_counts <- data.frame(
-    age = cohort$age, sex = cohort$sex, pathway = cohort$pathway, n = p_n)
+    age = cohort$age, sex = cohort$sex, pathway = cohort$pathway, n = p_n
+  )
   scale <- urps_fte_scale_sex(ref_counts)
   expect_equal(
     urps_supply_fte_sex(cohort, scale),
     urps_effective_fte_sex(ref_counts, scale),
-    tolerance = 1e-9)
+    tolerance = 1e-9
+  )
 })
 
 test_that("urps_supply_fte_sex practicing_n is always <= certified_n (LFP < 1)", {
   cohort <- data.frame(
     age = c(40L, 55L, 70L), sex = "female",
-    pathway = "ABOG", certified_n = c(300, 200, 50))
+    pathway = "ABOG", certified_n = c(300, 200, 50)
+  )
   out <- urps_apply_lfp(cohort)
   expect_true(all(out$practicing_n <= out$certified_n))
 })
@@ -298,38 +330,45 @@ test_that("urps_supply_fte_sex practicing_n is always <= certified_n (LFP < 1)",
 test_that("urps_supply_fte_sex is strictly less than naive urps_effective_fte_sex(certified)", {
   cohort <- data.frame(
     age = c(45L, 62L), sex = c("female", "male"),
-    pathway = c("ABOG", "ABU"), certified_n = c(200, 100))
+    pathway = c("ABOG", "ABU"), certified_n = c(200, 100)
+  )
   # Build scale from certified (no LFP)
   cert_counts <- data.frame(
     age = cohort$age, sex = cohort$sex,
-    pathway = cohort$pathway, n = cohort$certified_n)
+    pathway = cohort$pathway, n = cohort$certified_n
+  )
   scale <- urps_fte_scale_sex(cert_counts)
-  fte_certified  <- urps_effective_fte_sex(cert_counts, scale)
-  fte_supply     <- urps_supply_fte_sex(cohort, scale)
+  fte_certified <- urps_effective_fte_sex(cert_counts, scale)
+  fte_supply <- urps_supply_fte_sex(cohort, scale)
   expect_lt(fte_supply, fte_certified)
 })
 
 test_that("urps_supply_fte_sex late_factor integrates correctly", {
   cohort <- data.frame(
-    age = 62L, sex = "female", pathway = "ABOG", certified_n = 100)
+    age = 62L, sex = "female", pathway = "ABOG", certified_n = 100
+  )
   p_n <- 100 * urps_p_active(62L, "female")
   scale <- urps_fte_scale_sex(
-    data.frame(age = 62L, sex = "female", pathway = "ABOG", n = p_n))
-  sc       <- urps_scenario("lower_late_career_fte")
+    data.frame(age = 62L, sex = "female", pathway = "ABOG", n = p_n)
+  )
+  sc <- urps_scenario("lower_late_career_fte")
   fte_base <- urps_supply_fte_sex(cohort, scale)
   fte_late <- urps_supply_fte_sex(cohort, scale,
     late_from_age = sc$late_career_fte_onset_age,
-    late_factor   = sc$late_career_fte_factor)
+    late_factor   = sc$late_career_fte_factor
+  )
   expect_equal(fte_late, fte_base * sc$late_career_fte_factor, tolerance = 1e-9)
 })
 
 test_that("urps_supply_fte_sex fails loud on missing columns", {
   expect_error(
-    urps_supply_fte_sex(data.frame(age=45L, sex="female", certified_n=100), 1),
-    "pathway")
+    urps_supply_fte_sex(data.frame(age = 45L, sex = "female", certified_n = 100), 1),
+    "pathway"
+  )
   expect_error(
-    urps_supply_fte_sex(data.frame(age=45L, sex="female", pathway="ABOG"), 1),
-    "certified_n")
+    urps_supply_fte_sex(data.frame(age = 45L, sex = "female", pathway = "ABOG"), 1),
+    "certified_n"
+  )
 })
 
 test_that("urps_fte_weight_sex and urps_fte_weight coexist without conflict", {
@@ -348,11 +387,11 @@ test_that("urps_fte_weight_sex and urps_fte_weight coexist without conflict", {
 
 test_that("unknown sex produces a hard error", {
   expect_error(urps_fte_predicted_hours(45, "nonbinary"), "female.*male|male.*female")
-  expect_error(urps_fte_weight_sex(45, "F", "ABOG"),     "female.*male|male.*female")
+  expect_error(urps_fte_weight_sex(45, "F", "ABOG"), "female.*male|male.*female")
 })
 
 test_that("unknown pathway produces a hard error", {
-  expect_error(urps_fte_weight_sex(45, "female", "ABMS"),        "ABOG.*ABU|ABU.*ABOG")
+  expect_error(urps_fte_weight_sex(45, "female", "ABMS"), "ABOG.*ABU|ABU.*ABOG")
   expect_error(urps_fte_weight_sex(45, "female", "ABOG_PLUS_ABU"), "ABOG.*ABU|ABU.*ABOG")
 })
 

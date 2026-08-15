@@ -24,8 +24,8 @@ default = 0 caused Step 4/11 to report 0\% access when the denominator was
 missing, creating phantom care-desert artifacts (DEN-032).
 }
 \examples{
-safe_pct_manu(45, 90)   # 50
-safe_pct_manu(1, 0)     # NA_real_ (not 0 -- avoids phantom 0\% artifacts)
+safe_pct_manu(45, 90) # 50
+safe_pct_manu(1, 0) # NA_real_ (not 0 -- avoids phantom 0\% artifacts)
 }
 \seealso{
 \code{\link[=safe_percent]{safe_percent()}} (the non-NA-defaulting variant)

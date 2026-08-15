@@ -1,4 +1,3 @@
-
 #' @title Safe Division with Zero-Denominator Handling
 #' @description Performs division with explicit handling of zero denominators
 #'   to prevent Inf/NaN propagation and silent failures. Supports multiple
@@ -78,11 +77,11 @@
 #' @seealso [safe_percent()], [safe_rate()], [safe_ratio()] for rounded
 #'   percentage/rate/ratio wrappers built on this primitive.
 #' @examples
-#' safe_divide(10, 2)                 # 5
-#' safe_divide(1, 0)                  # NA_real_ (no Inf)
-#' safe_divide(1, 0, default = 0)     # 0
-#' safe_divide(c(10, 20), c(2, 0))    # c(5, NA)  -- vectorised, element-wise guard
-#' safe_divide(1, 1e-12)              # NA (denominator below zero_threshold)
+#' safe_divide(10, 2) # 5
+#' safe_divide(1, 0) # NA_real_ (no Inf)
+#' safe_divide(1, 0, default = 0) # 0
+#' safe_divide(c(10, 20), c(2, 0)) # c(5, NA)  -- vectorised, element-wise guard
+#' safe_divide(1, 1e-12) # NA (denominator below zero_threshold)
 #' @export
 safe_divide <- function(numerator,
                         denominator,
@@ -111,17 +110,25 @@ safe_divide <- function(numerator,
   # nonsense. Logical is still accepted, because a bare NA is logical and
   # safe_divide(1, NA) -> default is the contract everything relies on.
   check_numeric_arg <- function(x, nm) {
-    if (is.numeric(x) || is.logical(x)) return(invisible(NULL))
-    stop(sprintf("`%s` must be numeric; got %s. Coerce it deliberately at the call site if that is what you mean -- safe_divide() will not guess, because the NA it used to return was indistinguishable from a zero denominator.",
-                 nm, class(x)[1]), call. = FALSE)
+    if (is.numeric(x) || is.logical(x)) {
+      return(invisible(NULL))
+    }
+    stop(sprintf(
+      "`%s` must be numeric; got %s. Coerce it deliberately at the call site if that is what you mean -- safe_divide() will not guess, because the NA it used to return was indistinguishable from a zero denominator.",
+      nm, class(x)[1]
+    ), call. = FALSE)
   }
-  if (is.null(numerator) || is.null(denominator)) return(default)
+  if (is.null(numerator) || is.null(denominator)) {
+    return(default)
+  }
   check_numeric_arg(numerator, "numerator")
   check_numeric_arg(denominator, "denominator")
 
   # Handle vector operations
   if (length(numerator) != length(denominator)) {
-    if (length(numerator) == 0L || length(denominator) == 0L) return(default)
+    if (length(numerator) == 0L || length(denominator) == 0L) {
+      return(default)
+    }
     if (length(numerator) == 1) {
       numerator <- rep(numerator, length(denominator))
     } else if (length(denominator) == 1) {
@@ -164,7 +171,7 @@ safe_divide <- function(numerator,
 #' @family safe-arithmetic
 #' @seealso [safe_divide()]
 #' @examples
-#' safe_divide_manu(10, 5)               # 2
+#' safe_divide_manu(10, 5) # 2
 #' safe_divide_manu(10, 0, fallback = 0) # 0
 #' @export
 safe_divide_manu <- function(num, den, fallback = NA_real_) {
@@ -185,11 +192,13 @@ safe_divide_manu <- function(num, den, fallback = NA_real_) {
 #' @family safe-arithmetic
 #' @seealso [safe_percent()] (the non-NA-defaulting variant)
 #' @examples
-#' safe_pct_manu(45, 90)   # 50
-#' safe_pct_manu(1, 0)     # NA_real_ (not 0 -- avoids phantom 0% artifacts)
+#' safe_pct_manu(45, 90) # 50
+#' safe_pct_manu(1, 0) # NA_real_ (not 0 -- avoids phantom 0% artifacts)
 #' @export
 safe_pct_manu <- function(num, den, digits = 1) {
-  if (is.null(num) || is.null(den)) return(NA_real_)
+  if (is.null(num) || is.null(den)) {
+    return(NA_real_)
+  }
   safe_percent(num, den, digits = digits, default = NA_real_)
 }
 
@@ -206,9 +215,9 @@ safe_pct_manu <- function(num, den, digits = 1) {
 #' @family safe-arithmetic
 #' @seealso [safe_divide()], [safe_pct_manu()]
 #' @examples
-#' safe_percent(45, 90)          # 50
-#' safe_percent(1, 3, digits = 2)# 33.33
-#' safe_percent(1, 0)            # 0 (default)
+#' safe_percent(45, 90) # 50
+#' safe_percent(1, 3, digits = 2) # 33.33
+#' safe_percent(1, 0) # 0 (default)
 #' @export
 safe_percent <- function(part, total, digits = 1, default = 0) {
   pct <- safe_divide(part, total, default = default / 100) * 100
@@ -232,8 +241,8 @@ safe_percent <- function(part, total, digits = 1, default = 0) {
 #' @family safe-arithmetic
 #' @seealso [safe_divide()], [safe_ratio()]
 #' @examples
-#' safe_rate(890, 164690617, multiplier = 1e5)  # ~0.5 gyn-onc per 100,000 women
-#' safe_rate(5, 0, multiplier = 1e5)             # NA_real_
+#' safe_rate(890, 164690617, multiplier = 1e5) # ~0.5 gyn-onc per 100,000 women
+#' safe_rate(5, 0, multiplier = 1e5) # NA_real_
 #' @export
 safe_rate <- function(events, exposure, multiplier = 1, digits = 1, default = NA_real_) {
   rate <- safe_divide(events, exposure, default = default) * multiplier
@@ -254,8 +263,8 @@ safe_rate <- function(events, exposure, multiplier = 1, digits = 1, default = NA
 #' @family safe-arithmetic
 #' @seealso [safe_divide()], [safe_percent()], [safe_rate()]
 #' @examples
-#' safe_ratio(1339, 1031)  # 1.30  (with-urology : without-urology URPS)
-#' safe_ratio(1, 0)        # NA_real_
+#' safe_ratio(1339, 1031) # 1.30  (with-urology : without-urology URPS)
+#' safe_ratio(1, 0) # NA_real_
 #' @export
 safe_ratio <- function(numerator, denominator, digits = 2, default = NA_real_) {
   ratio <- safe_divide(numerator, denominator, default = default)

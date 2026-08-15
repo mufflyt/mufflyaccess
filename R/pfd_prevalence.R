@@ -22,26 +22,27 @@
 #' @export
 WU2014_PFD_PREVALENCE <- local({
   d <- data.frame(
-    condition = c("any_PFD", "UI",    "FI",    "POP"),
-    p_65_79   = c(0.368,     0.272,   0.154,   0.047),   # Wu 2014 Table 1, ages 60-79
-    p_80plus  = c(0.497,     0.382,   0.210,   0.040),   # Wu 2014 Table 1, ages >=80
-    stringsAsFactors = FALSE)
-  attr(d, "source")   <- "Wu JM et al. Obstet Gynecol 2014;123(1):141-148, Table 1 (PMID 24463674; doi:10.1097/AOG.0000000000000057; NHANES 2005-2010)"
+    condition = c("any_PFD", "UI", "FI", "POP"),
+    p_65_79 = c(0.368, 0.272, 0.154, 0.047), # Wu 2014 Table 1, ages 60-79
+    p_80plus = c(0.497, 0.382, 0.210, 0.040), # Wu 2014 Table 1, ages >=80
+    stringsAsFactors = FALSE
+  )
+  attr(d, "source") <- "Wu JM et al. Obstet Gynecol 2014;123(1):141-148, Table 1 (PMID 24463674; doi:10.1097/AOG.0000000000000057; NHANES 2005-2010)"
   attr(d, "brackets") <- c("60-79 (applied to 65-79 ACS bands)", ">=80")
-  attr(d, "units")    <- "proportion of women in the age bracket with the (symptomatic) disorder"
+  attr(d, "units") <- "proportion of women in the age bracket with the (symptomatic) disorder"
   d
 })
 
 .PFD_BANDS_65_79 <- c("a65_66E", "a67_69E", "a70_74E", "a75_79E")
-.PFD_BANDS_80P   <- c("a80_84E", "a85pE")
+.PFD_BANDS_80P <- c("a80_84E", "a85pE")
 
 stopifnot(
-  "[pfd] condition must be unique"       = !anyDuplicated(WU2014_PFD_PREVALENCE$condition),
-  "[pfd] any_PFD row required"           = "any_PFD" %in% WU2014_PFD_PREVALENCE$condition,
-  "[pfd] prevalences must be in (0,1]"   =
+  "[pfd] condition must be unique" = !anyDuplicated(WU2014_PFD_PREVALENCE$condition),
+  "[pfd] any_PFD row required" = "any_PFD" %in% WU2014_PFD_PREVALENCE$condition,
+  "[pfd] prevalences must be in (0,1]" =
     all(is.finite(c(WU2014_PFD_PREVALENCE$p_65_79, WU2014_PFD_PREVALENCE$p_80plus))) &&
-    all(c(WU2014_PFD_PREVALENCE$p_65_79, WU2014_PFD_PREVALENCE$p_80plus) > 0) &&
-    all(c(WU2014_PFD_PREVALENCE$p_65_79, WU2014_PFD_PREVALENCE$p_80plus) <= 1)
+      all(c(WU2014_PFD_PREVALENCE$p_65_79, WU2014_PFD_PREVALENCE$p_80plus) > 0) &&
+      all(c(WU2014_PFD_PREVALENCE$p_65_79, WU2014_PFD_PREVALENCE$p_80plus) <= 1)
 )
 
 #' Two-bracket Wu-2014 PFD prevalence for one condition
@@ -51,17 +52,20 @@ stopifnot(
 #' @seealso [WU2014_PFD_PREVALENCE] (the underlying table),
 #'   [pfd_prevalence_acs_bands()] (the same rates spread over ACS age-band columns).
 #' @examples
-#' pfd_prevalence()          # any_PFD: c(`65_79` = 0.368, `80plus` = 0.497)
-#' pfd_prevalence("UI")      # urinary incontinence: c(`65_79` = 0.272, `80plus` = 0.382)
+#' pfd_prevalence() # any_PFD: c(`65_79` = 0.368, `80plus` = 0.497)
+#' pfd_prevalence("UI") # urinary incontinence: c(`65_79` = 0.272, `80plus` = 0.382)
 #' \dontrun{
-#' pfd_prevalence("nope")    # errors: unknown condition
+#' pfd_prevalence("nope") # errors: unknown condition
 #' }
 #' @export
 pfd_prevalence <- function(condition = "any_PFD") {
   r <- WU2014_PFD_PREVALENCE[WU2014_PFD_PREVALENCE$condition == condition, , drop = FALSE]
-  if (nrow(r) != 1L)
+  if (nrow(r) != 1L) {
     stop("[pfd_prevalence] unknown condition '", condition, "' (have: ",
-         paste(WU2014_PFD_PREVALENCE$condition, collapse = ", "), ")", call. = FALSE)
+      paste(WU2014_PFD_PREVALENCE$condition, collapse = ", "), ")",
+      call. = FALSE
+    )
+  }
   c(`65_79` = r$p_65_79, `80plus` = r$p_80plus)
 }
 
@@ -71,16 +75,19 @@ pfd_prevalence <- function(condition = "any_PFD") {
 #' @family pfd-prevalence
 #' @seealso [pfd_prevalence()] (the two-bracket form these bands expand).
 #' @examples
-#' b <- pfd_prevalence_acs_bands()   # any_PFD spread across the 6 ACS 65+ bands
-#' b[["a65_66E"]]                    # 0.368  (65-79 bracket rate)
-#' b[["a85pE"]]                      # 0.497  (>=80 bracket rate)
+#' b <- pfd_prevalence_acs_bands() # any_PFD spread across the 6 ACS 65+ bands
+#' b[["a65_66E"]] # 0.368  (65-79 bracket rate)
+#' b[["a85pE"]] # 0.497  (>=80 bracket rate)
 #' # the four 65-79 bands all carry the 65-79 rate; the two 80+ bands the 80+ rate:
-#' unname(b)                         # c(0.368, 0.368, 0.368, 0.368, 0.497, 0.497)
+#' unname(b) # c(0.368, 0.368, 0.368, 0.368, 0.497, 0.497)
 #' @export
 pfd_prevalence_acs_bands <- function(condition = "any_PFD") {
   v <- pfd_prevalence(condition)
   stats::setNames(
-    c(rep(v[["65_79"]],  length(.PFD_BANDS_65_79)),
-      rep(v[["80plus"]], length(.PFD_BANDS_80P))),
-    c(.PFD_BANDS_65_79, .PFD_BANDS_80P))
+    c(
+      rep(v[["65_79"]], length(.PFD_BANDS_65_79)),
+      rep(v[["80plus"]], length(.PFD_BANDS_80P))
+    ),
+    c(.PFD_BANDS_65_79, .PFD_BANDS_80P)
+  )
 }

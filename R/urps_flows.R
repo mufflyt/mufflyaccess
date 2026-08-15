@@ -38,15 +38,21 @@
 #' urps_retirement_status()
 #' @export
 urps_retirement_status <- function() {
-  m  <- .urps_manifest()
+  m <- .urps_manifest()
   st <- m$retirement_ascertainment %||% m$retirement_status %||% "not_ascertained"
   st <- tolower(trimws(as.character(st)[1]))
-  if (identical(st, "modeled"))
+  if (identical(st, "modeled")) {
     stop("[urps_retirement_status] artifact declares retirement 'modeled'; mufflyaccess ",
-         "serves only observed facts. Modeled retirement belongs in cliff.", call. = FALSE)
-  if (!st %in% .urps_retirement_statuses)
-    stop(sprintf("[urps_retirement_status] unknown retirement status '%s'; expected one of %s.",
-                 st, paste(.urps_retirement_statuses, collapse = ", ")), call. = FALSE)
+      "serves only observed facts. Modeled retirement belongs in cliff.",
+      call. = FALSE
+    )
+  }
+  if (!st %in% .urps_retirement_statuses) {
+    stop(sprintf(
+      "[urps_retirement_status] unknown retirement status '%s'; expected one of %s.",
+      st, paste(.urps_retirement_statuses, collapse = ", ")
+    ), call. = FALSE)
+  }
   st
 }
 
@@ -64,26 +70,40 @@ urps_retirement_status <- function() {
 #' # The guard stops unless retirement is observed, so a consumer can never
 #' # read "unknown retirement" as zero departures:
 #' tryCatch(urps_require_retirement_ascertained(),
-#'          error = function(e) conditionMessage(e))
+#'   error = function(e) conditionMessage(e)
+#' )
 #' @export
 urps_require_retirement_ascertained <- function(what = "retirement/departure counts") {
   st <- urps_retirement_status()
-  if (identical(st, "observed")) return(invisible(TRUE))
+  if (identical(st, "observed")) {
+    return(invisible(TRUE))
+  }
   cv <- .urps_effective_contract_version(.urps_manifest(), .urps_contract())
-  stop(sprintf(paste0("[mufflyaccess] %s are '%s' in contract %s: n_retired is served as NA, ",
-                      "never 0. Observed historical departures are unavailable; modeled ",
-                      "retirement/departure is cliff's responsibility. Do NOT substitute 0."),
-               what, st, cv), call. = FALSE)
+  stop(sprintf(
+    paste0(
+      "[mufflyaccess] %s are '%s' in contract %s: n_retired is served as NA, ",
+      "never 0. Observed historical departures are unavailable; modeled ",
+      "retirement/departure is cliff's responsibility. Do NOT substitute 0."
+    ),
+    what, st, cv
+  ), call. = FALSE)
 }
 
 # Internal guard: an unavailable count must never be presented as a concrete
 # number (e.g. a placeholder 0). Used by validate_urps_artifact and testable.
 .urps_guard_no_placeholder <- function(value, status, label = "retirement") {
-  if (!identical(status, "observed") && length(value) && any(!is.na(value)))
-    stop(sprintf(paste0("[mufflyaccess] %s is '%s' but a concrete count (%s) was supplied; ",
-                        "an unavailable count must remain NA, never 0."),
-                 label, status, paste(utils::head(value[!is.na(value)], 3), collapse = ", ")),
-         call. = FALSE)
+  if (!identical(status, "observed") && length(value) && any(!is.na(value))) {
+    stop(
+      sprintf(
+        paste0(
+          "[mufflyaccess] %s is '%s' but a concrete count (%s) was supplied; ",
+          "an unavailable count must remain NA, never 0."
+        ),
+        label, status, paste(utils::head(value[!is.na(value)], 3), collapse = ", ")
+      ),
+      call. = FALSE
+    )
+  }
   invisible(TRUE)
 }
 
@@ -121,20 +141,21 @@ urps_entry_counts <- function(measure = "board_certified_active", geography = "n
   w <- w[order(w$year), , drop = FALSE]
   diff_entry <- function(x) {
     e <- x - c(NA_integer_, utils::head(x, -1L))
-    e[1] <- x[1]                                  # founding bucket = entries through year 1
+    e[1] <- x[1] # founding bucket = entries through year 1
     as.integer(e)
   }
   data.frame(
-    year              = w$year,
-    measure           = w$measure[1],
-    geography         = w$geography[1],
-    abog_entrants     = diff_entry(w$abog_active),
-    abu_entrants      = diff_entry(w$abu_net_new),
+    year = w$year,
+    measure = w$measure[1],
+    geography = w$geography[1],
+    abog_entrants = diff_entry(w$abog_active),
+    abu_entrants = diff_entry(w$abu_net_new),
     combined_entrants = diff_entry(w$combined_active),
-    basis             = "urps_subspecialty_cert_year",
-    interpretation    = "entry into the board-certified URPS stock (NOT fellowship graduation / first clinical year / net workforce growth)",
+    basis = "urps_subspecialty_cert_year",
+    interpretation = "entry into the board-certified URPS stock (NOT fellowship graduation / first clinical year / net workforce growth)",
     first_year_is_founding_bucket = c(TRUE, rep(FALSE, nrow(w) - 1L)),
-    stringsAsFactors  = FALSE)
+    stringsAsFactors = FALSE
+  )
 }
 
 #' Board-certified URPS entrants for a single year
@@ -146,15 +167,18 @@ urps_entry_counts <- function(measure = "board_certified_active", geography = "n
 #' @seealso [urps_entry_counts()]
 #' @family URPS workforce
 #' @examples
-#' urps_entrants(2019)                          # ABOG pathway
-#' urps_entrants(2019, include_urology = TRUE)  # ABOG + ABU
+#' urps_entrants(2019) # ABOG pathway
+#' urps_entrants(2019, include_urology = TRUE) # ABOG + ABU
 #' @export
 urps_entrants <- function(year, geography = "national", include_urology = FALSE,
                           measure = "board_certified_active") {
-  ec  <- urps_entry_counts(measure = measure, geography = geography)
+  ec <- urps_entry_counts(measure = measure, geography = geography)
   row <- ec[ec$year == as.integer(year), , drop = FALSE]
-  if (!nrow(row))
-    stop(sprintf("[urps_entrants] no entry count for year %s (available: %s).",
-                 year, paste(ec$year, collapse = ", ")), call. = FALSE)
+  if (!nrow(row)) {
+    stop(sprintf(
+      "[urps_entrants] no entry count for year %s (available: %s).",
+      year, paste(ec$year, collapse = ", ")
+    ), call. = FALSE)
+  }
   as.integer(if (isTRUE(include_urology)) row$combined_entrants else row$abog_entrants)
 }

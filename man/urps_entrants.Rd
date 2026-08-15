@@ -33,8 +33,8 @@ Integer count of entrants into the board-certified URPS stock in \code{year}
 Board-certified URPS entrants for a single year
 }
 \examples{
-urps_entrants(2019)                          # ABOG pathway
-urps_entrants(2019, include_urology = TRUE)  # ABOG + ABU
+urps_entrants(2019) # ABOG pathway
+urps_entrants(2019, include_urology = TRUE) # ABOG + ABU
 }
 \seealso{
 \code{\link[=urps_entry_counts]{urps_entry_counts()}}

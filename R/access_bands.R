@@ -7,8 +7,8 @@
 #' @seealso [PRIMARY_ACCESS_BAND_MIN] (the headline member), [get_canonical_bands()]
 #' @family access-band constants
 #' @examples
-#' CANONICAL_BANDS                          # 30 60 120 180
-#' PRIMARY_ACCESS_BAND_MIN %in% CANONICAL_BANDS  # TRUE
+#' CANONICAL_BANDS # 30 60 120 180
+#' PRIMARY_ACCESS_BAND_MIN %in% CANONICAL_BANDS # TRUE
 #' @export
 CANONICAL_BANDS <- c(30L, 60L, 120L, 180L)
 
@@ -21,7 +21,7 @@ CANONICAL_BANDS <- c(30L, 60L, 120L, 180L)
 #' @seealso [PRIMARY_ACCESS_BAND_SEC] (the derived seconds form), [CANONICAL_BANDS]
 #' @family access-band constants
 #' @examples
-#' PRIMARY_ACCESS_BAND_MIN  # 60
+#' PRIMARY_ACCESS_BAND_MIN # 60
 #' @export
 PRIMARY_ACCESS_BAND_MIN <- 60L
 
@@ -34,8 +34,8 @@ PRIMARY_ACCESS_BAND_MIN <- 60L
 #' @seealso [PRIMARY_ACCESS_BAND_MIN] (the minutes form it derives from)
 #' @family access-band constants
 #' @examples
-#' PRIMARY_ACCESS_BAND_SEC                       # 3600
-#' identical(PRIMARY_ACCESS_BAND_SEC, PRIMARY_ACCESS_BAND_MIN * 60L)  # TRUE
+#' PRIMARY_ACCESS_BAND_SEC # 3600
+#' identical(PRIMARY_ACCESS_BAND_SEC, PRIMARY_ACCESS_BAND_MIN * 60L) # TRUE
 #' @export
 PRIMARY_ACCESS_BAND_SEC <- PRIMARY_ACCESS_BAND_MIN * 60L
 
@@ -43,7 +43,7 @@ PRIMARY_ACCESS_BAND_SEC <- PRIMARY_ACCESS_BAND_MIN * 60L
 stopifnot(
   "PRIMARY_ACCESS_BAND_MIN must be a single positive integer" =
     is.integer(PRIMARY_ACCESS_BAND_MIN) && length(PRIMARY_ACCESS_BAND_MIN) == 1L &&
-    PRIMARY_ACCESS_BAND_MIN > 0L,
+      PRIMARY_ACCESS_BAND_MIN > 0L,
   "the headline band must be a member of CANONICAL_BANDS" =
     PRIMARY_ACCESS_BAND_MIN %in% CANONICAL_BANDS,
   "PRIMARY_ACCESS_BAND_SEC must equal MIN * 60" =
@@ -57,7 +57,7 @@ stopifnot(
 #' @seealso [get_primary_access_band()], [CANONICAL_BANDS]
 #' @family access-band accessors
 #' @examples
-#' get_canonical_bands()  # 30 60 120 180
+#' get_canonical_bands() # 30 60 120 180
 #' @export
 get_canonical_bands <- function() CANONICAL_BANDS
 
@@ -68,8 +68,8 @@ get_canonical_bands <- function() CANONICAL_BANDS
 #' @seealso [get_canonical_bands()], [PRIMARY_ACCESS_BAND_MIN]
 #' @family access-band accessors
 #' @examples
-#' get_primary_access_band()         # 60  (minutes)
-#' get_primary_access_band("sec")    # 3600 (seconds)
+#' get_primary_access_band() # 60  (minutes)
+#' get_primary_access_band("sec") # 3600 (seconds)
 #' @export
 get_primary_access_band <- function(units = c("min", "sec")) {
   units <- match.arg(units)

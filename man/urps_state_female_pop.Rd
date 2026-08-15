@@ -29,7 +29,7 @@ state FIPS code.
 }
 \examples{
 df <- urps_state_female_pop()
-nrow(df)           # 49
+nrow(df) # 49
 sum(df$female_pop) # 164690617
 head(df)
 

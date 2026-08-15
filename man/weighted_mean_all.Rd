@@ -18,8 +18,8 @@ weighted mean, or NA if the weights sum to 0 / non-finite.
 Population-weighted mean over all elements (sparse-group safe).
 }
 \examples{
-weighted_mean_all(c(1, 3), c(1, 3))   # 2.5  (population-weighted toward 3)
-weighted_mean_all(1:3, c(0, 0, 0))    # NA_real_  (zero total weight)
+weighted_mean_all(c(1, 3), c(1, 3)) # 2.5  (population-weighted toward 3)
+weighted_mean_all(1:3, c(0, 0, 0)) # NA_real_  (zero total weight)
 }
 \seealso{
 \code{\link[=zero_access_share]{zero_access_share()}}, \code{\link[=mc_weighted_ci]{mc_weighted_ci()}}

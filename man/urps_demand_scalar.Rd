@@ -18,7 +18,7 @@ Returns the multiplicative calibration scalar for one setting.
 Until calibrated, this is always \code{1.0}. Fail-loud on unknown settings.
 }
 \examples{
-urps_demand_scalar("office")     # 1.0 until calibrated
+urps_demand_scalar("office") # 1.0 until calibrated
 urps_demand_scalar("inpatient")
 }
 \seealso{

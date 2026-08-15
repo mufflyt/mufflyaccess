@@ -75,9 +75,9 @@ urps_provenance()[c("contract_version", "artifact_source", "canonical_release")]
 
 # the full chain, with a live SHA-256 integrity check of the served bytes:
 d <- urps_provenance(detailed = TRUE)$detail
-d$source_files                      # enriched rosters + hashes
-d$cohort_definition$source_counts   # how the active cohort was dated
-d$integrity$counts_csv_verified     # TRUE: served bytes match the manifest
+d$source_files # enriched rosters + hashes
+d$cohort_definition$source_counts # how the active cohort was dated
+d$integrity$counts_csv_verified # TRUE: served bytes match the manifest
 }
 \seealso{
 \code{\link[=urps_count]{urps_count()}}, \code{\link[=urps_lineage]{urps_lineage()}}, \code{\link[=validate_urps_artifact]{validate_urps_artifact()}},
