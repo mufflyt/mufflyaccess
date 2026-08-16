@@ -1,0 +1,29 @@
+# Line endings.
+#
+# Ordinary sources normalise to LF in the repository and check out natively.
+* text=auto
+
+# ...but files whose SHA-256 is RECORDED must be byte-identical on every
+# platform, so git must never translate them.
+#
+# On 2026-08-15 the R CMD check matrix caught this on Windows and nowhere else:
+#
+#   Error: [validate_urps_artifact] counts CSV SHA-256 does not match the manifest.
+#   Error: [use_urps_artifact] artifact failed validation; the previous source
+#          is unchanged.
+#
+# Windows runners default to core.autocrlf=true, so every LF in these CSVs
+# became CRLF on checkout, every byte count changed, and every recorded digest
+# stopped matching. Verified: the manifest's digest matches the LF bytes and
+# not the CRLF bytes.
+#
+# The consequence was not cosmetic. mufflyaccess is the cross-repo SSOT, and
+# this made the canonical URPS artifact UNVALIDATABLE on Windows -- any Windows
+# consumer got "artifact failed validation" and fell back to whatever source it
+# already had. It was invisible for as long as CI ran on Linux alone.
+#
+# -text disables end-of-line conversion in both directions.
+inst/extdata/** -text
+tests/testthat/fixtures/** -text
+*.parquet binary
+*.rds binary
