@@ -3,6 +3,24 @@
 # immutable v3.0.0 release bytes (verified SHA-256 against the manifest). CI can
 # override with a fresh isochrones checkout via MUFFLYACCESS_URPS_ARTIFACT_DIR.
 
+# Read a parquet WITHOUT memory-mapping it.
+#
+# arrow memory-maps by default. On Windows you cannot write to a file that
+# still has a mapping open:
+#
+#   IOError: Failed to open local file '...urps_provider_snapshot.parquet'.
+#   Detail: [Windows error 1224] The requested operation cannot be performed
+#   on a file with a user-mapped section open.
+#
+# Every mutation helper below is read-modify-write on the SAME path, which is
+# fine on POSIX and impossible on Windows while the mapping is live. Caught by
+# the R CMD check matrix on 2026-08-16; invisible for as long as CI ran on
+# Linux alone. mmap = FALSE reads the bytes into memory and leaves no mapping
+# behind, so the write that follows succeeds everywhere.
+.read_parquet_unmapped <- function(pq) {
+  as.data.frame(arrow::read_parquet(pq, mmap = FALSE))
+}
+
 urps_fixture_dir <- function(name = "isochrones-v3.0.0") {
   testthat::test_path("fixtures", name)
 }
@@ -103,7 +121,7 @@ read_provider_parquet <- function(path) {
   pq <- file.path(path, "urps_provider_snapshot.parquet")
   testthat::skip_if(!file.exists(pq), "no provider parquet in artifact")
   if (requireNamespace("arrow", quietly = TRUE)) {
-    return(as.data.frame(arrow::read_parquet(pq)))
+    return(.read_parquet_unmapped(pq))
   }
   if (requireNamespace("nanoparquet", quietly = TRUE)) {
     return(as.data.frame(nanoparquet::read_parquet(pq)))
@@ -116,7 +134,7 @@ have_arrow <- function() requireNamespace("arrow", quietly = TRUE)
 mutate_future_provider_activity <- function(path, active) {
   testthat::skip_if_not(have_arrow(), "arrow required to mutate the provider parquet")
   pq <- file.path(path, "urps_provider_snapshot.parquet")
-  d <- as.data.frame(arrow::read_parquet(pq))
+  d <- .read_parquet_unmapped(pq)
   # v3.0.0 reconstructs "active in 2023" from the URPS SUBSPECIALTY cert year
   # (urps_subspecialty_cert_year); v2.x used the primary certification_year. Key
   # the mutation off whichever column the validator reconstructs from, and force
@@ -143,7 +161,7 @@ mutate_future_provider_activity <- function(path, active) {
 mark_unknown_provider_conus <- function(path) {
   testthat::skip_if_not(have_arrow(), "arrow required to mutate the provider parquet")
   pq <- file.path(path, "urps_provider_snapshot.parquet")
-  d <- as.data.frame(arrow::read_parquet(pq))
+  d <- .read_parquet_unmapped(pq)
   # BUG (fixed): `!isTRUE(d$is_conus)` collapses a vector to a single FALSE, so the
   # old `d$is_conus[!isTRUE(d$is_conus)][1] <- TRUE` just re-set row 1 (already
   # CONUS) -- a no-op that never triggered the reconstruction mismatch. Select the
