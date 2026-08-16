@@ -140,6 +140,18 @@ jobs:
                           stop_on_failure = FALSE)
           df <- as.data.frame(res)
 
+          # as.data.frame() on a testthat_results keeps a `result` LIST column,
+          # and write.csv cannot encode it:
+          #   Error in utils::write.table(...) :
+          #     unimplemented type 'list' in 'EncodeElement'
+          # That is not hypothetical -- it is what this job did on its first
+          # real run (2026-08-15). Every test PASSED (1697 / 0 / 0 / 3) and the
+          # job still went red, because the ACCOUNTING crashed after the suite
+          # finished. Keep the scalar columns only.
+          keep <- intersect(c("file", "context", "test", "passed", "failed",
+                              "error", "skipped", "warning", "real"), names(df))
+          df <- df[, keep, drop = FALSE]
+
           # RULE 4. Persist before doing anything that might exit.
           dir.create("test-results", showWarnings = FALSE, recursive = TRUE)
           utils::write.csv(df, "test-results/results.csv", row.names = FALSE)
@@ -259,6 +271,12 @@ jobs:
       - name: lintr
         shell: Rscript {0}
         run: |
+          # Report the lintr version. The local baseline was measured on 3.1.2
+          # and CI resolved 3.4.0, which ADDED return_linter -- so a gate that
+          # was clean locally went red on CI with no code change. A linter
+          # version is part of the contract; print it so the next divergence is
+          # one line of log rather than an investigation.
+          cat("lintr", as.character(packageVersion("lintr")), "\n")
           l <- lintr::lint_package()
           print(l)
           cat(sprintf("\n%d lint(s)\n", length(l)))
