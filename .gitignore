@@ -12,3 +12,4 @@
 *.tar.gz
 *.Rcheck/
 ..Rcheck/
+pkgdown-site/

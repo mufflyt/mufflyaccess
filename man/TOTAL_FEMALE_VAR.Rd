@@ -28,9 +28,9 @@ denominator. \code{TOTAL_FEMALE_VAR} is total female from the full B01001 table;
 these rather than re-typing variable codes.
 }
 \examples{
-TOTAL_FEMALE_VAR                 # "B01001_026" (full table -> _026)
-names(RACE_FEMALE_VARS)          # the six race/ethnicity groups
-RACE_FEMALE_VARS[["black"]]      # "B01001B_017" (race tables -> _017)
+TOTAL_FEMALE_VAR # "B01001_026" (full table -> _026)
+names(RACE_FEMALE_VARS) # the six race/ethnicity groups
+RACE_FEMALE_VARS[["black"]] # "B01001B_017" (race tables -> _017)
 }
 \seealso{
 \link{ACS2020_CONUS_FEMALE_POP} (the summed denominator),

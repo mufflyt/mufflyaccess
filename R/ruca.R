@@ -14,13 +14,13 @@
 #' @seealso [rurality_from_ruca()], which uses this breakpoint to classify codes.
 #' @family rurality
 #' @examples
-#' RUCA_NONMETRO_MIN                   # 4L (codes 1-3 metro, 4-10 rural)
-#' rurality_from_ruca(c(3, 4))         # "Metropolitan" "Rural"
+#' RUCA_NONMETRO_MIN # 4L (codes 1-3 metro, 4-10 rural)
+#' rurality_from_ruca(c(3, 4)) # "Metropolitan" "Rural"
 #' @export
 RUCA_NONMETRO_MIN <- 4L
 
 stopifnot(
   "[ruca] RUCA_NONMETRO_MIN must be a single integer strictly inside 1-10" =
     is.integer(RUCA_NONMETRO_MIN) && length(RUCA_NONMETRO_MIN) == 1L &&
-    RUCA_NONMETRO_MIN > 1L && RUCA_NONMETRO_MIN < 10L
+      RUCA_NONMETRO_MIN > 1L && RUCA_NONMETRO_MIN < 10L
 )

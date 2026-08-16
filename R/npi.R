@@ -20,6 +20,13 @@
 #' canon_npi(c("1234567893", "12-3456 7890", "abc", NA), verbose = FALSE)
 #' @export
 canon_npi <- function(x, verbose = TRUE) {
+  # Brace-free on purpose. tests/testthat/test-promoted-origin-parity.R compares
+  # this body, deparsed, against the isochrones copy this function was promoted
+  # from, and that comparison normalises whitespace but NOT brace style. A
+  # styler::style_pkg() pass on 2026-08-15 added braces here and the parity gate
+  # correctly reported divergence -- two implementations of an SSOT function is
+  # exactly the drift this package exists to prevent. Reverted rather than
+  # loosening the comparison: the gate was right.
   if (is.null(x)) return(character(0))
   if (!is.atomic(x)) {
     stop("canon_npi: input must be an atomic vector, not a ", class(x)[1], call. = FALSE)
@@ -68,9 +75,9 @@ canon_npi <- function(x, verbose = TRUE) {
   if (verbose) {
     rejected <- !is.na(rejection_reasons) & !empty_mask
     if (any(rejected)) {
-      n_total    <- length(x)
+      n_total <- length(x)
       n_rejected <- sum(rejected)
-      pct        <- n_rejected / n_total * 100
+      pct <- n_rejected / n_total * 100
       # One summary line, then per-reason breakdown
       message(sprintf(
         "canon_npi: %d of %d values (%.1f%%) rejected as invalid NPI",

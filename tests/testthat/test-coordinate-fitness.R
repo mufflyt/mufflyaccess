@@ -13,10 +13,10 @@
 
 fit_rows <- function(n = 3) {
   data.frame(
-    id                    = seq_len(n),
-    coord_source          = rep(c("rooftop", "address", "street_segment"), length.out = n),
+    id = seq_len(n),
+    coord_source = rep(c("rooftop", "address", "street_segment"), length.out = n),
     usable_for_travel_time = rep(TRUE, n),
-    stringsAsFactors      = FALSE
+    stringsAsFactors = FALSE
   )
 }
 
@@ -42,18 +42,23 @@ test_that("usable_for_travel_time = FALSE is refused, with the count and context
   expect_error(assert_travel_time_eligible(df), "usable_for_travel_time = FALSE")
   # the context label reaches the message, so the caller is identifiable
   expect_error(assert_travel_time_eligible(df, context = "generate_isochrones()"),
-               "generate_isochrones\\(\\)", fixed = FALSE)
+    "generate_isochrones\\(\\)",
+    fixed = FALSE
+  )
   # and it tells the caller what to do instead of just refusing
   expect_error(assert_travel_time_eligible(df), "report the exclusion")
 })
 
 test_that("centroid geocodes are refused whatever their casing or prefix", {
-  for (src in c("city_centroid", "CITY_CENTROID", "City Centroid",
-                "zip_centroid", "county_centroid", "centroid")) {
+  for (src in c(
+    "city_centroid", "CITY_CENTROID", "City Centroid",
+    "zip_centroid", "county_centroid", "centroid"
+  )) {
     df <- fit_rows(2)
     df$coord_source[2] <- src
     expect_error(assert_travel_time_eligible(df), "centroid geocode",
-                 info = paste("coord_source =", src))
+      info = paste("coord_source =", src)
+    )
   }
 })
 
@@ -94,7 +99,8 @@ test_that("an sf-style object (data.frame subclass) is accepted", {
 test_that("zero rows pass", {
   expect_true(assert_travel_time_eligible(fit_rows(0)))
   expect_true(assert_travel_time_eligible(
-    data.frame(coord_source = character(0), usable_for_travel_time = logical(0))))
+    data.frame(coord_source = character(0), usable_for_travel_time = logical(0))
+  ))
 })
 
 # ==============================================================================
@@ -127,7 +133,8 @@ test_that("NA is refused as UNKNOWN fitness, distinctly from a known-bad one", {
   # the two states must not be confusable: the NA message must NOT read as the
   # known-bad one, or the caller cannot tell which exclusion they are reporting
   msg <- tryCatch(assert_travel_time_eligible(df),
-                  error = function(e) conditionMessage(e))
+    error = function(e) conditionMessage(e)
+  )
   expect_false(grepl("usable_for_travel_time = FALSE", msg, fixed = TRUE))
 })
 

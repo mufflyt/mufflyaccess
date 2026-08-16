@@ -28,8 +28,8 @@ with a zero/NA-exposure guard. Returns \code{NA_real_} (not 0) so sparse tracts
 are distinguishable from true zero-rate tracts.
 }
 \examples{
-safe_rate(890, 164690617, multiplier = 1e5)  # ~0.5 gyn-onc per 100,000 women
-safe_rate(5, 0, multiplier = 1e5)             # NA_real_
+safe_rate(890, 164690617, multiplier = 1e5) # ~0.5 gyn-onc per 100,000 women
+safe_rate(5, 0, multiplier = 1e5) # NA_real_
 }
 \seealso{
 \code{\link[=safe_divide]{safe_divide()}}, \code{\link[=safe_ratio]{safe_ratio()}}

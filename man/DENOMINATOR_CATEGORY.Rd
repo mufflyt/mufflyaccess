@@ -19,7 +19,7 @@ every access percentage. The race categories are a DISTINCT
 \code{"total_female_<race>"} prefixed family and are intentionally NOT this value.
 }
 \examples{
-DENOMINATOR_CATEGORY                      # "total_female"
+DENOMINATOR_CATEGORY # "total_female"
 # select the denominator rows of a Step-4 access table:
 # subset(access_tbl, category == DENOMINATOR_CATEGORY)
 }

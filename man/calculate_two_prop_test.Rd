@@ -26,7 +26,7 @@ read a p-value that does not exist.
 }
 \examples{
 calculate_two_prop_test(12, 40, 20, 60)
-calculate_two_prop_test(2, 5, 3, 6)$method   # "descriptive_only"
+calculate_two_prop_test(2, 5, 3, 6)$method # "descriptive_only"
 }
 \seealso{
 Other workforce statistics:

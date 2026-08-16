@@ -25,7 +25,7 @@ the coefficient/dispersion pattern matches the status --
 \code{nb_theta} on (and only on) the negative-binomial rows.
 }
 \examples{
-validate_urps_demand_params(urps_demand_params())   # the NA skeleton is valid
+validate_urps_demand_params(urps_demand_params()) # the NA skeleton is valid
 }
 \seealso{
 \code{\link[=urps_demand_params_schema]{urps_demand_params_schema()}}, \code{\link[=read_urps_demand_params]{read_urps_demand_params()}}

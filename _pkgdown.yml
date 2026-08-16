@@ -1,5 +1,14 @@
 url: https://mufflyt.github.io/mufflyaccess
 
+# pkgdown's default destination is docs/, but docs/ here holds hand-written
+# documentation (CHARTER_URPS_SSOT.md, CROSS_REPO_USAGE.md) that is tracked in
+# git. pkgdown refuses to build into a non-pkgdown directory, so build_site()
+# has never succeeded in this repo -- and the fix its error message suggests,
+# pkgdown::clean_site(), would DELETE both of those files. Point the generated
+# site somewhere else instead; CI publishes it as an artifact, so it does not
+# need to live at docs/.
+destination: pkgdown-site
+
 template:
   bootstrap: 5
   bootswatch: flatly

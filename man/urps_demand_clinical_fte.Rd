@@ -73,10 +73,11 @@ registry rather than passing raw numeric values.
 \examples{
 levers <- urps_demand_levers("demand_managed_care_increase")
 urps_demand_clinical_fte(
-  population      = data.frame(age = 50, sex = "female", n = 1000),
-  visits_per_fte  = 2000,
-  managed_care_factor   = levers$demand_managed_care_factor,
-  retail_clinic_share   = levers$demand_retail_clinic_share)  # NA_real_ until calibrated
+  population = data.frame(age = 50, sex = "female", n = 1000),
+  visits_per_fte = 2000,
+  managed_care_factor = levers$demand_managed_care_factor,
+  retail_clinic_share = levers$demand_retail_clinic_share
+) # NA_real_ until calibrated
 }
 \seealso{
 \code{\link[=urps_demand_params]{urps_demand_params()}}, \code{\link[=urps_demand_scalars]{urps_demand_scalars()}}, \code{\link[=urps_demand_levers]{urps_demand_levers()}}

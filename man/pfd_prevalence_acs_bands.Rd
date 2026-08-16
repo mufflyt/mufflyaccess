@@ -16,11 +16,11 @@ named numeric over c(a65_66E, a67_69E, a70_74E, a75_79E, a80_84E, a85pE).
 Wu-2014 PFD prevalence as a named vector over the ACS 65+ age-band columns
 }
 \examples{
-b <- pfd_prevalence_acs_bands()   # any_PFD spread across the 6 ACS 65+ bands
-b[["a65_66E"]]                    # 0.368  (65-79 bracket rate)
-b[["a85pE"]]                      # 0.497  (>=80 bracket rate)
+b <- pfd_prevalence_acs_bands() # any_PFD spread across the 6 ACS 65+ bands
+b[["a65_66E"]] # 0.368  (65-79 bracket rate)
+b[["a85pE"]] # 0.497  (>=80 bracket rate)
 # the four 65-79 bands all carry the 65-79 rate; the two 80+ bands the 80+ rate:
-unname(b)                         # c(0.368, 0.368, 0.368, 0.368, 0.497, 0.497)
+unname(b) # c(0.368, 0.368, 0.368, 0.368, 0.497, 0.497)
 }
 \seealso{
 \code{\link[=pfd_prevalence]{pfd_prevalence()}} (the two-bracket form these bands expand).

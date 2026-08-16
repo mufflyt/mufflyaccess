@@ -18,7 +18,7 @@ NON_CONTIGUOUS_CODES
 Non-contiguous state/territory USPS codes (excluded from CONUS analyses)
 }
 \examples{
-NON_CONTIGUOUS_CODES  # "HI" "AK" "PR" "GU" "VI" "AS" "MP"
+NON_CONTIGUOUS_CODES # "HI" "AK" "PR" "GU" "VI" "AS" "MP"
 }
 \seealso{
 \link{NON_CONTIGUOUS_FIPS} (the FIPS form), \link{CONUS_STATE_ABBR} (the complement)

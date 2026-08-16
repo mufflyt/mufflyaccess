@@ -4,8 +4,10 @@
 
 test_that("valid 10-digit NPIs pass through unchanged", {
   expect_equal(canon_npi("1234567893", verbose = FALSE), "1234567893")
-  expect_equal(canon_npi(c("1992998967", "1326161225"), verbose = FALSE),
-               c("1992998967", "1326161225"))
+  expect_equal(
+    canon_npi(c("1992998967", "1326161225"), verbose = FALSE),
+    c("1992998967", "1326161225")
+  )
 })
 
 test_that("separators are stripped", {
@@ -26,9 +28,9 @@ test_that("numeric input is handled without scientific-notation corruption", {
 
 test_that("garbage fails closed to NA", {
   expect_true(is.na(canon_npi("abc", verbose = FALSE)))
-  expect_true(is.na(canon_npi("12ab34", verbose = FALSE)))       # letters
+  expect_true(is.na(canon_npi("12ab34", verbose = FALSE))) # letters
   expect_true(is.na(canon_npi("123456789012", verbose = FALSE))) # too many digits
-  expect_true(is.na(canon_npi("1.2e9", verbose = FALSE)))        # scientific notation
+  expect_true(is.na(canon_npi("1.2e9", verbose = FALSE))) # scientific notation
   expect_true(is.na(canon_npi(NA, verbose = FALSE)))
   expect_true(is.na(canon_npi("", verbose = FALSE)))
 })

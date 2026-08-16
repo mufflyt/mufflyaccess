@@ -17,8 +17,8 @@ The full set of drive-time thresholds the isochrone pipeline generates. The
 primary/headline analysis band (\link{PRIMARY_ACCESS_BAND_MIN}) must be a member.
 }
 \examples{
-CANONICAL_BANDS                          # 30 60 120 180
-PRIMARY_ACCESS_BAND_MIN \%in\% CANONICAL_BANDS  # TRUE
+CANONICAL_BANDS # 30 60 120 180
+PRIMARY_ACCESS_BAND_MIN \%in\% CANONICAL_BANDS # TRUE
 }
 \seealso{
 \link{PRIMARY_ACCESS_BAND_MIN} (the headline member), \code{\link[=get_canonical_bands]{get_canonical_bands()}}

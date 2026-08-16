@@ -40,7 +40,7 @@
 # in the projection contract is NA (allowed by the contract schema).
 # ==============================================================================
 
-.URPS_DEMAND_VERSION <- "0.1.0"   # pre-calibration; bump to 1.0.0 on first fit
+.URPS_DEMAND_VERSION <- "0.1.0" # pre-calibration; bump to 1.0.0 on first fit
 
 .urps_demand_params_df <- function() {
   service_types <- c(
@@ -52,20 +52,20 @@
     "hospital_los"
   )
   model_forms <- c(
-    "negative_binomial",  # office_visit
-    "negative_binomial",  # outpatient_visit
-    "negative_binomial",  # home_health_visit
-    "logistic",           # hospitalization_prob
-    "logistic",           # ed_visit_prob
-    "poisson"             # hospital_los
+    "negative_binomial", # office_visit
+    "negative_binomial", # outpatient_visit
+    "negative_binomial", # home_health_visit
+    "logistic", # hospitalization_prob
+    "logistic", # ed_visit_prob
+    "poisson" # hospital_los
   )
   outcome_units <- c(
-    "annual_visit_count",          # office_visit
-    "annual_visit_count",          # outpatient_visit
-    "annual_visit_count",          # home_health_visit
-    "probability_0_1",             # hospitalization_prob
-    "probability_0_1",             # ed_visit_prob
-    "days_per_admission"           # hospital_los
+    "annual_visit_count", # office_visit
+    "annual_visit_count", # outpatient_visit
+    "annual_visit_count", # home_health_visit
+    "probability_0_1", # hospitalization_prob
+    "probability_0_1", # ed_visit_prob
+    "days_per_admission" # hospital_los
   )
   n <- length(service_types)
   data.frame(
@@ -74,25 +74,25 @@
     outcome_units              = outcome_units,
     # ---- regression coefficients (all NA until MEPS/NAMCS fit) ---------------
     intercept                  = rep(NA_real_, n),
-    b_age                      = rep(NA_real_, n),  # continuous, per year
-    b_sex_male                 = rep(NA_real_, n),  # ref: female
-    b_race_black               = rep(NA_real_, n),  # ref: non-Hispanic white
+    b_age                      = rep(NA_real_, n), # continuous, per year
+    b_sex_male                 = rep(NA_real_, n), # ref: female
+    b_race_black               = rep(NA_real_, n), # ref: non-Hispanic white
     b_race_hispanic            = rep(NA_real_, n),
     b_race_other               = rep(NA_real_, n),
-    b_bmi                      = rep(NA_real_, n),  # continuous, per unit
-    b_smoking_current          = rep(NA_real_, n),  # ref: never/former
-    b_income_low               = rep(NA_real_, n),  # < 100% FPL; ref: >= 400% FPL
-    b_income_mid               = rep(NA_real_, n),  # 100-399% FPL
-    b_insurance_medicaid       = rep(NA_real_, n),  # ref: private
+    b_bmi                      = rep(NA_real_, n), # continuous, per unit
+    b_smoking_current          = rep(NA_real_, n), # ref: never/former
+    b_income_low               = rep(NA_real_, n), # < 100% FPL; ref: >= 400% FPL
+    b_income_mid               = rep(NA_real_, n), # 100-399% FPL
+    b_insurance_medicaid       = rep(NA_real_, n), # ref: private
     b_insurance_medicare       = rep(NA_real_, n),
     b_insurance_uninsured      = rep(NA_real_, n),
-    b_managed_care             = rep(NA_real_, n),  # 1 = in managed care plan
-    b_chronic_count            = rep(NA_real_, n),  # count of chronic conditions
-    b_urban                    = rep(NA_real_, n),  # 1 = urban; ref: rural
+    b_managed_care             = rep(NA_real_, n), # 1 = in managed care plan
+    b_chronic_count            = rep(NA_real_, n), # count of chronic conditions
+    b_urban                    = rep(NA_real_, n), # 1 = urban; ref: rural
     # ---- dispersion parameter (negative binomial only; NA otherwise) ----------
     nb_theta                   = rep(NA_real_, n),
     # ---- calibration scalar slot (see urps_demand_scalars()) ------------------
-    calibration_scalar         = rep(1.0, n),       # placeholder; overwritten at fit
+    calibration_scalar         = rep(1.0, n), # placeholder; overwritten at fit
     # ---- provenance -----------------------------------------------------------
     data_source                = "MEPS_2013_2017",
     calibration_status         = "not_calibrated",
@@ -106,17 +106,20 @@ local({
   d <- .urps_demand_params_df()
   expected_services <- c(
     "office_visit", "outpatient_visit", "home_health_visit",
-    "hospitalization_prob", "ed_visit_prob", "hospital_los")
+    "hospitalization_prob", "ed_visit_prob", "hospital_los"
+  )
   expected_forms <- c(
     "negative_binomial", "negative_binomial", "negative_binomial",
-    "logistic", "logistic", "poisson")
+    "logistic", "logistic", "poisson"
+  )
   beta_cols <- c(
     "intercept", "b_age", "b_sex_male",
     "b_race_black", "b_race_hispanic", "b_race_other",
     "b_bmi", "b_smoking_current",
     "b_income_low", "b_income_mid",
     "b_insurance_medicaid", "b_insurance_medicare", "b_insurance_uninsured",
-    "b_managed_care", "b_chronic_count", "b_urban")
+    "b_managed_care", "b_chronic_count", "b_urban"
+  )
   stopifnot(
     "demand params must have exactly 6 rows" =
       nrow(d) == 6L,
@@ -162,7 +165,8 @@ URPS_DEMAND_VERSION <- .URPS_DEMAND_VERSION
 # validates the artifact and fails loud on a malformed / missing one.
 .urps_demand_params_source <- function() {
   p <- getOption("mufflyaccess.urps_demand_params_path",
-                 default = Sys.getenv("MUFFLYACCESS_URPS_DEMAND_PARAMS", ""))
+    default = Sys.getenv("MUFFLYACCESS_URPS_DEMAND_PARAMS", "")
+  )
   if (is.character(p) && length(p) == 1L && nzchar(p)) p else NULL
 }
 
@@ -204,20 +208,25 @@ URPS_DEMAND_VERSION <- .URPS_DEMAND_VERSION
 #' @export
 urps_demand_params <- function() {
   configured <- .urps_demand_params_source()
-  if (!is.null(configured)) return(read_urps_demand_params(configured))   # activated fit
+  if (!is.null(configured)) {
+    return(read_urps_demand_params(configured))
+  } # activated fit
   d <- .urps_demand_params_df()
   attr(d, "source") <- paste(
     "IHS Markit HWMM v5.19.20 (model structure, covariate list, Exhibits 14-16);",
     "MEPS 2013-2017 (~170k persons, AHRQ Data Center) -- fitting dataset;",
     "NAMCS/NHAMCS/NIS -- calibration totals for specialty x setting scalars.",
-    "URPS-specific fit pending; see urps_demand_scalars() for scalar skeleton.")
+    "URPS-specific fit pending; see urps_demand_scalars() for scalar skeleton."
+  )
   attr(d, "formula_note") <- paste(
     "NB: E[visits] = exp(intercept + b_age*age + ... + b_urban*urban);",
     "Logistic: logit(P) = intercept + b_age*age + ...;",
-    "Poisson: E[LOS] = exp(intercept + b_age*age + ...)")
+    "Poisson: E[LOS] = exp(intercept + b_age*age + ...)"
+  )
   attr(d, "covariate_reference") <- paste(
     "Reference levels: sex=female, race=non-Hispanic white,",
-    "income >= 400% FPL, insurance=private.")
+    "income >= 400% FPL, insurance=private."
+  )
   d
 }
 
@@ -318,31 +327,39 @@ urps_demand_levers <- function(scenario_id) {
 #' @examples
 #' levers <- urps_demand_levers("demand_managed_care_increase")
 #' urps_demand_clinical_fte(
-#'   population      = data.frame(age = 50, sex = "female", n = 1000),
-#'   visits_per_fte  = 2000,
-#'   managed_care_factor   = levers$demand_managed_care_factor,
-#'   retail_clinic_share   = levers$demand_retail_clinic_share)  # NA_real_ until calibrated
+#'   population = data.frame(age = 50, sex = "female", n = 1000),
+#'   visits_per_fte = 2000,
+#'   managed_care_factor = levers$demand_managed_care_factor,
+#'   retail_clinic_share = levers$demand_retail_clinic_share
+#' ) # NA_real_ until calibrated
 #' @export
 urps_demand_clinical_fte <- function(population, visits_per_fte,
-                                      obesity_prev_shift         = 0,
-                                      insurance_expansion_factor = 1,
-                                      managed_care_factor        = 1,
-                                      retail_clinic_share        = 0) {
-  if (!is.numeric(managed_care_factor) || managed_care_factor <= 0)
+                                     obesity_prev_shift = 0,
+                                     insurance_expansion_factor = 1,
+                                     managed_care_factor = 1,
+                                     retail_clinic_share = 0) {
+  if (!is.numeric(managed_care_factor) || managed_care_factor <= 0) {
     stop("[urps_demand_clinical_fte] `managed_care_factor` must be a positive number.", call. = FALSE)
-  if (!is.numeric(retail_clinic_share) || retail_clinic_share < 0 || retail_clinic_share >= 1)
+  }
+  if (!is.numeric(retail_clinic_share) || retail_clinic_share < 0 || retail_clinic_share >= 1) {
     stop("[urps_demand_clinical_fte] `retail_clinic_share` must be in [0, 1).", call. = FALSE)
+  }
   params <- urps_demand_params()
-  if (all(is.na(params$intercept)))
-    return(NA_real_)                                   # NA skeleton -> demand NA
+  if (all(is.na(params$intercept))) {
+    return(NA_real_)
+  } # NA skeleton -> demand NA
 
   # ---- calibrated path: predicted ambulatory-visit demand -> clinical FTE -----
-  if (!is.data.frame(population) || !"n" %in% names(population))
+  if (!is.data.frame(population) || !"n" %in% names(population)) {
     stop("[urps_demand_clinical_fte] `population` must be a data.frame with an `n` column ",
-         "and design-matrix covariate columns (age, sex_male, race_*, bmi, ...).", call. = FALSE)
+      "and design-matrix covariate columns (age, sex_male, race_*, bmi, ...).",
+      call. = FALSE
+    )
+  }
   if (!is.numeric(visits_per_fte) || length(visits_per_fte) != 1L ||
-      is.na(visits_per_fte) || visits_per_fte <= 0)
+    is.na(visits_per_fte) || visits_per_fte <= 0) {
     stop("[urps_demand_clinical_fte] `visits_per_fte` must be a positive number.", call. = FALSE)
+  }
 
   # Office-based URPS physician FTE is driven by the ambulatory visit-count
   # services (office + outpatient); the inpatient / ED / home-health rows are a
@@ -356,17 +373,23 @@ urps_demand_clinical_fte <- function(population, visits_per_fte,
     b_income_low = "income_low", b_income_mid = "income_mid",
     b_insurance_medicaid = "ins_medicaid", b_insurance_medicare = "ins_medicare",
     b_insurance_uninsured = "ins_uninsured", b_managed_care = "managed_care",
-    b_chronic_count = "chronic_count", b_urban = "urban")
-  col <- function(nm) if (nm %in% names(population)) as.numeric(population[[nm]]) else
-    rep(0, nrow(population))     # absent covariate = reference level (0)
+    b_chronic_count = "chronic_count", b_urban = "urban"
+  )
+  col <- function(nm) {
+    if (nm %in% names(population)) {
+      as.numeric(population[[nm]])
+    } else {
+      rep(0, nrow(population))
+    }
+  } # absent covariate = reference level (0)
   n <- as.numeric(population$n)
 
   total_visits <- 0
   for (svc in visit_services) {
-    r  <- params[params$service_type == svc, , drop = FALSE]
+    r <- params[params$service_type == svc, , drop = FALSE]
     lp <- rep(r$intercept, nrow(population))
     for (b in names(term_map)) lp <- lp + r[[b]] * col(term_map[[b]])
-    rate <- exp(lp)                                    # NB: E[annual visits | x]
+    rate <- exp(lp) # NB: E[annual visits | x]
     total_visits <- total_visits + sum(rate * n) * r$calibration_scalar
   }
 
@@ -375,9 +398,9 @@ urps_demand_clinical_fte <- function(population, visits_per_fte,
   #   retail_clinic_share -> share of office demand shifted off URPS physicians;
   #   obesity_prev_shift  -> first-order proportional PFD-demand bump (pp / 100).
   total_visits <- total_visits * insurance_expansion_factor * managed_care_factor *
-                  (1 - retail_clinic_share) * (1 + obesity_prev_shift / 100)
+    (1 - retail_clinic_share) * (1 + obesity_prev_shift / 100)
 
-  total_visits / visits_per_fte                        # visits -> clinical FTE
+  total_visits / visits_per_fte # visits -> clinical FTE
 }
 
 #' Scenario-aware demand FTE: registry lookup + clinical FTE in one call
@@ -420,7 +443,7 @@ urps_demand_clinical_fte <- function(population, visits_per_fte,
 #' @family URPS demand
 #' @examples
 #' pop <- data.frame(age = 50, sex = "female", n = 10000)
-#' urps_demand_fte(pop, visits_per_fte = 2000)                           # NA
+#' urps_demand_fte(pop, visits_per_fte = 2000) # NA
 #' urps_demand_fte(pop, visits_per_fte = 2000, scenario_id = "baseline") # NA
 #' urps_demand_fte(pop, 2000, scenario_id = "demand_managed_care_increase") # NA
 #' @export

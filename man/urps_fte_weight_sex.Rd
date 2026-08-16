@@ -61,7 +61,8 @@ urps_fte_weight_sex(45, "female", "ABU")
 sc <- urps_scenario("lower_late_career_fte")
 urps_fte_weight_sex(62, "female", "ABOG",
   late_from_age = sc$late_career_fte_onset_age,
-  late_factor   = sc$late_career_fte_factor)
+  late_factor   = sc$late_career_fte_factor
+)
 }
 \seealso{
 \code{\link[=urps_fte_predicted_hours]{urps_fte_predicted_hours()}}, \code{\link[=urps_fte_weight]{urps_fte_weight()}},

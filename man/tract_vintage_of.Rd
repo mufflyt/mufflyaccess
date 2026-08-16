@@ -16,7 +16,7 @@ integer 2010 or 2020, the tract-boundary vintage in force that year.
 Census tract boundary vintage for a study year (2010 tracts <=2019, 2020 >=2020).
 }
 \examples{
-tract_vintage_of(c(2019, 2020))   # 2010, 2020  (boundary break at 2020)
+tract_vintage_of(c(2019, 2020)) # 2010, 2020  (boundary break at 2020)
 }
 \seealso{
 \code{\link[=acs_year_of]{acs_year_of()}}

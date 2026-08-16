@@ -3,7 +3,7 @@ test_that("canonical scalar values are exactly as published", {
   expect_equal(PRIMARY_ACCESS_BAND_SEC, 3600L)
   expect_identical(DENOMINATOR_CATEGORY, "total_female")
   expect_equal(TRACT_REACHED_COVERAGE_PCT, 50L)
-  expect_equal(as.vector(ACS2020_CONUS_FEMALE_POP), 164690617L)  # as.vector strips provenance attrs
+  expect_equal(as.vector(ACS2020_CONUS_FEMALE_POP), 164690617L) # as.vector strips provenance attrs
 })
 
 test_that("derived values are consistent with their sources", {
@@ -40,7 +40,7 @@ test_that("reached cut is a percent, band is minutes (unit sanity)", {
 
 test_that("ACS female pop carries provenance attributes", {
   a <- attributes(ACS2020_CONUS_FEMALE_POP)
-  expect_true(all(c("vintage","table","scope","units") %in% names(a)))
+  expect_true(all(c("vintage", "table", "scope", "units") %in% names(a)))
   expect_match(a$table, "B01001_026")
   expect_match(a$scope, "contiguous", ignore.case = TRUE)
 })

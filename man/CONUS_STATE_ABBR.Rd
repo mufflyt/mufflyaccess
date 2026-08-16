@@ -22,8 +22,8 @@ can never drift apart. Use this instead of re-deriving
 state-validation vocabulary, NOT CONUS.
 }
 \examples{
-length(CONUS_STATE_ABBR)              # 49
-any(c("AK", "HI") \%in\% CONUS_STATE_ABBR)   # FALSE (excluded by construction)
+length(CONUS_STATE_ABBR) # 49
+any(c("AK", "HI") \%in\% CONUS_STATE_ABBR) # FALSE (excluded by construction)
 }
 \seealso{
 \link{CONUS_STATE_FIPS} (the FIPS form it is derived from),

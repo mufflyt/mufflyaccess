@@ -15,10 +15,12 @@ test_that("params table has required columns, 2 rows, and valid calibrated value
   expect_s3_class(d, "data.frame")
   expect_equal(nrow(d), 2L)
   expect_setequal(d$sex, c("female", "male"))
-  expect_true(all(c("intercept", "b_age",
-                    "anchor_age_lo", "anchor_p_lo",
-                    "anchor_age_hi", "anchor_p_hi",
-                    "calibration_status") %in% names(d)))
+  expect_true(all(c(
+    "intercept", "b_age",
+    "anchor_age_lo", "anchor_p_lo",
+    "anchor_age_hi", "anchor_p_hi",
+    "calibration_status"
+  ) %in% names(d)))
   expect_true(all(d$calibration_status == "calibrated_from_literature"))
   expect_true(all(d$b_age < 0))
 })
@@ -63,7 +65,8 @@ test_that("p_active is strictly in (0, 1) at plausible ages 25:90", {
   for (sx in c("female", "male")) {
     p <- urps_p_active(25:90, sx)
     expect_true(all(p > 0 & p < 1),
-      label = paste("p in (0,1) for", sx))
+      label = paste("p in (0,1) for", sx)
+    )
   }
 })
 
@@ -71,7 +74,8 @@ test_that("p_active is strictly decreasing with age (logistic with b_age < 0)", 
   for (sx in c("female", "male")) {
     p <- urps_p_active(35:80, sx)
     expect_true(all(diff(p) < 0),
-      label = paste("p decreasing for", sx))
+      label = paste("p decreasing for", sx)
+    )
   }
 })
 
@@ -84,9 +88,9 @@ test_that("male p_active exceeds female p_active at same age across career", {
 
 test_that("p_active approaches 1 at young ages and is well below 1 at old ages", {
   expect_gt(urps_p_active(30, "female"), 0.97)
-  expect_gt(urps_p_active(30, "male"),   0.98)
+  expect_gt(urps_p_active(30, "male"), 0.98)
   expect_lt(urps_p_active(80, "female"), 0.65)
-  expect_lt(urps_p_active(80, "male"),   0.72)
+  expect_lt(urps_p_active(80, "male"), 0.72)
 })
 
 # ---- urps_p_active: vectorization --------------------------------------------
@@ -96,16 +100,18 @@ test_that("p_active is vectorized over age", {
   expect_length(out, 41L)
   expect_equal(
     urps_p_active(c(40, 50, 65), "male"),
-    c(urps_p_active(40, "male"),
+    c(
+      urps_p_active(40, "male"),
       urps_p_active(50, "male"),
-      urps_p_active(65, "male"))
+      urps_p_active(65, "male")
+    )
   )
 })
 
 test_that("p_active is vectorized over sex (mixed-sex cohort)", {
-  ages  <- c(45L, 55L)
+  ages <- c(45L, 55L)
   sexes <- c("female", "male")
-  out   <- urps_p_active(ages, sexes)
+  out <- urps_p_active(ages, sexes)
   expect_length(out, 2L)
   expect_equal(out[1], urps_p_active(45, "female"))
   expect_equal(out[2], urps_p_active(55, "male"))
@@ -113,7 +119,7 @@ test_that("p_active is vectorized over sex (mixed-sex cohort)", {
 
 test_that("scalar sex recycled over age vector", {
   out_f <- urps_p_active(40:50, "female")
-  ref   <- vapply(40:50, function(a) urps_p_active(a, "female"), numeric(1))
+  ref <- vapply(40:50, function(a) urps_p_active(a, "female"), numeric(1))
   expect_equal(out_f, ref)
 })
 
@@ -142,7 +148,8 @@ test_that("p_active in curve is strictly decreasing for both sexes", {
   for (sx in c("female", "male")) {
     curve <- urps_lfp_curve(sx)
     expect_true(all(diff(curve$p_active) < 0),
-      label = paste("decreasing p_active in curve for", sx))
+      label = paste("decreasing p_active in curve for", sx)
+    )
   }
 })
 
@@ -165,13 +172,13 @@ test_that("implied mid-career participation values are plausible", {
 
 test_that("unknown sex produces a hard error", {
   expect_error(urps_p_active(45, "nonbinary"), "female.*male|male.*female")
-  expect_error(urps_p_active(45, "F"),         "female.*male|male.*female")
-  expect_error(urps_lfp_curve("Male"),         "female.*male|male.*female")
+  expect_error(urps_p_active(45, "F"), "female.*male|male.*female")
+  expect_error(urps_lfp_curve("Male"), "female.*male|male.*female")
 })
 
 test_that("empty age vector produces a hard error", {
   expect_error(urps_p_active(integer(0), "female"), "non-empty")
-  expect_error(urps_p_active(numeric(0), "male"),   "non-empty")
+  expect_error(urps_p_active(numeric(0), "male"), "non-empty")
 })
 
 test_that("non-numeric age produces a hard error", {
@@ -187,19 +194,23 @@ test_that("empty age_range in urps_lfp_curve produces a hard error", {
 test_that("urps_apply_lfp adds practicing_n = certified_n * p_active", {
   cohort <- data.frame(
     age = c(45L, 62L), sex = c("female", "male"),
-    pathway = c("ABOG", "ABU"), certified_n = c(100, 50))
+    pathway = c("ABOG", "ABU"), certified_n = c(100, 50)
+  )
   out <- urps_apply_lfp(cohort)
   expect_true("practicing_n" %in% names(out))
-  expect_equal(out$practicing_n,
-    cohort$certified_n * urps_p_active(cohort$age, cohort$sex))
+  expect_equal(
+    out$practicing_n,
+    cohort$certified_n * urps_p_active(cohort$age, cohort$sex)
+  )
 })
 
 test_that("urps_apply_lfp passes through all original columns unchanged", {
   cohort <- data.frame(
     age = 50L, sex = "female", pathway = "ABOG",
-    certified_n = 200, extra_col = "foo")
+    certified_n = 200, extra_col = "foo"
+  )
   out <- urps_apply_lfp(cohort)
-  expect_equal(out$age,       cohort$age)
+  expect_equal(out$age, cohort$age)
   expect_equal(out$extra_col, cohort$extra_col)
   expect_equal(out$certified_n, cohort$certified_n)
 })
@@ -207,13 +218,14 @@ test_that("urps_apply_lfp passes through all original columns unchanged", {
 test_that("urps_apply_lfp practicing_n is strictly less than certified_n (p_active < 1)", {
   cohort <- data.frame(
     age = c(40L, 55L, 70L), sex = "female",
-    certified_n = c(300, 200, 100))
+    certified_n = c(300, 200, 100)
+  )
   out <- urps_apply_lfp(cohort)
   expect_true(all(out$practicing_n < out$certified_n))
 })
 
 test_that("urps_apply_lfp fails loud on missing columns", {
-  expect_error(urps_apply_lfp(data.frame(age = 45L, certified_n = 100)),  "sex")
-  expect_error(urps_apply_lfp(data.frame(age = 45L, sex = "female")),     "certified_n")
+  expect_error(urps_apply_lfp(data.frame(age = 45L, certified_n = 100)), "sex")
+  expect_error(urps_apply_lfp(data.frame(age = 45L, sex = "female")), "certified_n")
   expect_error(urps_apply_lfp(data.frame(sex = "male", certified_n = 50)), "age")
 })

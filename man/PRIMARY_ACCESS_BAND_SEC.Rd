@@ -15,8 +15,8 @@ primary band in the Step-4 access tables (\code{range == 3600}). Derived; never 
 independently.
 }
 \examples{
-PRIMARY_ACCESS_BAND_SEC                       # 3600
-identical(PRIMARY_ACCESS_BAND_SEC, PRIMARY_ACCESS_BAND_MIN * 60L)  # TRUE
+PRIMARY_ACCESS_BAND_SEC # 3600
+identical(PRIMARY_ACCESS_BAND_SEC, PRIMARY_ACCESS_BAND_MIN * 60L) # TRUE
 }
 \seealso{
 \link{PRIMARY_ACCESS_BAND_MIN} (the minutes form it derives from)

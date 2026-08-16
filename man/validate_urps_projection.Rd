@@ -54,12 +54,15 @@ measure.
 }
 \examples{
 p <- read_urps_projection(system.file(
-  "extdata", "urps_projection_example.csv", package = "mufflyaccess"))
+  "extdata", "urps_projection_example.csv",
+  package = "mufflyaccess"
+))
 validate_urps_projection(p)
 # tie the 2025 baseline stock to the served roster snapshot (1339):
 validate_urps_projection(p, baseline_tie = list(
   year = 2025, measure = "roster_snapshot",
-  geography_type = "national", certification_pathway = "ABOG_PLUS_ABU"))
+  geography_type = "national", certification_pathway = "ABOG_PLUS_ABU"
+))
 }
 \seealso{
 \code{\link[=urps_projection_schema]{urps_projection_schema()}}, \code{\link[=read_urps_projection]{read_urps_projection()}},

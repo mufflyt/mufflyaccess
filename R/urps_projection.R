@@ -23,17 +23,20 @@
       "year", "scenario_id", "specialty", "certification_pathway",
       "geography_type", "geography_id", "supply_headcount", "supply_clinical_fte",
       "lower_95", "upper_95", "entrants", "exits", "net_change",
-      "demand_clinical_fte", "gap_fte"),
+      "demand_clinical_fte", "gap_fte"
+    ),
     type = c(
       "integer", "character", "character", "character",
       "character", "character", "double", "double",
       "double", "double", "double", "double", "double",
-      "double", "double"),
+      "double", "double"
+    ),
     optional = c(
       FALSE, FALSE, FALSE, FALSE,
       FALSE, FALSE, FALSE, TRUE,
       TRUE, TRUE, TRUE, TRUE, TRUE,
-      TRUE, TRUE),
+      TRUE, TRUE
+    ),
     description = c(
       "projection year",
       "scenario id (must be registered in urps_scenarios())",
@@ -49,8 +52,10 @@
       "exits from the stock during the year",
       "net change in the stock during the year (defined as entrants - exits)",
       "projected demand in clinical FTE units (NA until demand equations calibrated; see urps_demand_params())",
-      "gap_fte = demand_clinical_fte - supply_clinical_fte; negative = surplus, positive = shortage (NA unless both demand and supply FTE present)"),
-    stringsAsFactors = FALSE)
+      "gap_fte = demand_clinical_fte - supply_clinical_fte; negative = surplus, positive = shortage (NA unless both demand and supply FTE present)"
+    ),
+    stringsAsFactors = FALSE
+  )
 }
 
 #' Version of the URPS projection contract
@@ -126,88 +131,123 @@ urps_projection_schema <- function() .urps_projection_schema()
 #' @family URPS projection
 #' @examples
 #' p <- read_urps_projection(system.file(
-#'   "extdata", "urps_projection_example.csv", package = "mufflyaccess"))
+#'   "extdata", "urps_projection_example.csv",
+#'   package = "mufflyaccess"
+#' ))
 #' validate_urps_projection(p)
 #' # tie the 2025 baseline stock to the served roster snapshot (1339):
 #' validate_urps_projection(p, baseline_tie = list(
 #'   year = 2025, measure = "roster_snapshot",
-#'   geography_type = "national", certification_pathway = "ABOG_PLUS_ABU"))
+#'   geography_type = "national", certification_pathway = "ABOG_PLUS_ABU"
+#' ))
 #' @export
 validate_urps_projection <- function(x, baseline_tie = NULL, tol = 1e-6) {
   d <- if (is.character(x) && length(x) == 1L) read_urps_projection(x, validate = FALSE) else x
-  if (!is.data.frame(d))
+  if (!is.data.frame(d)) {
     stop("[validate_urps_projection] `x` must be a data.frame or a path to a CSV.", call. = FALSE)
+  }
 
   sch <- .urps_projection_schema()
   req <- sch$column[!sch$optional]
   miss <- setdiff(req, names(d))
-  if (length(miss))
+  if (length(miss)) {
     stop("[validate_urps_projection] missing required column(s): ",
-         paste(miss, collapse = ", "), call. = FALSE)
-  if (!nrow(d))
+      paste(miss, collapse = ", "),
+      call. = FALSE
+    )
+  }
+  if (!nrow(d)) {
     stop("[validate_urps_projection] projection table is empty.", call. = FALSE)
+  }
 
   # scenarios: registered + baseline present
   validate_urps_scenarios(as.character(d$scenario_id))
-  if (!"baseline" %in% d$scenario_id)
+  if (!"baseline" %in% d$scenario_id) {
     stop("[validate_urps_projection] the 'baseline' scenario must be present.", call. = FALSE)
+  }
 
   # controlled vocabularies (reuse the count-contract sets)
   bad_p <- setdiff(unique(d$certification_pathway), .urps_pathways)
-  if (length(bad_p))
+  if (length(bad_p)) {
     stop("[validate_urps_projection] unknown certification_pathway: ",
-         paste(bad_p, collapse = ", "), call. = FALSE)
+      paste(bad_p, collapse = ", "),
+      call. = FALSE
+    )
+  }
   bad_g <- setdiff(unique(d$geography_type), .urps_geographies)
-  if (length(bad_g))
+  if (length(bad_g)) {
     stop("[validate_urps_projection] unknown geography_type: ",
-         paste(bad_g, collapse = ", "), call. = FALSE)
+      paste(bad_g, collapse = ", "),
+      call. = FALSE
+    )
+  }
 
   # unique series key
   key <- paste(d$year, d$scenario_id, d$specialty, d$certification_pathway,
-               d$geography_type, d$geography_id, sep = "|")
-  if (anyDuplicated(key))
+    d$geography_type, d$geography_id,
+    sep = "|"
+  )
+  if (anyDuplicated(key)) {
     stop("[validate_urps_projection] duplicate (year, scenario_id, specialty, ",
-         "certification_pathway, geography_type, geography_id) key.", call. = FALSE)
+      "certification_pathway, geography_type, geography_id) key.",
+      call. = FALSE
+    )
+  }
 
   # numeric sanity
   sh <- suppressWarnings(as.numeric(d$supply_headcount))
-  if (anyNA(sh))
+  if (anyNA(sh)) {
     stop("[validate_urps_projection] supply_headcount must be a non-NA number in every row.", call. = FALSE)
-  if (any(sh < 0))
+  }
+  if (any(sh < 0)) {
     stop("[validate_urps_projection] supply_headcount must be non-negative.", call. = FALSE)
-  for (col in c("entrants", "exits")) if (col %in% names(d)) {
-    v <- suppressWarnings(as.numeric(d[[col]]))
-    if (any(!is.na(v) & v < 0))
-      stop(sprintf("[validate_urps_projection] %s must be non-negative where present.", col), call. = FALSE)
+  }
+  for (col in c("entrants", "exits")) {
+    if (col %in% names(d)) {
+      v <- suppressWarnings(as.numeric(d[[col]]))
+      if (any(!is.na(v) & v < 0)) {
+        stop(sprintf("[validate_urps_projection] %s must be non-negative where present.", col), call. = FALSE)
+      }
+    }
   }
   # clinical FTE is bounded: non-negative and never more than the headcount it is
   # drawn from (a single head contributes at most 1.0 clinical FTE).
   if ("supply_clinical_fte" %in% names(d)) {
     fte <- suppressWarnings(as.numeric(d$supply_clinical_fte))
-    if (any(!is.na(fte) & fte < 0))
+    if (any(!is.na(fte) & fte < 0)) {
       stop("[validate_urps_projection] supply_clinical_fte must be non-negative where present.", call. = FALSE)
-    if (any(!is.na(fte) & fte > sh))
+    }
+    if (any(!is.na(fte) & fte > sh)) {
       stop("[validate_urps_projection] supply_clinical_fte cannot exceed supply_headcount (a head is at most 1.0 clinical FTE).",
-           call. = FALSE)
+        call. = FALSE
+      )
+    }
   }
 
   # 95% bounds bracket the point estimate (where present)
   if (all(c("lower_95", "upper_95") %in% names(d))) {
-    lo <- suppressWarnings(as.numeric(d$lower_95)); up <- suppressWarnings(as.numeric(d$upper_95))
+    lo <- suppressWarnings(as.numeric(d$lower_95))
+    up <- suppressWarnings(as.numeric(d$upper_95))
     ok <- is.na(lo) | is.na(up) | (lo <= sh & sh <= up)
-    if (!all(ok))
-      stop(sprintf("[validate_urps_projection] 95%% bounds do not bracket supply_headcount in %d row(s).",
-                   sum(!ok)), call. = FALSE)
+    if (!all(ok)) {
+      stop(sprintf(
+        "[validate_urps_projection] 95%% bounds do not bracket supply_headcount in %d row(s).",
+        sum(!ok)
+      ), call. = FALSE)
+    }
   }
 
   # flow identity: net_change == entrants - exits (where all present)
   if (all(c("entrants", "exits", "net_change") %in% names(d))) {
-    e <- suppressWarnings(as.numeric(d$entrants)); x2 <- suppressWarnings(as.numeric(d$exits))
+    e <- suppressWarnings(as.numeric(d$entrants))
+    x2 <- suppressWarnings(as.numeric(d$exits))
     nc <- suppressWarnings(as.numeric(d$net_change))
     have <- !is.na(e) & !is.na(x2) & !is.na(nc)
-    if (any(have & abs(nc - (e - x2)) > tol))
+    if (any(have & abs(nc - (e - x2)) > tol)) {
       stop("[validate_urps_projection] net_change must equal entrants - exits (flow identity).",
-           call. = FALSE)
+        call. = FALSE
+      )
+    }
   }
 
   # gap identity: gap_fte == demand_clinical_fte - supply_clinical_fte (where all present)
@@ -216,31 +256,44 @@ validate_urps_projection <- function(x, baseline_tie = NULL, tol = 1e-6) {
     sup <- suppressWarnings(as.numeric(d$supply_clinical_fte))
     gap <- suppressWarnings(as.numeric(d$gap_fte))
     have_all <- !is.na(dem) & !is.na(sup) & !is.na(gap)
-    if (any(have_all & abs(gap - (dem - sup)) > tol))
+    if (any(have_all & abs(gap - (dem - sup)) > tol)) {
       stop("[validate_urps_projection] gap_fte must equal demand_clinical_fte - supply_clinical_fte.",
-           call. = FALSE)
+        call. = FALSE
+      )
+    }
   }
 
   # baseline-year tie back to the served count SSOT
   if (!is.null(baseline_tie)) {
     bt <- baseline_tie
     need <- c("year", "measure", "geography_type", "certification_pathway")
-    if (!all(need %in% names(bt)))
+    if (!all(need %in% names(bt))) {
       stop("[validate_urps_projection] baseline_tie needs ", paste(need, collapse = ", "), ".", call. = FALSE)
-    if (!bt$certification_pathway %in% c("ABOG", "ABOG_PLUS_ABU"))
+    }
+    if (!bt$certification_pathway %in% c("ABOG", "ABOG_PLUS_ABU")) {
       stop("[validate_urps_projection] baseline_tie certification_pathway must be ABOG or ABOG_PLUS_ABU ",
-           "(the pathways urps_count() exposes).", call. = FALSE)
+        "(the pathways urps_count() exposes).",
+        call. = FALSE
+      )
+    }
     expected <- urps_count(bt$year, bt$measure, bt$geography_type,
-                           include_urology = identical(bt$certification_pathway, "ABOG_PLUS_ABU"))
+      include_urology = identical(bt$certification_pathway, "ABOG_PLUS_ABU")
+    )
     sel <- d$scenario_id == "baseline" & d$year == bt$year &
-           d$geography_type == bt$geography_type & d$certification_pathway == bt$certification_pathway
+      d$geography_type == bt$geography_type & d$certification_pathway == bt$certification_pathway
     got <- unique(sh[sel])
-    if (length(got) != 1L)
-      stop(sprintf("[validate_urps_projection] baseline_tie found %d baseline rows for year %s / %s / %s (need exactly 1).",
-                   length(got), bt$year, bt$geography_type, bt$certification_pathway), call. = FALSE)
-    if (as.integer(round(got)) != as.integer(expected))
-      stop(sprintf("[validate_urps_projection] baseline starting stock (%s) does not match urps_count() (%s) for %s/%s/%s.",
-                   got, expected, bt$year, bt$geography_type, bt$certification_pathway), call. = FALSE)
+    if (length(got) != 1L) {
+      stop(sprintf(
+        "[validate_urps_projection] baseline_tie found %d baseline rows for year %s / %s / %s (need exactly 1).",
+        length(got), bt$year, bt$geography_type, bt$certification_pathway
+      ), call. = FALSE)
+    }
+    if (as.integer(round(got)) != as.integer(expected)) {
+      stop(sprintf(
+        "[validate_urps_projection] baseline starting stock (%s) does not match urps_count() (%s) for %s/%s/%s.",
+        got, expected, bt$year, bt$geography_type, bt$certification_pathway
+      ), call. = FALSE)
+    }
   }
   invisible(TRUE)
 }
@@ -280,11 +333,15 @@ validate_urps_projection <- function(x, baseline_tie = NULL, tol = 1e-6) {
 #' urps_gap_fte(supply_clinical_fte = 1200, demand_clinical_fte = NA_real_) # NA
 #' @export
 urps_gap_fte <- function(supply_clinical_fte, demand_clinical_fte) {
-  if (!is.numeric(supply_clinical_fte) || length(supply_clinical_fte) != 1L)
+  if (!is.numeric(supply_clinical_fte) || length(supply_clinical_fte) != 1L) {
     stop("[urps_gap_fte] `supply_clinical_fte` must be a length-1 numeric.", call. = FALSE)
-  if (!is.numeric(demand_clinical_fte) || length(demand_clinical_fte) != 1L)
+  }
+  if (!is.numeric(demand_clinical_fte) || length(demand_clinical_fte) != 1L) {
     stop("[urps_gap_fte] `demand_clinical_fte` must be a length-1 numeric.", call. = FALSE)
-  if (is.na(supply_clinical_fte) || is.na(demand_clinical_fte)) return(NA_real_)
+  }
+  if (is.na(supply_clinical_fte) || is.na(demand_clinical_fte)) {
+    return(NA_real_)
+  }
   demand_clinical_fte - supply_clinical_fte
 }
 
@@ -305,13 +362,122 @@ urps_gap_fte <- function(supply_clinical_fte, demand_clinical_fte) {
 #' str(read_urps_projection(f))
 #' @export
 read_urps_projection <- function(path, validate = TRUE, ...) {
-  if (!is.character(path) || length(path) != 1L || !nzchar(path) || !file.exists(path))
+  if (!is.character(path) || length(path) != 1L || !nzchar(path) || !file.exists(path)) {
     stop("[read_urps_projection] `path` must be a path to an existing CSV.", call. = FALSE)
+  }
   d <- utils::read.csv(path, stringsAsFactors = FALSE, na.strings = c("", "NA"))
   if ("year" %in% names(d)) d$year <- as.integer(d$year)
-  num <- c("supply_headcount", "supply_clinical_fte", "lower_95", "upper_95",
-           "entrants", "exits", "net_change", "demand_clinical_fte", "gap_fte")
+  num <- c(
+    "supply_headcount", "supply_clinical_fte", "lower_95", "upper_95",
+    "entrants", "exits", "net_change", "demand_clinical_fte", "gap_fte"
+  )
   for (col in intersect(num, names(d))) d[[col]] <- suppressWarnings(as.numeric(d[[col]]))
   if (isTRUE(validate)) validate_urps_projection(d, ...)
   d
+}
+
+# ==============================================================================
+# The canonical URPS projection.
+#
+# The rest of this file defines the projection CONTRACT: a schema, a reader and a
+# validator that a cliff-produced table is checked against. What it did not do is
+# SERVE the canonical projection, so every consumer copied cliff's CSVs. Two of
+# those copies were found diverged on 2026-08-16 -- one Shiny app was presenting
+# a 1,339-based supply curve while the repository had long since moved to 1,306.
+#
+# mufflyaccess owns the definition; it does not run the projection. cliff
+# produces the numbers, this serves the reviewed result.
+# ==============================================================================
+
+#' The canonical URPS supply projection
+#'
+#' @description The published URPS projection -- baseline headcount, horizon
+#'   headcount with and without the entry ramp, interval, entrants, exits and the
+#'   replacement ratio -- served from the bundled artifact so consumers stop
+#'   copying the producing repository's CSVs.
+#' @details This is the reviewed RESULT of cliff's projection, not a re-run of it.
+#'   Use [read_urps_projection()] and [validate_urps_projection()] when you have
+#'   your own projection table to check against the contract; use this when you
+#'   want the published numbers.
+#'
+#'   `replacement_ratio` is `annual_entrants / mean_annual_exits`, and
+#'   `baseline_headcount` is checked against [urps_count()] on every call, so the
+#'   projection can never start from a number the SSOT does not serve.
+#'
+#'   `projected_headcount` is the immediate-entry projection. The entry-ramped
+#'   variant (`projected_headcount_ramped`) defers new entrants over the observed
+#'   certification-to-practice curve and is reported as a sensitivity, not the
+#'   headline.
+#' @param scenario Scenario id; only `"baseline"` is currently published.
+#' @param geography `"national"` (default) or `"conus"`.
+#' @param pathway Board pathway; only `"ABOG_PLUS_ABU"` is currently published.
+#' @return A one-row `data.frame`. Key columns: `baseline_year`,
+#'   `baseline_headcount`, `horizon_year`, `projected_headcount`,
+#'   `projected_headcount_ramped`, `lower_95`, `upper_95`, `annual_entrants`,
+#'   `mean_annual_exits`, `replacement_ratio`.
+#' @seealso [urps_active_ages()] for the cohort it projects,
+#'   [urps_count()] for the baseline it must agree with,
+#'   [validate_urps_projection()] for checking your own table.
+#' @family URPS SSOT
+#' @examples
+#' p <- urps_projection()
+#' p$baseline_headcount
+#' p$replacement_ratio
+#' @export
+urps_projection <- function(scenario = "baseline",
+                            geography = "national",
+                            pathway = "ABOG_PLUS_ABU") {
+  if (!is.character(scenario) || length(scenario) != 1L || is.na(scenario)) {
+    stop("[urps_projection] `scenario` must be a single string.", call. = FALSE)
+  }
+  scenario <- tolower(trimws(scenario))
+  geography <- .urps_norm_choice(geography, "geography", .urps_geographies)
+  # Reuse .urps_norm_choice() rather than a second normalizer: it lowercases,
+  # so compare against the lowercased vocabulary and restore the contract's
+  # uppercase form. One validator, and nothing new for lintr to resolve
+  # across files.
+  pathway <- toupper(.urps_norm_choice(pathway, "pathway", tolower(.urps_pathways)))
+
+  d <- utils::read.csv(.urps_path("urps_projection_canonical.csv"),
+    stringsAsFactors = FALSE
+  )
+  for (col in c("baseline_year", "horizon_year", "baseline_headcount")) {
+    d[[col]] <- as.integer(d[[col]])
+  }
+  num <- c(
+    "projected_headcount", "projected_headcount_ramped", "sd",
+    "lower_95", "upper_95", "annual_entrants", "mean_annual_exits",
+    "replacement_ratio"
+  )
+  for (col in intersect(num, names(d))) d[[col]] <- as.numeric(d[[col]])
+
+  sel <- d$scenario_id == scenario &
+    d$geography_type == geography &
+    d$certification_pathway == pathway
+  out <- d[sel, , drop = FALSE]
+  if (!nrow(out)) {
+    stop(sprintf(paste0(
+      "[urps_projection] no published projection for scenario '%s' / %s / %s. ",
+      "Published: %s."),
+      scenario, geography, pathway,
+      paste(unique(sprintf(
+        "%s/%s/%s", d$scenario_id, d$geography_type, d$certification_pathway
+      )), collapse = ", ")
+    ), call. = FALSE)
+  }
+  rownames(out) <- NULL
+
+  # The projection must start from the count the package publishes.
+  expected <- urps_count(
+    year = 2023L, measure = "board_certified_active", geography = geography,
+    include_urology = identical(pathway, "ABOG_PLUS_ABU"), incomplete = "na"
+  )
+  if (!is.na(expected) && out$baseline_headcount[1] != expected) {
+    stop(sprintf(paste0(
+      "[urps_projection] the projection starts from %d but urps_count() ",
+      "publishes %d for %s / %s. The bundled artifacts disagree."),
+      out$baseline_headcount[1], expected, pathway, geography), call. = FALSE)
+  }
+
+  out
 }

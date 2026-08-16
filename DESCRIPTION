@@ -1,6 +1,6 @@
 Package: mufflyaccess
 Title: Canonical Access, Census-Denominator, and Geography Constants (SSOT)
-Version: 0.11.1
+Version: 0.12.0
 Authors@R:
     person("Tyler", "Muffly", email = "tyler.muffly@dhha.org", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0002-2044-1693"))
@@ -35,6 +35,7 @@ Suggests:
     testthat (>= 3.0.0),
     checkmate,
     arrow,
-    nanoparquet
+    nanoparquet,
+    withr
 Config/testthat/edition: 3
-Config/roxygen2/version: 8.0.0
+Config/roxygen2/version: 8.1.0

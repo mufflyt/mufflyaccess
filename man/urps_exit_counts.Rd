@@ -29,7 +29,8 @@ not only self-declared retirements.
 }
 \examples{
 ex <- system.file("extdata", "urps_observed_departures_example.csv",
-                  package = "mufflyaccess")
+  package = "mufflyaccess"
+)
 old <- options(mufflyaccess.urps_departures_path = ex)
 urps_exit_counts()
 options(old)

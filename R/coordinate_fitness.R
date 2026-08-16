@@ -61,21 +61,23 @@ NULL
 #'   count of the offending rows and how to exclude them.
 #' @examples
 #' \dontrun{
-#'   generate_isochrones <- function(points) {
-#'     assert_travel_time_eligible(points, context = "generate_isochrones()")
-#'     # ...
-#'   }
+#' generate_isochrones <- function(points) {
+#'   assert_travel_time_eligible(points, context = "generate_isochrones()")
+#'   # ...
+#' }
 #'
-#'   # Deliberate exclusion, which must then be reported:
-#'   routable <- subset(providers, !grepl("centroid", coord_source))
-#'   message(nrow(providers) - nrow(routable), " excluded: centroid geocodes")
+#' # Deliberate exclusion, which must then be reported:
+#' routable <- subset(providers, !grepl("centroid", coord_source))
+#' message(nrow(providers) - nrow(routable), " excluded: centroid geocodes")
 #' }
 #' @family coordinate-fitness
 #' @export
 assert_travel_time_eligible <- function(df, context = "travel-time analysis") {
-  if (!is.data.frame(df))
+  if (!is.data.frame(df)) {
     stop("assert_travel_time_eligible(): `df` must be a data frame or sf object.",
-         call. = FALSE)
+      call. = FALSE
+    )
+  }
 
   if ("usable_for_travel_time" %in% names(df)) {
     # NA first, and with its own message. `which(!x)` drops NA, so an unknown
@@ -86,30 +88,38 @@ assert_travel_time_eligible <- function(df, context = "travel-time analysis") {
     # is known bad", and collapsing them would destroy the provenance that makes
     # the exclusion reportable.
     unknown <- which(is.na(df$usable_for_travel_time))
-    if (length(unknown))
+    if (length(unknown)) {
       stop(context, " received ", length(unknown),
-           " row(s) with UNKNOWN geocode fitness (usable_for_travel_time = NA). ",
-           "Unknown is not eligible: treating an unverified coordinate as fit is ",
-           "the silent inclusion this guard exists to prevent. Verify them, or ",
-           "filter them out deliberately and report the exclusion -- do not ",
-           "coerce NA to FALSE upstream, which would hide that they were never ",
-           "checked.", call. = FALSE)
+        " row(s) with UNKNOWN geocode fitness (usable_for_travel_time = NA). ",
+        "Unknown is not eligible: treating an unverified coordinate as fit is ",
+        "the silent inclusion this guard exists to prevent. Verify them, or ",
+        "filter them out deliberately and report the exclusion -- do not ",
+        "coerce NA to FALSE upstream, which would hide that they were never ",
+        "checked.",
+        call. = FALSE
+      )
+    }
 
     bad <- which(!df$usable_for_travel_time)
-    if (length(bad))
+    if (length(bad)) {
       stop(context, " received ", length(bad),
-           " row(s) flagged usable_for_travel_time = FALSE. Filter them out ",
-           "deliberately and report the exclusion.", call. = FALSE)
+        " row(s) flagged usable_for_travel_time = FALSE. Filter them out ",
+        "deliberately and report the exclusion.",
+        call. = FALSE
+      )
+    }
   }
 
   if ("coord_source" %in% names(df)) {
     bad <- which(grepl("centroid", df$coord_source, ignore.case = TRUE))
-    if (length(bad))
+    if (length(bad)) {
       stop(context, " received ", length(bad),
-           " centroid geocode(s). A centroid is a valid area locator and an ",
-           "invalid routing origin. Filter with ",
-           "!grepl('centroid', coord_source) and report the exclusion.",
-           call. = FALSE)
+        " centroid geocode(s). A centroid is a valid area locator and an ",
+        "invalid routing origin. Filter with ",
+        "!grepl('centroid', coord_source) and report the exclusion.",
+        call. = FALSE
+      )
+    }
   }
 
   invisible(TRUE)

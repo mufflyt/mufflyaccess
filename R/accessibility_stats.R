@@ -16,13 +16,15 @@ NULL
 #' @family accessibility-disparity statistics
 #' @seealso [zero_access_share()], [mc_weighted_ci()]
 #' @examples
-#' weighted_mean_all(c(1, 3), c(1, 3))   # 2.5  (population-weighted toward 3)
-#' weighted_mean_all(1:3, c(0, 0, 0))    # NA_real_  (zero total weight)
+#' weighted_mean_all(c(1, 3), c(1, 3)) # 2.5  (population-weighted toward 3)
+#' weighted_mean_all(1:3, c(0, 0, 0)) # NA_real_  (zero total weight)
 #' @export
 weighted_mean_all <- function(a, w) {
   stopifnot(length(a) == length(w))
   sw <- sum(w)
-  if (!is.finite(sw) || sw == 0) return(NA_real_)
+  if (!is.finite(sw) || sw == 0) {
+    return(NA_real_)
+  }
   sum(a * w) / sw
 }
 
@@ -34,13 +36,15 @@ weighted_mean_all <- function(a, w) {
 #' @seealso [weighted_mean_all()], [mc_weighted_ci()]
 #' @examples
 #' # 40 of 50 weighted population lives where access == 0  -> 80%
-#' zero_access_share(c(0, 5, 0), c(10, 10, 30))   # 80
-#' zero_access_share(c(1, 2, 3), c(1, 1, 1))      # 0  (nobody at exactly 0)
+#' zero_access_share(c(0, 5, 0), c(10, 10, 30)) # 80
+#' zero_access_share(c(1, 2, 3), c(1, 1, 1)) # 0  (nobody at exactly 0)
 #' @export
 zero_access_share <- function(access, w) {
   stopifnot(length(access) == length(w))
   sw <- sum(w)
-  if (!is.finite(sw) || sw == 0) return(NA_real_)
+  if (!is.finite(sw) || sw == 0) {
+    return(NA_real_)
+  }
   100 * sum(w * (access == 0)) / sw
 }
 
@@ -56,11 +60,12 @@ zero_access_share <- function(access, w) {
 #' # "Metropolitan" (1-3), "Rural" (>=4), "Rural" (10), NA
 #' @export
 rurality_from_ruca <- function(code) {
-  code  <- suppressWarnings(as.integer(code))
-  metro <- seq_len(RUCA_NONMETRO_MIN - 1L)   # 1:3  (SSOT-derived)
-  rural <- RUCA_NONMETRO_MIN:10L             # 4:10 (SSOT-derived)
+  code <- suppressWarnings(as.integer(code))
+  metro <- seq_len(RUCA_NONMETRO_MIN - 1L) # 1:3  (SSOT-derived)
+  rural <- RUCA_NONMETRO_MIN:10L # 4:10 (SSOT-derived)
   out <- ifelse(code %in% metro, "Metropolitan",
-         ifelse(code %in% rural, "Rural", NA_character_))
+    ifelse(code %in% rural, "Rural", NA_character_)
+  )
   out[is.na(code)] <- NA_character_
   out
 }
@@ -71,7 +76,7 @@ rurality_from_ruca <- function(code) {
 #' @family accessibility-disparity statistics
 #' @seealso [acs_year_of()]
 #' @examples
-#' tract_vintage_of(c(2019, 2020))   # 2010, 2020  (boundary break at 2020)
+#' tract_vintage_of(c(2019, 2020)) # 2010, 2020  (boundary break at 2020)
 #' @export
 tract_vintage_of <- function(year) ifelse(as.integer(year) >= 2020L, 2020L, 2010L)
 
@@ -81,7 +86,7 @@ tract_vintage_of <- function(year) ifelse(as.integer(year) >= 2020L, 2020L, 2010
 #' @family accessibility-disparity statistics
 #' @seealso [tract_vintage_of()]
 #' @examples
-#' acs_year_of(c(2011, 2018, 2025))   # 2013, 2018, 2022  (clamped to the window)
+#' acs_year_of(c(2011, 2018, 2025)) # 2013, 2018, 2022  (clamped to the window)
 #' @export
 acs_year_of <- function(year) pmax(pmin(as.integer(year), 2022L), 2013L)
 
@@ -103,16 +108,18 @@ acs_year_of <- function(year) pmax(pmin(as.integer(year), 2022L), 2013L)
 #'   [DENOMINATOR_CATEGORY] (the access-table row label)
 #' @family census denominators
 #' @examples
-#' TOTAL_FEMALE_VAR                 # "B01001_026" (full table -> _026)
-#' names(RACE_FEMALE_VARS)          # the six race/ethnicity groups
-#' RACE_FEMALE_VARS[["black"]]      # "B01001B_017" (race tables -> _017)
+#' TOTAL_FEMALE_VAR # "B01001_026" (full table -> _026)
+#' names(RACE_FEMALE_VARS) # the six race/ethnicity groups
+#' RACE_FEMALE_VARS[["black"]] # "B01001B_017" (race tables -> _017)
 #' @export
 TOTAL_FEMALE_VAR <- "B01001_026"
 #' @rdname TOTAL_FEMALE_VAR
 #' @export
-RACE_FEMALE_VARS <- c(white_nh = "B01001H_017", hispanic = "B01001I_017",
-                      black = "B01001B_017", aian = "B01001C_017",
-                      asian = "B01001D_017", nhpi = "B01001E_017")
+RACE_FEMALE_VARS <- c(
+  white_nh = "B01001H_017", hispanic = "B01001I_017",
+  black = "B01001B_017", aian = "B01001C_017",
+  asian = "B01001D_017", nhpi = "B01001E_017"
+)
 
 #' Monte-Carlo CI for a population-weighted accessibility statistic.
 #' Redraws weights ~ Normal(est, se) B times (unbiased: point estimate lies inside its interval).
@@ -157,16 +164,20 @@ mc_weighted_ci <- function(access, est, se, stat = c("mean", "zero"),
 #' @family accessibility-disparity statistics
 #' @examples
 #' # rising ~1.4 percentage points per year
-#' annual_trend(2013:2016, c(10, 11, 13, 14))["slope"]   # ~1.4
-#' annual_trend(2013:2014, c(10, 12))                    # all NA (need >=3 points)
+#' annual_trend(2013:2016, c(10, 11, 13, 14))["slope"] # ~1.4
+#' annual_trend(2013:2014, c(10, 12)) # all NA (need >=3 points)
 #' @export
 annual_trend <- function(year, value) {
   d <- data.frame(year = as.numeric(year), value = as.numeric(value))
   d <- d[stats::complete.cases(d), ]
-  if (nrow(d) < 3) return(c(slope = NA, lo = NA, hi = NA, p = NA))
+  if (nrow(d) < 3) {
+    return(c(slope = NA, lo = NA, hi = NA, p = NA))
+  }
   m <- stats::lm(value ~ year, d)
   s <- summary(m)$coefficients["year", ]
   ci <- stats::confint(m)["year", ]
-  c(slope = unname(s[["Estimate"]]), lo = unname(ci[1]), hi = unname(ci[2]),
-    p = unname(s[["Pr(>|t|)"]]))
+  c(
+    slope = unname(s[["Estimate"]]), lo = unname(ci[1]), hi = unname(ci[2]),
+    p = unname(s[["Pr(>|t|)"]])
+  )
 }

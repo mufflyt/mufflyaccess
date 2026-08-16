@@ -1,0 +1,19 @@
+linters: linters_with_defaults(
+    line_length_linter(120),
+    object_length_linter(40),
+    indentation_linter = NULL,
+    object_name_linter = NULL,
+    commented_code_linter = NULL,
+    return_linter = NULL
+  )
+exclusions: list(
+    "tests/testthat",
+    "man",
+    "docs",
+    "R/pfd_prevalence.R" = list(line_length_linter = Inf),
+    "R/safe_divide.R" = list(line_length_linter = Inf),
+    "R/urps_count.R" = list(line_length_linter = Inf),
+    "R/urps_flows.R" = list(line_length_linter = Inf),
+    "R/urps_projection.R" = list(line_length_linter = Inf),
+    "R/urps_scenarios.R" = list(line_length_linter = Inf)
+  )

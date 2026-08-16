@@ -107,8 +107,8 @@ test_that("urps_allocate_national n_allocated values are non-negative integers",
 })
 
 test_that("urps_allocate_national rejects non-positive n", {
-  expect_error(urps_allocate_national(0L),   "positive integer")
-  expect_error(urps_allocate_national(-5L),  "positive integer")
+  expect_error(urps_allocate_national(0L), "positive integer")
+  expect_error(urps_allocate_national(-5L), "positive integer")
 })
 
 test_that("urps_allocate_national rejects non-integer n", {
@@ -123,7 +123,7 @@ test_that("urps_allocate_national accepts custom weights summing to 1", {
 
 test_that("urps_allocate_national rejects weights that don't sum to 1", {
   w <- urps_state_alloc_weights()
-  w["CA"] <- w["CA"] + 0.1  # breaks sum
+  w["CA"] <- w["CA"] + 0.1 # breaks sum
   expect_error(urps_allocate_national(1000L, weights = w), "sum to approximately 1")
 })
 

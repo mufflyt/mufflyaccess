@@ -20,8 +20,8 @@ OLS temporal trend of an annual series (95\% t-interval on the slope).
 }
 \examples{
 # rising ~1.4 percentage points per year
-annual_trend(2013:2016, c(10, 11, 13, 14))["slope"]   # ~1.4
-annual_trend(2013:2014, c(10, 12))                    # all NA (need >=3 points)
+annual_trend(2013:2016, c(10, 11, 13, 14))["slope"] # ~1.4
+annual_trend(2013:2014, c(10, 12)) # all NA (need >=3 points)
 }
 \seealso{
 Other accessibility-disparity statistics:

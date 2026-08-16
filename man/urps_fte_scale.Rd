@@ -20,7 +20,7 @@ A length-1 numeric scale for \code{\link[=urps_effective_fte]{urps_effective_fte
 Normalization scale anchoring a reference cohort's effective FTE to a target
 }
 \examples{
-cs <- data.frame(age = c(45, 62), pathway = c("ABOG","ABU"), n = c(10, 4))
+cs <- data.frame(age = c(45, 62), pathway = c("ABOG", "ABU"), n = c(10, 4))
 urps_fte_scale(cs)
 }
 \seealso{

@@ -39,6 +39,9 @@ concurrency:
 jobs:
   R-CMD-check:
     runs-on: ubuntu-latest
+    # RULE: every job needs a timeout. A job timeout CANCELS the job,
+    # so `if: always()` steps never run and no artifact survives.
+    timeout-minutes: 45
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
       R_KEEP_PKG_SOURCE: yes
@@ -70,6 +73,9 @@ jobs:
   # failure rather than something you notice months later.
   docs-in-sync:
     runs-on: ubuntu-latest
+    # RULE: every job needs a timeout. A job timeout CANCELS the job,
+    # so `if: always()` steps never run and no artifact survives.
+    timeout-minutes: 20
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
     steps:

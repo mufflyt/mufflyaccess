@@ -1,3 +1,35 @@
+# mufflyaccess 0.12.0
+
+* **New: `urps_active_ages()` and `urps_projection()` -- two facts consumers
+  were copying now have one home.** The package served URPS counts, lineage,
+  hazards, scenarios and the FTE curve, but not the active-age distribution or
+  the published projection. So every consumer kept its own copy, and copies
+  drift.
+
+  cliff's Shiny scenarios app carried the age distribution as a **1,306-element
+  literal vector**, replicated into a second app and kept in step by a bespoke
+  sync script plus a drift guard -- machinery whose only purpose was to
+  compensate for the absence of an upstream source. On 2026-08-16 two bundled
+  artifact copies were found diverged: one app was presenting a 1,339-based
+  supply curve, across every year of the trajectory and every derived per-100k
+  column, months after the repository had moved to 1,306.
+
+  `urps_active_ages(pathway, geography, as = c("counts", "vector"))` serves the
+  distribution; the `"vector"` form expands it to one element per provider,
+  which is what a microsimulation consumes. `urps_projection()` serves the
+  published result: baseline and horizon headcount (immediate and entry-ramped),
+  interval, entrants, exits and replacement ratio.
+
+  Both **reconcile on every call**. The ages must total the `urps_count()` for
+  the same pathway and geography, and the projection must start from that same
+  count; a disagreement fails loud rather than returning a plausible number.
+  `ABOG_PLUS_ABU` is summed on read rather than stored, so a combined total
+  cannot contradict its parts.
+
+  The package owns the definitions; it does not run the projection. cliff
+  produces the numbers, mufflyaccess serves the reviewed result. Regenerate with
+  `data-raw/build_urps_active_ages_and_projection.R`.
+
 # mufflyaccess 0.11.1
 
 * **BREAKING (guard): unknown geocode fitness is no longer eligible.**
