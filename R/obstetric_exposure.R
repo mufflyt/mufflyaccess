@@ -118,10 +118,10 @@ cohort_vaginal_exposure <- function(cohorts) {
   }, numeric(1))
   parity <- completed_parity_for_cohort(cohorts)
   data.frame(
-    birth_cohort             = cohorts,
-    mean_total_parity        = round(parity, 3),
+    birth_cohort = cohorts,
+    mean_total_parity = round(parity, 3),
     cohort_cesarean_fraction = round(ces_frac, 4),
-    mean_vaginal_deliveries  = round(parity * (1 - ces_frac), 3),
+    mean_vaginal_deliveries = round(parity * (1 - ces_frac), 3),
     mean_cesarean_deliveries = round(parity * ces_frac, 3),
     stringsAsFactors = FALSE
   )
@@ -130,7 +130,9 @@ cohort_vaginal_exposure <- function(cohorts) {
 .obstetric_check_series <- function(d, cols, name) {
   if (!is.data.frame(d) || !all(cols %in% names(d))) {
     stop("`", name, "` must be a data frame with columns: ",
-         paste(cols, collapse = ", "), call. = FALSE)
+      paste(cols, collapse = ", "),
+      call. = FALSE
+    )
   }
   invisible(d)
 }

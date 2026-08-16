@@ -74,9 +74,10 @@ urps_fte_age_curve <- function() {
 #' @export
 urps_fte_weight <- function(age, pathway = "ABOG", late_from_age = NULL, late_factor = 1) {
   curve <- urps_fte_age_curve()
-  a   <- pmin(pmax(age, min(curve$age)), max(curve$age))
+  a <- pmin(pmax(age, min(curve$age)), max(curve$age))
   rel <- curve$rel_to_peak[match(a, curve$age)]
-  ct  <- unname(URPS_FTE_PATHWAY_CLINICAL_TIME[pathway]); ct[is.na(ct)] <- 1.0
+  ct <- unname(URPS_FTE_PATHWAY_CLINICAL_TIME[pathway])
+  ct[is.na(ct)] <- 1.0
   late <- if (!is.null(late_from_age)) ifelse(age >= late_from_age, late_factor, 1) else 1
   rel * ct * late
 }
@@ -94,7 +95,7 @@ urps_fte_weight <- function(age, pathway = "ABOG", late_from_age = NULL, late_fa
 #' @seealso [urps_fte_scale()], [urps_fte_weight()]
 #' @family URPS FTE
 #' @examples
-#' cs <- data.frame(age = c(45, 62, 45, 62), pathway = c("ABOG","ABOG","ABU","ABU"), n = c(10,5,4,2))
+#' cs <- data.frame(age = c(45, 62, 45, 62), pathway = c("ABOG", "ABOG", "ABU", "ABU"), n = c(10, 5, 4, 2))
 #' urps_effective_fte(cs, scale = urps_fte_scale(cs))
 #' @export
 urps_effective_fte <- function(counts, scale = 1, late_from_age = NULL, late_factor = 1) {
@@ -113,12 +114,13 @@ urps_effective_fte <- function(counts, scale = 1, late_from_age = NULL, late_fac
 #' @seealso [urps_effective_fte()]
 #' @family URPS FTE
 #' @examples
-#' cs <- data.frame(age = c(45, 62), pathway = c("ABOG","ABU"), n = c(10, 4))
+#' cs <- data.frame(age = c(45, 62), pathway = c("ABOG", "ABU"), n = c(10, 4))
 #' urps_fte_scale(cs)
 #' @export
 urps_fte_scale <- function(reference_counts, target_headcount = sum(reference_counts$n)) {
   raw <- urps_effective_fte(reference_counts, scale = 1)
-  if (!is.finite(raw) || raw <= 0)
+  if (!is.finite(raw) || raw <= 0) {
     stop("[urps_fte_scale] reference cohort has non-positive weighted FTE.", call. = FALSE)
+  }
   as.numeric(target_headcount) / raw
 }

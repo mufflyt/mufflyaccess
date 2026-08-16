@@ -19,8 +19,8 @@ Zero-access share (percent of weighted population with access EXACTLY 0).
 }
 \examples{
 # 40 of 50 weighted population lives where access == 0  -> 80\%
-zero_access_share(c(0, 5, 0), c(10, 10, 30))   # 80
-zero_access_share(c(1, 2, 3), c(1, 1, 1))      # 0  (nobody at exactly 0)
+zero_access_share(c(0, 5, 0), c(10, 10, 30)) # 80
+zero_access_share(c(1, 2, 3), c(1, 1, 1)) # 0  (nobody at exactly 0)
 }
 \seealso{
 \code{\link[=weighted_mean_all]{weighted_mean_all()}}, \code{\link[=mc_weighted_ci]{mc_weighted_ci()}}

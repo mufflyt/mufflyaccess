@@ -58,6 +58,7 @@ standardize_state_name
 TOTAL_FEMALE_VAR
 TRACT_REACHED_COVERAGE_PCT
 tract_vintage_of
+urps_active_ages
 urps_allocate_national
 urps_apply_lfp
 urps_ci_param_draw
@@ -99,6 +100,7 @@ URPS_LFP_VERSION
 urps_lineage
 urps_p_active
 urps_p_still_active
+urps_projection
 urps_projection_ci
 URPS_PROJECTION_CONTRACT_VERSION
 urps_projection_schema

@@ -20,7 +20,7 @@ contains one of these as "the 2023 count").
 urps_retired_values()
 # a consumer-side guard:
 stopifnot(!urps_count(2023, "board_certified_active", "national", TRUE) \%in\%
-          urps_retired_values())
+  urps_retired_values())
 }
 \seealso{
 \code{\link[=urps_lineage]{urps_lineage()}}, \code{\link[=urps_provenance]{urps_provenance()}}

@@ -29,7 +29,8 @@ Vectorized over \code{age}.
 \examples{
 urps_retirement_hazard(55:75, "female", "ABOG")
 urps_retirement_hazard(68, "male", "ABOG",
-  retirement_shift_years = urps_scenario("retire_2yr_later")$retirement_shift_years)
+  retirement_shift_years = urps_scenario("retire_2yr_later")$retirement_shift_years
+)
 }
 \seealso{
 \code{\link[=urps_p_still_active]{urps_p_still_active()}}, \code{\link[=urps_survival_curve]{urps_survival_curve()}}

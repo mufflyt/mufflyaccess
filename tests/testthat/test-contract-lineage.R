@@ -10,7 +10,7 @@ test_that("urps_lineage records current 3.0.0 and retired 2.1.0 cells", {
   suppressMessages(use_urps_artifact(path))
   on.exit(reset_urps_artifact(), add = TRUE)
   lin <- urps_lineage()
-  expect_true(all(c("contract_version","national_active","conus_active","status") %in% names(lin)))
+  expect_true(all(c("contract_version", "national_active", "conus_active", "status") %in% names(lin)))
 
   cur <- lin[lin$status == "current", ]
   expect_equal(cur$contract_version, "3.0.0")
@@ -37,9 +37,10 @@ test_that("no current API call returns a retired value", {
   retired <- urps_retired_values()
   current <- c(
     urps_count(2023, "board_certified_active", "national", TRUE),
-    urps_count(2023, "board_certified_active", "conus",    TRUE),
+    urps_count(2023, "board_certified_active", "conus", TRUE),
     urps_count(2023, "board_certified_active", "national", FALSE),
-    urps_count(2023, "board_certified_active", "conus",    FALSE))
+    urps_count(2023, "board_certified_active", "conus", FALSE)
+  )
   expect_length(intersect(current, retired), 0)
 })
 
@@ -49,7 +50,7 @@ test_that("provenance exposes the exact isochrones source wording", {
   suppressMessages(use_urps_artifact(path))
   on.exit(reset_urps_artifact(), add = TRUE)
   p <- urps_provenance()
-  expect_identical(p$source_description, manifest$source_description)  # verbatim, no drift
+  expect_identical(p$source_description, manifest$source_description) # verbatim, no drift
   expect_match(p$source_description, "did not supply, license, or endorse", fixed = TRUE)
   expect_false(is.null(p$retired_cells))
 })

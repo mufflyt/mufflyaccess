@@ -23,7 +23,7 @@ from \code{\link[=urps_fte_scale]{urps_fte_scale()}} so a reference cohort's eff
 headcount, making effective FTE additive across pathway / geography slices.
 }
 \examples{
-cs <- data.frame(age = c(45, 62, 45, 62), pathway = c("ABOG","ABOG","ABU","ABU"), n = c(10,5,4,2))
+cs <- data.frame(age = c(45, 62, 45, 62), pathway = c("ABOG", "ABOG", "ABU", "ABU"), n = c(10, 5, 4, 2))
 urps_effective_fte(cs, scale = urps_fte_scale(cs))
 }
 \seealso{

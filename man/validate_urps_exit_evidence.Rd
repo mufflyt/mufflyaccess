@@ -21,8 +21,10 @@ logical \code{practice_evidence}. Fail-loud so a malformed source can never
 silently weaken ascertainment.
 }
 \examples{
-ev <- data.frame(provider_id = "1234567890", month = as.Date("2023-01-01"),
-                 source = "nppes", practice_evidence = TRUE)
+ev <- data.frame(
+  provider_id = "1234567890", month = as.Date("2023-01-01"),
+  source = "nppes", practice_evidence = TRUE
+)
 validate_urps_exit_evidence(ev)
 }
 \seealso{

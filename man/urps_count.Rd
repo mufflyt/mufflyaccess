@@ -87,17 +87,17 @@ RETIRED v2.1.0 cells} (primary-cert basis) surfaced only by \code{\link[=urps_li
 }
 
 \examples{
-urps_count(2023, "board_certified_active", "national", FALSE)  # 1027 (ABOG only)
-urps_count(2023, "board_certified_active", "national", TRUE)   # 1306 (with urology)
-urps_count(2023, "board_certified_active", "conus",    TRUE)   # 1303
-urps_count(2025, "roster_snapshot",        "national", TRUE)   # 1339 (2025 roster)
+urps_count(2023, "board_certified_active", "national", FALSE) # 1027 (ABOG only)
+urps_count(2023, "board_certified_active", "national", TRUE) # 1306 (with urology)
+urps_count(2023, "board_certified_active", "conus", TRUE) # 1303
+urps_count(2025, "roster_snapshot", "national", TRUE) # 1339 (2025 roster)
 
 # a labelled record for a footnote / caption (never a context-free 1306):
 str(urps_count(2023, "board_certified_active", "national", TRUE, details = TRUE))
 
 # out-of-window requests are hard errors (a measure is only valid in its window):
-try(urps_count(2025, "board_certified_active"))  # error: bca is 2013-2023
-try(urps_count(2023, "roster_snapshot"))         # error: roster is 2025 only
+try(urps_count(2025, "board_certified_active")) # error: bca is 2013-2023
+try(urps_count(2023, "roster_snapshot")) # error: roster is 2025 only
 }
 \seealso{
 \code{\link[=urps_counts]{urps_counts()}}, \code{\link[=urps_provenance]{urps_provenance()}}, \code{\link[=urps_lineage]{urps_lineage()}},

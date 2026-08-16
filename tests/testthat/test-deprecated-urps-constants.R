@@ -1,9 +1,13 @@
 library(testthat)
 test_that("ambiguous 2025 constants are deprecated", {
-  expect_warning(value_abog <- mufflyaccess::URPS_COUNT_ABOG_ONLY_2025,
-                 "deprecated|urps_count")
-  expect_warning(value_combined <- mufflyaccess::URPS_COUNT_ABOG_PLUS_ABU_2025,
-                 "deprecated|urps_count")
+  expect_warning(
+    value_abog <- mufflyaccess::URPS_COUNT_ABOG_ONLY_2025,
+    "deprecated|urps_count"
+  )
+  expect_warning(
+    value_combined <- mufflyaccess::URPS_COUNT_ABOG_PLUS_ABU_2025,
+    "deprecated|urps_count"
+  )
   expect_equal(value_abog, 1031L)
   expect_equal(value_combined, 1339L)
 })
@@ -36,9 +40,13 @@ test_that("namespace introspection does not fire the deprecation warning", {
   # real installed copy -- under pkgload/load_all() the dev namespace shadows
   # it and codoc() errors. This runs under R CMD check, which is where the
   # regression would actually show up.
-  skip_if(exists(".__DEVTOOLS__", envir = asNamespace("mufflyaccess"),
-                 inherits = FALSE),
-          "package is dev-loaded (load_all); needs a real install")
+  skip_if(
+    exists(".__DEVTOOLS__",
+      envir = asNamespace("mufflyaccess"),
+      inherits = FALSE
+    ),
+    "package is dev-loaded (load_all); needs a real install"
+  )
 
   expect_equal(n_deprecation_warnings(tools::codoc("mufflyaccess")), 0L)
   expect_equal(n_deprecation_warnings(tools::checkFF("mufflyaccess")), 0L)

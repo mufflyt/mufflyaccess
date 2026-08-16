@@ -20,7 +20,7 @@ subspecialty access desert. This is the binary coverage cut for desert counts,
 the exclusive-access contrast, and the logistic "reached" outcome.
 }
 \examples{
-TRACT_REACHED_COVERAGE_PCT               # 50
+TRACT_REACHED_COVERAGE_PCT # 50
 # a tract counts as reached when >= this percent of its women are in-band:
 # tract$reached <- tract$pct_female_in_band >= TRACT_REACHED_COVERAGE_PCT
 }

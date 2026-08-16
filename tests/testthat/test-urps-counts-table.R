@@ -2,8 +2,10 @@ library(testthat)
 library(mufflyaccess)
 test_that("urps_counts returns the complete canonical table", {
   counts <- urps_counts()
-  required_columns <- c("year","abog_active","abu_net_new","combined_active",
-                        "measure_year","snapshot_date","method_version","source_sha256")
+  required_columns <- c(
+    "year", "abog_active", "abu_net_new", "combined_active",
+    "measure_year", "snapshot_date", "method_version", "source_sha256"
+  )
   expect_s3_class(counts, "data.frame")
   expect_true(all(required_columns %in% names(counts)))
   expect_setequal(counts$year, 2013:2023)

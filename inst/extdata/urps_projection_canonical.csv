@@ -1,0 +1,2 @@
+scenario_id,specialty,certification_pathway,geography_type,geography_id,baseline_year,baseline_headcount,horizon_year,projected_headcount,projected_headcount_ramped,sd,lower_95,upper_95,annual_entrants,mean_annual_exits,replacement_ratio
+baseline,URPS,ABOG_PLUS_ABU,national,US,2025,1306,2029,1514.4596,1437,7.91,1494,1525,64,11.8851,5.3848936904191

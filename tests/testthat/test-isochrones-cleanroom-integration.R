@@ -10,10 +10,10 @@ library(mufflyaccess)
 # accurate), NOT the primary certification_year. Reconstruct on that basis.
 test_that("served 2023 national count reconstructs from provider rows", {
   path <- real_isochrones_artifact_path()
-  providers <- read_provider_parquet(path)                 # skips if no reader
+  providers <- read_provider_parquet(path) # skips if no reader
   cy <- providers$urps_subspecialty_cert_year
   expected <- sum(cy <= 2023L &
-                    (is.na(providers$retirement_year) | providers$retirement_year > 2023L))
+    (is.na(providers$retirement_year) | providers$retirement_year > 2023L))
   suppressMessages(use_urps_artifact(path))
   on.exit(reset_urps_artifact(), add = TRUE)
   observed <- urps_count(2023, "board_certified_active", "national", TRUE)
@@ -26,8 +26,8 @@ test_that("served 2023 CONUS count reconstructs from provider rows", {
   providers <- read_provider_parquet(path)
   cy <- providers$urps_subspecialty_cert_year
   expected <- sum(cy <= 2023L &
-                    (is.na(providers$retirement_year) | providers$retirement_year > 2023L) &
-                    providers$is_conus)
+    (is.na(providers$retirement_year) | providers$retirement_year > 2023L) &
+    providers$is_conus)
   suppressMessages(use_urps_artifact(path))
   on.exit(reset_urps_artifact(), add = TRUE)
   expect_equal(urps_count(2023, "board_certified_active", "conus", TRUE), expected)
@@ -64,11 +64,14 @@ test_that("33 URPS-subspecialty certs postdate 2023 (excluded from active)", {
 test_that("explicit real release overrides all implicit sources", {
   options(mufflyaccess.urps_artifact_dir = file.path(tempdir(), "invalid-artifact-a"))
   Sys.setenv(MUFFLYACCESS_URPS_ARTIFACT_DIR = file.path(tempdir(), "invalid-artifact-b"))
-  on.exit({
-    options(mufflyaccess.urps_artifact_dir = NULL)
-    Sys.unsetenv("MUFFLYACCESS_URPS_ARTIFACT_DIR")
-    reset_urps_artifact()
-  }, add = TRUE)
+  on.exit(
+    {
+      options(mufflyaccess.urps_artifact_dir = NULL)
+      Sys.unsetenv("MUFFLYACCESS_URPS_ARTIFACT_DIR")
+      reset_urps_artifact()
+    },
+    add = TRUE
+  )
   suppressMessages(use_urps_artifact(real_isochrones_artifact_path()))
   expect_equal(urps_provenance()$artifact_source, "external")
   expect_equal(urps_count(2023, "board_certified_active", "national", TRUE), 1306L)
@@ -84,11 +87,18 @@ test_that("a failed explicit call leaves an already-active real release intact",
 })
 
 test_that("strict mode errors before any count is returned", {
-  options(mufflyaccess.urps_artifact_dir = file.path(tempdir(), "no-such-strict-dir"),
-          mufflyaccess.urps_artifact_strict = TRUE)
-  on.exit({
-    options(mufflyaccess.urps_artifact_dir = NULL,
-            mufflyaccess.urps_artifact_strict = NULL)
-  }, add = TRUE)
+  options(
+    mufflyaccess.urps_artifact_dir = file.path(tempdir(), "no-such-strict-dir"),
+    mufflyaccess.urps_artifact_strict = TRUE
+  )
+  on.exit(
+    {
+      options(
+        mufflyaccess.urps_artifact_dir = NULL,
+        mufflyaccess.urps_artifact_strict = NULL
+      )
+    },
+    add = TRUE
+  )
   expect_error(urps_count(2023, "board_certified_active", "national", TRUE), "strict mode")
 })

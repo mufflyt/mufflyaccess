@@ -27,7 +27,7 @@ which clamps to zero.
 }
 \examples{
 urps_fte_predicted_hours(35:75, "female")
-urps_fte_predicted_hours(47, "male")          # peak: ~55 hrs/week
+urps_fte_predicted_hours(47, "male") # peak: ~55 hrs/week
 # mixed-sex cohort vector:
 urps_fte_predicted_hours(c(45, 55), c("female", "male"))
 }

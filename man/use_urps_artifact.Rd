@@ -27,9 +27,9 @@ makes that fallback an error).
 }
 \examples{
 \dontrun{
-use_urps_artifact("path/to/isochrones/artifacts/workforce")  # validated; fails closed
-urps_provenance()$artifact_source                            # "external"
-use_urps_artifact(NULL)                                      # back to the bundled bootstrap
+use_urps_artifact("path/to/isochrones/artifacts/workforce") # validated; fails closed
+urps_provenance()$artifact_source # "external"
+use_urps_artifact(NULL) # back to the bundled bootstrap
 }
 }
 \seealso{

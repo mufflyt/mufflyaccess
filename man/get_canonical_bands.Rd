@@ -13,7 +13,7 @@ get_canonical_bands()
 Return the canonical generation bands (minutes).
 }
 \examples{
-get_canonical_bands()  # 30 60 120 180
+get_canonical_bands() # 30 60 120 180
 }
 \seealso{
 \code{\link[=get_primary_access_band]{get_primary_access_band()}}, \link{CANONICAL_BANDS}

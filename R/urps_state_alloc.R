@@ -41,7 +41,7 @@ local({
 #' @format Character scalar.
 #' @family urps geography
 #' @examples
-#' URPS_STATE_ALLOC_VERSION  # "0.1.0"
+#' URPS_STATE_ALLOC_VERSION # "0.1.0"
 #' @export
 URPS_STATE_ALLOC_VERSION
 
@@ -69,7 +69,7 @@ URPS_STATE_ALLOC_VERSION
 #'
 #' @examples
 #' df <- urps_state_female_pop()
-#' nrow(df)           # 49
+#' nrow(df) # 49
 #' sum(df$female_pop) # 164690617
 #' head(df)
 #'
@@ -78,9 +78,9 @@ urps_state_female_pop <- function() {
   pop <- .URPS_STATE_FEMALE_POP_ACS2020
   fips <- CONUS_STATE_FIPS[match(names(pop), CONUS_STATE_ABBR)]
   df <- data.frame(
-    state_abbr  = names(pop),
-    state_fips  = fips,
-    female_pop  = as.integer(pop),
+    state_abbr = names(pop),
+    state_fips = fips,
+    female_pop = as.integer(pop),
     female_share = as.double(pop) / sum(pop),
     stringsAsFactors = FALSE
   )
@@ -106,9 +106,9 @@ urps_state_female_pop <- function() {
 #'
 #' @examples
 #' w <- urps_state_alloc_weights()
-#' sum(w)         # 1
-#' length(w)      # 49
-#' w[["CA"]]      # largest weight
+#' sum(w) # 1
+#' length(w) # 49
+#' w[["CA"]] # largest weight
 #'
 #' @export
 urps_state_alloc_weights <- function(method = "female_pop") {
@@ -148,7 +148,7 @@ urps_state_alloc_weights <- function(method = "female_pop") {
 #'
 #' @examples
 #' result <- urps_allocate_national(1000)
-#' sum(result$n_allocated)  # 1000
+#' sum(result$n_allocated) # 1000
 #' head(result)
 #'
 #' @export
@@ -181,8 +181,8 @@ urps_allocate_national <- function(n, weights = NULL) {
 
   fips <- CONUS_STATE_FIPS[match(names(weights), CONUS_STATE_ABBR)]
   df <- data.frame(
-    state_abbr  = names(weights),
-    state_fips  = fips,
+    state_abbr = names(weights),
+    state_fips = fips,
     n_allocated = as.integer(allocated),
     stringsAsFactors = FALSE
   )
@@ -212,7 +212,7 @@ urps_allocate_national <- function(n, weights = NULL) {
 #'
 #' @examples
 #' shares <- urps_state_entrant_shares()
-#' sum(shares)    # 1
+#' sum(shares) # 1
 #' shares[["TX"]] # Texas share
 #'
 #' @export

@@ -37,7 +37,8 @@ head(urps_survival_curve("female", "ABOG"))
 # retire-2-years-earlier scenario, focused age range:
 urps_survival_curve("male", "ABOG",
   retirement_shift_years = urps_scenario("retire_2yr_earlier")$retirement_shift_years,
-  age_range = 55:75)
+  age_range = 55:75
+)
 }
 \seealso{
 \code{\link[=urps_p_still_active]{urps_p_still_active()}}, \code{\link[=urps_retirement_hazard]{urps_retirement_hazard()}},

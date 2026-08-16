@@ -21,9 +21,9 @@ distribute national provider counts to individual states.
 }
 \examples{
 w <- urps_state_alloc_weights()
-sum(w)         # 1
-length(w)      # 49
-w[["CA"]]      # largest weight
+sum(w) # 1
+length(w) # 49
+w[["CA"]] # largest weight
 
 }
 \seealso{

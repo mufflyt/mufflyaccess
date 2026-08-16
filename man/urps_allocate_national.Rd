@@ -31,7 +31,7 @@ the largest weight.
 }
 \examples{
 result <- urps_allocate_national(1000)
-sum(result$n_allocated)  # 1000
+sum(result$n_allocated) # 1000
 head(result)
 
 }

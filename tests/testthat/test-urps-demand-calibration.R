@@ -6,16 +6,19 @@
 # a real fit.
 
 ex_path <- system.file("extdata", "urps_demand_params_example.csv",
-                       package = "mufflyaccess")
+  package = "mufflyaccess"
+)
 
 test_that("the schema names the columns urps_demand_params() actually carries", {
   sch <- urps_demand_params_schema()
   expect_true(all(c("column", "type", "required", "description") %in% names(sch)))
   expect_true(all(sch$column %in% names(urps_demand_params())))
   # every service + model_form + beta + provenance column is declared
-  expect_true(all(c("service_type", "model_form", "intercept", "b_age",
-                    "nb_theta", "calibration_scalar", "calibration_status")
-                  %in% sch$column))
+  expect_true(all(c(
+    "service_type", "model_form", "intercept", "b_age",
+    "nb_theta", "calibration_scalar", "calibration_status"
+  )
+  %in% sch$column))
 })
 
 test_that("the NA skeleton (not_calibrated) is a valid artifact", {
@@ -25,14 +28,19 @@ test_that("the NA skeleton (not_calibrated) is a valid artifact", {
 
 test_that("validate rejects structural violations", {
   skel <- urps_demand_params()
-  expect_error(validate_urps_demand_params(skel[, setdiff(names(skel), "b_age")]),
-               "missing required column")
+  expect_error(
+    validate_urps_demand_params(skel[, setdiff(names(skel), "b_age")]),
+    "missing required column"
+  )
   expect_error(validate_urps_demand_params(skel[-1, ]), "expected 6 service rows")
-  dup <- skel; dup$service_type[2] <- dup$service_type[1]
+  dup <- skel
+  dup$service_type[2] <- dup$service_type[1]
   expect_error(validate_urps_demand_params(dup), "unique")
-  badstatus <- skel; badstatus$calibration_status <- "totally_calibrated"
+  badstatus <- skel
+  badstatus$calibration_status <- "totally_calibrated"
   expect_error(validate_urps_demand_params(badstatus), "calibration_status")
-  badscalar <- skel; badscalar$calibration_scalar[1] <- 0
+  badscalar <- skel
+  badscalar$calibration_scalar[1] <- 0
   expect_error(validate_urps_demand_params(badscalar), "calibration_scalar")
   expect_error(validate_urps_demand_params(list(a = 1)), "must be a data.frame")
 })
@@ -42,10 +50,10 @@ test_that("read_urps_demand_params ingests + validates the bundled example", {
   p <- read_urps_demand_params(ex_path)
   expect_equal(nrow(p), 6L)
   expect_identical(attr(p, "calibration_status"), "example")
-  expect_true(all(is.finite(p$intercept)))                 # calibrated => finite betas
+  expect_true(all(is.finite(p$intercept))) # calibrated => finite betas
   is_nb <- p$model_form == "negative_binomial"
   expect_true(all(is.finite(p$nb_theta[is_nb]) & p$nb_theta[is_nb] > 0))
-  expect_true(all(is.na(p$nb_theta[!is_nb])))              # NA for logistic/poisson
+  expect_true(all(is.na(p$nb_theta[!is_nb]))) # NA for logistic/poisson
   expect_invisible(validate_urps_demand_params(p))
 })
 
@@ -53,15 +61,18 @@ test_that("a calibrated artifact with any NA beta, or a bad nb_theta pattern, is
   skip_if(!nzchar(ex_path) || !file.exists(ex_path), "example artifact not bundled")
   p <- read_urps_demand_params(ex_path)
 
-  na_beta <- p; na_beta$b_age[1] <- NA_real_
+  na_beta <- p
+  na_beta$b_age[1] <- NA_real_
   expect_error(validate_urps_demand_params(na_beta), "finite")
 
   # negative-binomial row missing its dispersion
-  no_theta <- p; no_theta$nb_theta[no_theta$model_form == "negative_binomial"][1] <- NA_real_
+  no_theta <- p
+  no_theta$nb_theta[no_theta$model_form == "negative_binomial"][1] <- NA_real_
   expect_error(validate_urps_demand_params(no_theta), "nb_theta")
 
   # dispersion wrongly set on a logistic row
-  extra_theta <- p; extra_theta$nb_theta[extra_theta$model_form == "logistic"][1] <- 1.0
+  extra_theta <- p
+  extra_theta$nb_theta[extra_theta$model_form == "logistic"][1] <- 1.0
   expect_error(validate_urps_demand_params(extra_theta), "nb_theta")
 })
 
@@ -72,7 +83,8 @@ test_that("read_urps_demand_params errors on a missing path", {
 # ---- activation hook: option/env -> urps_demand_params() serves the fit -------
 
 test_that("with no artifact configured, the skeleton is served and demand is NA", {
-  old <- options(mufflyaccess.urps_demand_params_path = NULL); on.exit(options(old), add = TRUE)
+  old <- options(mufflyaccess.urps_demand_params_path = NULL)
+  on.exit(options(old), add = TRUE)
   Sys.unsetenv("MUFFLYACCESS_URPS_DEMAND_PARAMS")
   expect_identical(unique(urps_demand_params()$calibration_status), "not_calibrated")
   pop <- data.frame(n = 1000, age = 50, sex_male = 0, bmi = 28)
@@ -81,12 +93,13 @@ test_that("with no artifact configured, the skeleton is served and demand is NA"
 
 test_that("configuring a fitted artifact activates demand end to end", {
   skip_if(!nzchar(ex_path) || !file.exists(ex_path), "example artifact not bundled")
-  old <- options(mufflyaccess.urps_demand_params_path = ex_path); on.exit(options(old), add = TRUE)
+  old <- options(mufflyaccess.urps_demand_params_path = ex_path)
+  on.exit(options(old), add = TRUE)
 
   expect_identical(unique(urps_demand_params()$calibration_status), "example")
   pop <- data.frame(n = c(1000, 2000), age = c(50, 65), sex_male = 0, bmi = c(28, 31))
   d <- urps_demand_clinical_fte(pop, visits_per_fte = 2000)
-  expect_true(is.finite(d) && d > 0)                       # no longer NA once activated
+  expect_true(is.finite(d) && d > 0) # no longer NA once activated
   # demand is linear in population count
   d2 <- urps_demand_clinical_fte(transform(pop, n = n * 2), visits_per_fte = 2000)
   expect_equal(d2, 2 * d)
@@ -107,19 +120,21 @@ test_that("a misconfigured artifact path fails loud (never silently NA)", {
 
 test_that("the literature_proxy artifact validates and activates to sensible demand", {
   proxy <- system.file("extdata", "urps_demand_params_literature_proxy.csv",
-                       package = "mufflyaccess")
+    package = "mufflyaccess"
+  )
   skip_if(!nzchar(proxy) || !file.exists(proxy), "literature_proxy artifact not bundled")
 
   p <- read_urps_demand_params(proxy)
   expect_identical(attr(p, "calibration_status"), "literature_proxy")
   expect_invisible(validate_urps_demand_params(p))
 
-  old <- options(mufflyaccess.urps_demand_params_path = proxy); on.exit(options(old), add = TRUE)
+  old <- options(mufflyaccess.urps_demand_params_path = proxy)
+  on.exit(options(old), add = TRUE)
   older <- data.frame(age = 60:79, sex_male = 0, bmi = 29, ins_medicare = 1L, n = 1e5)
   younger <- transform(older, age = age - 15)
-  d_old <- urps_demand_fte(older,   visits_per_fte = 2500)
+  d_old <- urps_demand_fte(older, visits_per_fte = 2500)
   d_yng <- urps_demand_fte(younger, visits_per_fte = 2500)
   expect_true(is.finite(d_old) && d_old > 0)
-  expect_gt(d_old, d_yng)                                   # PFD-driven age gradient (Wu-2014)
+  expect_gt(d_old, d_yng) # PFD-driven age gradient (Wu-2014)
   expect_lt(urps_demand_fte(older, 2500, scenario_id = "demand_retail_clinic_shift"), d_old)
 })

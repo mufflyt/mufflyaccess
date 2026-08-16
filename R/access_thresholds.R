@@ -10,7 +10,7 @@
 #' @seealso [PRIMARY_ACCESS_BAND_MIN] (the band a tract is "reached" within)
 #' @family access-band constants
 #' @examples
-#' TRACT_REACHED_COVERAGE_PCT               # 50
+#' TRACT_REACHED_COVERAGE_PCT # 50
 #' # a tract counts as reached when >= this percent of its women are in-band:
 #' # tract$reached <- tract$pct_female_in_band >= TRACT_REACHED_COVERAGE_PCT
 #' @export

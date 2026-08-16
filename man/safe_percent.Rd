@@ -24,9 +24,9 @@ i.e. "0\%"). Use \code{\link[=safe_pct_manu]{safe_pct_manu()}} when \code{NA} is
 the standard percentage helper for pipeline metrics and figure annotations.
 }
 \examples{
-safe_percent(45, 90)          # 50
-safe_percent(1, 3, digits = 2)# 33.33
-safe_percent(1, 0)            # 0 (default)
+safe_percent(45, 90) # 50
+safe_percent(1, 3, digits = 2) # 33.33
+safe_percent(1, 0) # 0 (default)
 }
 \seealso{
 \code{\link[=safe_divide]{safe_divide()}}, \code{\link[=safe_pct_manu]{safe_pct_manu()}}

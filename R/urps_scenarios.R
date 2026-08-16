@@ -39,12 +39,14 @@
       "fellowship_plus_10pct", "fellowship_constrained", "lower_late_career_fte",
       "demand_insurance_expansion", "demand_obesity_increase", "demand_equity",
       "demand_managed_care_increase", "demand_retail_clinic_shift",
-      "combined_pessimistic", "combined_investment"),
+      "combined_pessimistic", "combined_investment"
+    ),
     family = c(
       "reference", "retirement", "retirement", "retirement",
       "entry", "entry", "fte",
       "demand", "demand", "demand", "demand", "demand",
-      "composite", "composite"),
+      "composite", "composite"
+    ),
     label = c(
       "Baseline",
       "Retirement 2 years earlier",
@@ -59,17 +61,18 @@
       "Increased managed care / ACO enrollment (-15% demand via gatekeeping)",
       "Expanded retail clinic capacity (10% of office visits shift to retail)",
       "Combined pessimistic",
-      "Combined workforce investment"),
-    entrant_multiplier        = c(1.00, 1.00, 1.00, 1.00, 1.10, 0.90, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 0.90, 1.10),
-    retirement_shift_years    = c(0L,  -2L,  -5L,   2L,   0L,   0L,   0L,   0L,   0L,   0L,   0L,   0L,  -2L,   2L),
-    late_career_fte_factor    = c(1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 0.75, 1.00, 1.00, 1.00, 1.00, 1.00, 0.75, 1.00),
-    late_career_fte_onset_age = c(NA,   NA,   NA,   NA,   NA,   NA,   60L,  NA,   NA,   NA,   NA,   NA,   60L,  NA),
-    demand_obesity_prev_shift           = c(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 5.0, 0.0, 0.0, 0.0, 0.0, 0.0),
-    demand_insurance_expansion_factor   = c(1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.2, 1.0, 1.1, 1.0, 1.0, 1.0, 1.0),
-    demand_managed_care_factor          = c(1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.85,1.0, 1.0, 1.0),
-    demand_retail_clinic_share          = c(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.10,0.0, 0.0),
-    requires_fte_model    = c(FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, TRUE,  FALSE, FALSE, FALSE, FALSE, FALSE, TRUE,  FALSE),
-    requires_demand_model = c(FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, TRUE,  TRUE,  TRUE,  TRUE,  TRUE,  FALSE, FALSE),
+      "Combined workforce investment"
+    ),
+    entrant_multiplier = c(1.00, 1.00, 1.00, 1.00, 1.10, 0.90, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 0.90, 1.10),
+    retirement_shift_years = c(0L, -2L, -5L, 2L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, -2L, 2L),
+    late_career_fte_factor = c(1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 0.75, 1.00, 1.00, 1.00, 1.00, 1.00, 0.75, 1.00),
+    late_career_fte_onset_age = c(NA, NA, NA, NA, NA, NA, 60L, NA, NA, NA, NA, NA, 60L, NA),
+    demand_obesity_prev_shift = c(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 5.0, 0.0, 0.0, 0.0, 0.0, 0.0),
+    demand_insurance_expansion_factor = c(1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.2, 1.0, 1.1, 1.0, 1.0, 1.0, 1.0),
+    demand_managed_care_factor = c(1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.85, 1.0, 1.0, 1.0),
+    demand_retail_clinic_share = c(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.10, 0.0, 0.0),
+    requires_fte_model = c(FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, TRUE, FALSE, FALSE, FALSE, FALSE, FALSE, TRUE, FALSE),
+    requires_demand_model = c(FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, TRUE, TRUE, TRUE, TRUE, TRUE, FALSE, FALSE),
     description = c(
       "Reference projection: observed retirement hazards, entrants held at the modelled rate, and no late-career FTE or demand adjustment. Every other scenario is stated as a perturbation of this origin.",
       "Retirement-hazard curve shifted 2 years earlier (physicians exit sooner).",
@@ -84,15 +87,19 @@
       "Demand scenario: managed_care_factor = 0.85, representing a 15% demand reduction from a 20pp increase in HMO/ACO enrollment (gatekeeping effect on specialist referrals). Requires calibrated demand equations.",
       "Demand scenario: retail_clinic_share = 0.10, representing 10% of office-visit demand shifting to retail health clinics (staffed primarily by APRNs/PAs for lower-acuity conditions), reducing URPS provider demand. Requires calibrated demand equations.",
       "Combined pessimistic: retirement 2 years earlier AND fellowship constrained AND reduced late-career FTE.",
-      "Combined workforce investment: retirement 2 years later AND fellowship output +10%."),
-    stringsAsFactors = FALSE)
+      "Combined workforce investment: retirement 2 years later AND fellowship output +10%."
+    ),
+    stringsAsFactors = FALSE
+  )
 }
 
 # ---- load-time validation (fail loud, mirrors geography.R) -------------------
 local({
   d <- .urps_scenarios_df()
-  supply_lever_cols <- c("entrant_multiplier", "retirement_shift_years",
-                         "late_career_fte_factor", "late_career_fte_onset_age")
+  supply_lever_cols <- c(
+    "entrant_multiplier", "retirement_shift_years",
+    "late_career_fte_factor", "late_career_fte_onset_age"
+  )
   demand_lever_cols <- c("demand_obesity_prev_shift", "demand_insurance_expansion_factor")
   b <- d[d$scenario_id == "baseline", ]
   stopifnot(
@@ -104,15 +111,15 @@ local({
       sum(d$family == "reference") == 1L && d$scenario_id[d$family == "reference"] == "baseline",
     "baseline must be the neutral supply lever origin" =
       b$entrant_multiplier == 1 && b$retirement_shift_years == 0L &&
-      b$late_career_fte_factor == 1 && is.na(b$late_career_fte_onset_age),
+        b$late_career_fte_factor == 1 && is.na(b$late_career_fte_onset_age),
     "baseline must be the neutral demand lever origin" =
       b$demand_obesity_prev_shift == 0.0 &&
-      b$demand_insurance_expansion_factor == 1.0 &&
-      b$demand_managed_care_factor == 1.0 &&
-      b$demand_retail_clinic_share == 0.0,
+        b$demand_insurance_expansion_factor == 1.0 &&
+        b$demand_managed_care_factor == 1.0 &&
+        b$demand_retail_clinic_share == 0.0,
     "entrant_multiplier, late_career_fte_factor, demand_insurance_expansion_factor, and demand_managed_care_factor must be positive" =
       all(d$entrant_multiplier > 0) && all(d$late_career_fte_factor > 0) &&
-      all(d$demand_insurance_expansion_factor > 0) && all(d$demand_managed_care_factor > 0),
+        all(d$demand_insurance_expansion_factor > 0) && all(d$demand_managed_care_factor > 0),
     "demand_retail_clinic_share must be in [0, 1)" =
       all(d$demand_retail_clinic_share >= 0 & d$demand_retail_clinic_share < 1),
     "an FTE adjustment (factor != 1) needs an onset age, and vice versa" =
@@ -122,9 +129,9 @@ local({
     "requires_demand_model iff the scenario uses a demand lever" =
       all(d$requires_demand_model == (
         d$demand_obesity_prev_shift != 0 |
-        d$demand_insurance_expansion_factor != 1.0 |
-        d$demand_managed_care_factor != 1.0 |
-        d$demand_retail_clinic_share != 0.0)),
+          d$demand_insurance_expansion_factor != 1.0 |
+          d$demand_managed_care_factor != 1.0 |
+          d$demand_retail_clinic_share != 0.0)),
     "demand scenarios must belong to the 'demand' family" =
       all(d$family[d$requires_demand_model] == "demand"),
     "composite family iff the scenario has registered components" =
@@ -133,24 +140,31 @@ local({
   # composites must reconstruct from their components (demand levers neutral in current composites)
   for (cid in names(.urps_scenario_components)) {
     comp <- .urps_scenario_components[[cid]]
-    if (!all(comp %in% d$scenario_id))
-      stop(sprintf("[urps_scenarios] composite '%s' references unknown component(s): %s",
-                   cid, paste(setdiff(comp, d$scenario_id), collapse = ", ")), call. = FALSE)
+    if (!all(comp %in% d$scenario_id)) {
+      stop(sprintf(
+        "[urps_scenarios] composite '%s' references unknown component(s): %s",
+        cid, paste(setdiff(comp, d$scenario_id), collapse = ", ")
+      ), call. = FALSE)
+    }
     cr <- d[match(comp, d$scenario_id), , drop = FALSE]
     onset <- cr$late_career_fte_onset_age[!is.na(cr$late_career_fte_onset_age)]
     expect <- data.frame(
-      entrant_multiplier        = prod(cr$entrant_multiplier),
-      retirement_shift_years    = as.integer(sum(cr$retirement_shift_years)),
-      late_career_fte_factor    = prod(cr$late_career_fte_factor),
+      entrant_multiplier = prod(cr$entrant_multiplier),
+      retirement_shift_years = as.integer(sum(cr$retirement_shift_years)),
+      late_career_fte_factor = prod(cr$late_career_fte_factor),
       late_career_fte_onset_age = if (length(onset)) as.integer(min(onset)) else NA_integer_,
-      demand_obesity_prev_shift         = sum(cr$demand_obesity_prev_shift),
+      demand_obesity_prev_shift = sum(cr$demand_obesity_prev_shift),
       demand_insurance_expansion_factor = prod(cr$demand_insurance_expansion_factor),
-      demand_managed_care_factor        = prod(cr$demand_managed_care_factor),
-      demand_retail_clinic_share        = sum(cr$demand_retail_clinic_share))
+      demand_managed_care_factor = prod(cr$demand_managed_care_factor),
+      demand_retail_clinic_share = sum(cr$demand_retail_clinic_share)
+    )
     got <- d[d$scenario_id == cid, names(expect)]
-    if (!isTRUE(all.equal(as.list(got), as.list(expect))))
-      stop(sprintf("[urps_scenarios] composite '%s' lever values disagree with its components %s.",
-                   cid, paste(comp, collapse = " + ")), call. = FALSE)
+    if (!isTRUE(all.equal(as.list(got), as.list(expect)))) {
+      stop(sprintf(
+        "[urps_scenarios] composite '%s' lever values disagree with its components %s.",
+        cid, paste(comp, collapse = " + ")
+      ), call. = FALSE)
+    }
   }
 })
 
@@ -231,18 +245,22 @@ urps_scenarios <- function() .urps_scenarios_df()
 #' @examples
 #' urps_scenario("fellowship_plus_10pct")
 #' urps_scenario("combined_pessimistic")$components
-#' try(urps_scenario("no_such_scenario"))  # hard error
+#' try(urps_scenario("no_such_scenario")) # hard error
 #' @export
 urps_scenario <- function(scenario_id) {
-  if (!is.character(scenario_id) || length(scenario_id) != 1L || is.na(scenario_id))
+  if (!is.character(scenario_id) || length(scenario_id) != 1L || is.na(scenario_id)) {
     stop("[urps_scenario] `scenario_id` must be a single string.", call. = FALSE)
+  }
   d <- .urps_scenarios_df()
   i <- match(scenario_id, d$scenario_id)
-  if (is.na(i))
-    stop(sprintf("[urps_scenario] unknown scenario_id '%s'; use one of %s.",
-                 scenario_id, paste(d$scenario_id, collapse = ", ")), call. = FALSE)
+  if (is.na(i)) {
+    stop(sprintf(
+      "[urps_scenario] unknown scenario_id '%s'; use one of %s.",
+      scenario_id, paste(d$scenario_id, collapse = ", ")
+    ), call. = FALSE)
+  }
   out <- as.list(d[i, , drop = FALSE])
-  out$components <- .urps_scenario_components[[scenario_id]]   # NULL unless composite
+  out$components <- .urps_scenario_components[[scenario_id]] # NULL unless composite
   out$registry_version <- .URPS_SCENARIO_REGISTRY_VERSION
   out
 }
@@ -268,7 +286,7 @@ urps_scenario_ids <- function() .urps_scenarios_df()$scenario_id
 #' @seealso [validate_urps_scenarios()], [urps_scenario_ids()]
 #' @family URPS scenarios
 #' @examples
-#' is_urps_scenario(c("baseline", "typo", NA))  # TRUE FALSE FALSE
+#' is_urps_scenario(c("baseline", "typo", NA)) # TRUE FALSE FALSE
 #' @export
 is_urps_scenario <- function(x) {
   if (!is.character(x)) x <- as.character(x)
@@ -289,22 +307,31 @@ is_urps_scenario <- function(x) {
 #' @examples
 #' validate_urps_scenarios(c("baseline", "fellowship_plus_10pct"))
 #' validate_urps_scenarios(data.frame(scenario_id = "retire_2yr_earlier", value = 1))
-#' try(validate_urps_scenarios("earlier_retirement"))  # not a registered id
+#' try(validate_urps_scenarios("earlier_retirement")) # not a registered id
 #' @export
 validate_urps_scenarios <- function(x) {
   ids <- if (is.data.frame(x)) {
-    if (!"scenario_id" %in% names(x))
+    if (!"scenario_id" %in% names(x)) {
       stop("[validate_urps_scenarios] data.frame has no `scenario_id` column.", call. = FALSE)
+    }
     as.character(x$scenario_id)
-  } else if (is.character(x)) x else
+  } else if (is.character(x)) {
+    x
+  } else {
     stop("[validate_urps_scenarios] `x` must be a character vector or a data.frame with a `scenario_id` column.",
-         call. = FALSE)
-  if (!length(ids))
+      call. = FALSE
+    )
+  }
+  if (!length(ids)) {
     stop("[validate_urps_scenarios] no scenario_id values to validate.", call. = FALSE)
+  }
   bad <- unique(ids[!is_urps_scenario(ids)])
-  if (length(bad))
-    stop(sprintf("[validate_urps_scenarios] unregistered scenario_id(s): %s. Valid ids: %s.",
-                 paste(bad, collapse = ", "),
-                 paste(urps_scenario_ids(), collapse = ", ")), call. = FALSE)
+  if (length(bad)) {
+    stop(sprintf(
+      "[validate_urps_scenarios] unregistered scenario_id(s): %s. Valid ids: %s.",
+      paste(bad, collapse = ", "),
+      paste(urps_scenario_ids(), collapse = ", ")
+    ), call. = FALSE)
+  }
   invisible(TRUE)
 }

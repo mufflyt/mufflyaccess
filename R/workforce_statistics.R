@@ -52,8 +52,10 @@
 #' @export
 calculate_proportion_ci <- function(x, n, conf_level = 0.95) {
   if (isTRUE(n == 0) || is.na(n)) {
-    return(list(proportion = NA_real_, lower_ci = NA_real_, upper_ci = NA_real_,
-                method = NA_character_, note = "Zero denominator"))
+    return(list(
+      proportion = NA_real_, lower_ci = NA_real_, upper_ci = NA_real_,
+      method = NA_character_, note = "Zero denominator"
+    ))
   }
   prop <- x / n
   z <- stats::qnorm(1 - (1 - conf_level) / 2)
@@ -86,32 +88,45 @@ calculate_proportion_ci <- function(x, n, conf_level = 0.95) {
 #'   `note`, and (on a real test) `test_statistic`.
 #' @examples
 #' calculate_two_prop_test(12, 40, 20, 60)
-#' calculate_two_prop_test(2, 5, 3, 6)$method   # "descriptive_only"
+#' calculate_two_prop_test(2, 5, 3, 6)$method # "descriptive_only"
 #' @family workforce statistics
 #' @export
 calculate_two_prop_test <- function(x1, n1, x2, n2, min_sample_size = 30) {
   if (n1 < min_sample_size || n2 < min_sample_size) {
-    return(list(method = "descriptive_only", p_value = NA_real_,
-                p_value_formatted = "n<30", significant = FALSE,
-                note = sprintf("Sample sizes too small for a test (n1=%d, n2=%d)",
-                               as.integer(n1), as.integer(n2))))
+    return(list(
+      method = "descriptive_only", p_value = NA_real_,
+      p_value_formatted = "n<30", significant = FALSE,
+      note = sprintf(
+        "Sample sizes too small for a test (n1=%d, n2=%d)",
+        as.integer(n1), as.integer(n2)
+      )
+    ))
   }
   if (n1 == 0 || n2 == 0) {
-    return(list(method = "insufficient_data", p_value = NA_real_,
-                p_value_formatted = "insufficient data", significant = FALSE,
-                note = "One or both groups have zero total"))
+    return(list(
+      method = "insufficient_data", p_value = NA_real_,
+      p_value_formatted = "insufficient data", significant = FALSE,
+      note = "One or both groups have zero total"
+    ))
   }
-  tryCatch({
-    tr <- stats::prop.test(c(x1, x2), c(n1, n2))
-    p <- tr$p.value
-    fmt <- if (p < 0.001) "<0.001" else if (p < 0.01) sprintf("%.3f", p) else sprintf("%.2f", p)
-    list(method = "prop.test", p_value = p, p_value_formatted = fmt,
-         significant = p < 0.05, test_statistic = unname(tr$statistic),
-         note = "Two-proportion z-test")
-  }, error = function(e) {
-    list(method = "test_failed", p_value = NA_real_, p_value_formatted = "test failed",
-         significant = FALSE, note = paste("Test error:", conditionMessage(e)))
-  })
+  tryCatch(
+    {
+      tr <- stats::prop.test(c(x1, x2), c(n1, n2))
+      p <- tr$p.value
+      fmt <- if (p < 0.001) "<0.001" else if (p < 0.01) sprintf("%.3f", p) else sprintf("%.2f", p)
+      list(
+        method = "prop.test", p_value = p, p_value_formatted = fmt,
+        significant = p < 0.05, test_statistic = unname(tr$statistic),
+        note = "Two-proportion z-test"
+      )
+    },
+    error = function(e) {
+      list(
+        method = "test_failed", p_value = NA_real_, p_value_formatted = "test failed",
+        significant = FALSE, note = paste("Test error:", conditionMessage(e))
+      )
+    }
+  )
 }
 
 # ---- Rural vs metro comparison ---------------------------------------------
@@ -149,14 +164,20 @@ calculate_rural_metro_comparison <- function(rural_at_risk, rural_total,
   rate_diff <- if (!is.na(rural_rate) && !is.na(metro_rate)) rural_rate - metro_rate else NA_real_
 
   list(
-    rural = list(at_risk = rural_at_risk, total = rural_total, rate_pct = rural_rate,
-                 ci_lower = rural_ci$lower_ci * 100, ci_upper = rural_ci$upper_ci * 100),
-    metro = list(at_risk = metro_at_risk, total = metro_total, rate_pct = metro_rate,
-                 ci_lower = metro_ci$lower_ci * 100, ci_upper = metro_ci$upper_ci * 100),
-    comparison = list(rate_difference_pct = rate_diff, p_value = test$p_value,
-                      p_value_formatted = test$p_value_formatted,
-                      significant = test$significant, test_method = test$method,
-                      note = test$note)
+    rural = list(
+      at_risk = rural_at_risk, total = rural_total, rate_pct = rural_rate,
+      ci_lower = rural_ci$lower_ci * 100, ci_upper = rural_ci$upper_ci * 100
+    ),
+    metro = list(
+      at_risk = metro_at_risk, total = metro_total, rate_pct = metro_rate,
+      ci_lower = metro_ci$lower_ci * 100, ci_upper = metro_ci$upper_ci * 100
+    ),
+    comparison = list(
+      rate_difference_pct = rate_diff, p_value = test$p_value,
+      p_value_formatted = test$p_value_formatted,
+      significant = test$significant, test_method = test$method,
+      note = test$note
+    )
   )
 }
 
@@ -198,11 +219,13 @@ calculate_replacement_gap <- function(retirees_by_subspec, fellowship_grads,
   need_g <- c("subspecialty", "graduates")
   if (!all(need_r %in% names(retirees_by_subspec))) {
     stop("`retirees_by_subspec` needs columns: ", paste(need_r, collapse = ", "),
-         call. = FALSE)
+      call. = FALSE
+    )
   }
   if (!all(need_g %in% names(fellowship_grads))) {
     stop("`fellowship_grads` needs columns: ", paste(need_g, collapse = ", "),
-         call. = FALSE)
+      call. = FALSE
+    )
   }
   .ws_check_scalar_num(horizon_years, "horizon_years", lo = 0)
 
@@ -215,26 +238,29 @@ calculate_replacement_gap <- function(retirees_by_subspec, fellowship_grads,
     sum(fellowship_grads$graduates[fellowship_grads$subspecialty == s], na.rm = TRUE)
   }, numeric(1))
 
-  by_sub <- retirees_by_subspec[order(as.character(retirees_by_subspec$subspecialty)),
-                                , drop = FALSE]
+  by_sub <- retirees_by_subspec[order(as.character(retirees_by_subspec$subspecialty)), ,
+    drop = FALSE
+  ]
   key <- as.character(by_sub$subspecialty)
   by_sub$annual_grads <- unname(annual[key])
-  by_sub$total_grads  <- unname(total[key])
+  by_sub$total_grads <- unname(total[key])
   # A subspecialty with no graduate rows has none, which is 0 and not unknown.
   by_sub$annual_grads[is.na(by_sub$annual_grads)] <- 0
-  by_sub$total_grads[is.na(by_sub$total_grads)]   <- 0
+  by_sub$total_grads[is.na(by_sub$total_grads)] <- 0
 
-  by_sub$projected_grads      <- by_sub$annual_grads * horizon_years
-  by_sub$replacement_ratio    <- safe_divide(by_sub$projected_grads,
-                                             by_sub$retiring_count, default = NA_real_)
-  by_sub$net_gap              <- by_sub$retiring_count - by_sub$projected_grads
-  by_sub$gap_percentage       <- .ws_percentage(by_sub$net_gap, by_sub$retiring_count)
+  by_sub$projected_grads <- by_sub$annual_grads * horizon_years
+  by_sub$replacement_ratio <- safe_divide(by_sub$projected_grads,
+    by_sub$retiring_count,
+    default = NA_real_
+  )
+  by_sub$net_gap <- by_sub$retiring_count - by_sub$projected_grads
+  by_sub$gap_percentage <- .ws_percentage(by_sub$net_gap, by_sub$retiring_count)
   by_sub$adequate_replacement <- by_sub$replacement_ratio >= 1
   rownames(by_sub) <- NULL
 
   total_retiring <- sum(by_sub$retiring_count, na.rm = TRUE)
-  total_proj     <- sum(by_sub$projected_grads, na.rm = TRUE)
-  overall_gap    <- total_retiring - total_proj
+  total_proj <- sum(by_sub$projected_grads, na.rm = TRUE)
+  overall_gap <- total_retiring - total_proj
 
   list(
     by_subspecialty = by_sub,
@@ -278,11 +304,14 @@ calculate_replacement_gap <- function(retirees_by_subspec, fellowship_grads,
 #' @export
 calculate_state_vulnerability <- function(state_impacts, top_n = 10) {
   stopifnot(is.data.frame(state_impacts))
-  needed <- c("state", "count_active", "count_at_risk", "pct_loss_if_retire",
-              "zero_coverage_if_retire")
+  needed <- c(
+    "state", "count_active", "count_at_risk", "pct_loss_if_retire",
+    "zero_coverage_if_retire"
+  )
   if (!all(needed %in% names(state_impacts))) {
     stop("`state_impacts` needs columns: ", paste(needed, collapse = ", "),
-         call. = FALSE)
+      call. = FALSE
+    )
   }
   .ws_check_scalar_num(top_n, "top_n", lo = 1)
 
@@ -298,7 +327,9 @@ calculate_state_vulnerability <- function(state_impacts, top_n = 10) {
 .ws_check_scalar_num <- function(x, name, lo = -Inf, hi = Inf) {
   if (!is.numeric(x) || length(x) != 1L || !is.finite(x) || x < lo || x > hi) {
     stop("`", name, "` must be a single finite number in [", lo, ", ", hi, "]; got ",
-         paste(utils::capture.output(utils::str(x)), collapse = " "), call. = FALSE)
+      paste(utils::capture.output(utils::str(x)), collapse = " "),
+      call. = FALSE
+    )
   }
   invisible(x)
 }

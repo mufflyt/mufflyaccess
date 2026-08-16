@@ -16,7 +16,7 @@ integer ACS data end-year(s), clamped to \verb{[2013, 2022]}.
 ACS 5-year data year for a study year (clamped to the 2013-2022 window).
 }
 \examples{
-acs_year_of(c(2011, 2018, 2025))   # 2013, 2018, 2022  (clamped to the window)
+acs_year_of(c(2011, 2018, 2025)) # 2013, 2018, 2022  (clamped to the window)
 }
 \seealso{
 \code{\link[=tract_vintage_of]{tract_vintage_of()}}

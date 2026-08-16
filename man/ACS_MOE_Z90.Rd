@@ -31,9 +31,9 @@ A 95\% CI half-width = \code{MOE_90 * MOE90_TO_CI95_FACTOR}. Reference these
 constants rather than re-deriving \code{1.96 / 1.645} inline.
 }
 \examples{
-ACS_MOE_Z90                         # 1.645
+ACS_MOE_Z90 # 1.645
 moe_90 <- 500
-se <- moe_90 / ACS_MOE_Z90          # ACS MOE -> standard error
+se <- moe_90 / ACS_MOE_Z90 # ACS MOE -> standard error
 ci95_halfwidth <- moe_90 * MOE90_TO_CI95_FACTOR
 }
 \seealso{

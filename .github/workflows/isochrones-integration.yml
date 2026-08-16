@@ -44,6 +44,9 @@ env:
 jobs:
   mufflyaccess:
     runs-on: ubuntu-latest
+    # RULE: every job needs a timeout. A job timeout CANCELS the job,
+    # so `if: always()` steps never run and no artifact survives.
+    timeout-minutes: 30
     outputs:
       has_token: ${{ steps.detect.outputs.has_token }}
     steps:
@@ -168,6 +171,7 @@ jobs:
           MUFFLYACCESS_ISOCHRONES_DIR: ${{ github.workspace }}/isochrones-main
         run: >
           Rscript -e 'library(testthat);
+          testthat::set_max_fails(Inf);
           res <- as.data.frame(testthat::test_dir("tests/testthat",
           filter = "promoted-origin-parity", stop_on_failure = TRUE));
           if (sum(res$passed) == 0) stop("parity guard ran no assertions -- it must not pass vacuously", call. = FALSE);
@@ -193,6 +197,7 @@ jobs:
             # retired cells never present as current
             stopifnot(!(urps_count(2023,"board_certified_active","national",TRUE) %in% c(1332L,1329L)))
             stopifnot(setequal(urps_retired_values(), c(1332L,1329L)))
+            testthat::set_max_fails(Inf)
             testthat::test_dir("tests/testthat", filter = "isochrones|contract-lineage", stop_on_failure = TRUE)
             cat("mufflyaccess integration: OK\n")
           '
@@ -206,6 +211,9 @@ jobs:
 
   consumers:
     runs-on: ubuntu-latest
+    # RULE: every job needs a timeout. A job timeout CANCELS the job,
+    # so `if: always()` steps never run and no artifact survives.
+    timeout-minutes: 30
     needs: mufflyaccess
     if: needs.mufflyaccess.outputs.has_token == 'true'   # skip cleanly when no cross-repo token
     strategy:
@@ -383,6 +391,9 @@ jobs:
             attach(asNamespace(pkg), name = paste0(pkg, ":internals"),
                    warn.conflicts = FALSE)
             cat(pkg, "attached from", dirname(system.file(package = pkg)), "\n")
+            # Lift the failure cap here too: a capped consumer run reports a
+            # PREFIX of the contract tests as though all had passed.
+            testthat::set_max_fails(Inf)
             testthat::test_dir("tests/testthat",
               filter = "urps|baseline|unqualified|geography|engine|mufflyaccess", stop_on_failure = TRUE)
             cat(pkg, "consumer contract: OK\n")

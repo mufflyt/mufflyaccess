@@ -22,8 +22,8 @@ claims. ACS 2016-2020 5-year, table B01001_026 (total female), contiguous US
 (48 states + DC).
 }
 \examples{
-as.integer(ACS2020_CONUS_FEMALE_POP)     # 164690617
-attr(ACS2020_CONUS_FEMALE_POP, "vintage")  # "ACS 2016-2020 5-year"
+as.integer(ACS2020_CONUS_FEMALE_POP) # 164690617
+attr(ACS2020_CONUS_FEMALE_POP, "vintage") # "ACS 2016-2020 5-year"
 }
 \seealso{
 \link{TOTAL_FEMALE_VAR} (the ACS variable code), \link{CONUS_STATE_FIPS} (the scope)

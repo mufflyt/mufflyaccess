@@ -22,7 +22,7 @@ a character vector of ids or a \code{data.frame} carrying a \code{scenario_id} c
 \examples{
 validate_urps_scenarios(c("baseline", "fellowship_plus_10pct"))
 validate_urps_scenarios(data.frame(scenario_id = "retire_2yr_earlier", value = 1))
-try(validate_urps_scenarios("earlier_retirement"))  # not a registered id
+try(validate_urps_scenarios("earlier_retirement")) # not a registered id
 }
 \seealso{
 \code{\link[=is_urps_scenario]{is_urps_scenario()}}, \code{\link[=urps_scenario_ids]{urps_scenario_ids()}}, \code{\link[=urps_scenarios]{urps_scenarios()}}

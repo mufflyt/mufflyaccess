@@ -40,12 +40,12 @@
 # "ABOG"/"ABU" (per-individual pathway, NOT the three-value count-contract vocab).
 .urps_retirement_params_df <- function() {
   data.frame(
-    sex                  = c("female", "male", "female", "male"),
-    certification_pathway = c("ABOG",   "ABOG",  "ABU",    "ABU"),
-    mu_years             = c(65.0,      68.0,    64.0,     67.0),
-    sigma_years          = c(4.0,       4.0,     4.0,      4.0),
-    calibration_status   = "calibrated_from_literature",
-    stringsAsFactors     = FALSE
+    sex = c("female", "male", "female", "male"),
+    certification_pathway = c("ABOG", "ABOG", "ABU", "ABU"),
+    mu_years = c(65.0, 68.0, 64.0, 67.0),
+    sigma_years = c(4.0, 4.0, 4.0, 4.0),
+    calibration_status = "calibrated_from_literature",
+    stringsAsFactors = FALSE
   )
 }
 
@@ -54,8 +54,10 @@ local({
   d <- .urps_retirement_params_df()
   stopifnot(
     "retirement params must have required columns" =
-      all(c("sex", "certification_pathway", "mu_years",
-            "sigma_years", "calibration_status") %in% names(d)),
+      all(c(
+        "sex", "certification_pathway", "mu_years",
+        "sigma_years", "calibration_status"
+      ) %in% names(d)),
     "retirement params must have exactly 4 rows (female/male x ABOG/ABU)" =
       nrow(d) == 4L,
     "sex must be 'female' or 'male' only" =
@@ -65,19 +67,21 @@ local({
     "sex x pathway combinations must be unique" =
       !anyDuplicated(paste(d$sex, d$certification_pathway, sep = "/")),
     "all four sex x pathway combinations must be present" =
-      setequal(paste(d$sex, d$certification_pathway, sep = "/"),
-               c("female/ABOG", "male/ABOG", "female/ABU", "male/ABU")),
+      setequal(
+        paste(d$sex, d$certification_pathway, sep = "/"),
+        c("female/ABOG", "male/ABOG", "female/ABU", "male/ABU")
+      ),
     "mu_years must be in [50, 80] (plausible physician retirement age range)" =
       all(is.finite(d$mu_years)) && all(d$mu_years >= 50) && all(d$mu_years <= 80),
     "sigma_years must be in [1, 15] (plausible retirement spread)" =
       all(is.finite(d$sigma_years)) &&
-      all(d$sigma_years >= 1) && all(d$sigma_years <= 15),
+        all(d$sigma_years >= 1) && all(d$sigma_years <= 15),
     "female mu must be less than male mu for ABOG (female physicians retire earlier)" =
       d$mu_years[d$sex == "female" & d$certification_pathway == "ABOG"] <
-      d$mu_years[d$sex == "male"   & d$certification_pathway == "ABOG"],
+        d$mu_years[d$sex == "male" & d$certification_pathway == "ABOG"],
     "female mu must be less than male mu for ABU (female physicians retire earlier)" =
       d$mu_years[d$sex == "female" & d$certification_pathway == "ABU"] <
-      d$mu_years[d$sex == "male"   & d$certification_pathway == "ABU"],
+        d$mu_years[d$sex == "male" & d$certification_pathway == "ABU"],
     "calibration_status must be a known value" =
       all(d$calibration_status %in% "calibrated_from_literature"),
     "curve version must be semver" =
@@ -136,8 +140,9 @@ urps_retirement_params <- function() {
     "AAMC 2022 Physician Workforce Report Table 1.3;",
     "ACOG 2021 Workforce Survey (retirement age by sex);",
     "AMA 2022 Physician Practice Benchmark Survey.",
-    "Sharpen with: ABOG lapse/recertification panel or URPS practice survey.")
-  attr(d, "formula")    <- "S(age; mu, sigma) = 1 / (1 + exp((age - mu) / sigma))"
+    "Sharpen with: ABOG lapse/recertification panel or URPS practice survey."
+  )
+  attr(d, "formula") <- "S(age; mu, sigma) = 1 / (1 + exp((age - mu) / sigma))"
   attr(d, "curve_type") <- "logistic_survival"
   d
 }
@@ -152,16 +157,20 @@ urps_retirement_params <- function() {
 # Internal: look up mu and sigma for a single sex x pathway combination.
 # Fails loud on unknown values with the [function] prefix convention.
 .urps_retirement_lookup <- function(sex, pathway) {
-  if (!is.character(sex) || length(sex) != 1L || !sex %in% c("female", "male"))
+  if (!is.character(sex) || length(sex) != 1L || !sex %in% c("female", "male")) {
     stop(sprintf(
       "[urps_retirement] `sex` must be 'female' or 'male', not '%s'.",
-      as.character(sex)[1L]), call. = FALSE)
+      as.character(sex)[1L]
+    ), call. = FALSE)
+  }
   if (!is.character(pathway) || length(pathway) != 1L ||
-      !pathway %in% c("ABOG", "ABU"))
+    !pathway %in% c("ABOG", "ABU")) {
     stop(sprintf(
       "[urps_retirement] `pathway` must be 'ABOG' or 'ABU', not '%s'.",
-      as.character(pathway)[1L]), call. = FALSE)
-  d   <- .urps_retirement_params_df()
+      as.character(pathway)[1L]
+    ), call. = FALSE)
+  }
+  d <- .urps_retirement_params_df()
   row <- d[d$sex == sex & d$certification_pathway == pathway, , drop = FALSE]
   list(mu = row$mu_years, sigma = row$sigma_years)
 }
@@ -197,17 +206,22 @@ urps_retirement_params <- function() {
 #' urps_p_still_active(35:80, "male", "ABU")
 #' # retire-2-years-earlier scenario
 #' urps_p_still_active(65, "female", "ABOG",
-#'   retirement_shift_years = urps_scenario("retire_2yr_earlier")$retirement_shift_years)
+#'   retirement_shift_years = urps_scenario("retire_2yr_earlier")$retirement_shift_years
+#' )
 #' @export
 urps_p_still_active <- function(age, sex, pathway, retirement_shift_years = 0L) {
-  if (!(is.numeric(age) || is.integer(age)) || length(age) < 1L)
+  if (!(is.numeric(age) || is.integer(age)) || length(age) < 1L) {
     stop("[urps_p_still_active] `age` must be a non-empty numeric or integer vector.",
-         call. = FALSE)
+      call. = FALSE
+    )
+  }
   if (!(is.numeric(retirement_shift_years) || is.integer(retirement_shift_years)) ||
-      length(retirement_shift_years) != 1L || !is.finite(retirement_shift_years))
+    length(retirement_shift_years) != 1L || !is.finite(retirement_shift_years)) {
     stop("[urps_p_still_active] `retirement_shift_years` must be a single finite scalar.",
-         call. = FALSE)
-  p            <- .urps_retirement_lookup(sex, pathway)
+      call. = FALSE
+    )
+  }
+  p <- .urps_retirement_lookup(sex, pathway)
   effective_age <- as.numeric(age) - as.numeric(retirement_shift_years)
   .urps_logistic_s(effective_age, p$mu, p$sigma)
 }
@@ -227,18 +241,23 @@ urps_p_still_active <- function(age, sex, pathway, retirement_shift_years = 0L) 
 #' @examples
 #' urps_retirement_hazard(55:75, "female", "ABOG")
 #' urps_retirement_hazard(68, "male", "ABOG",
-#'   retirement_shift_years = urps_scenario("retire_2yr_later")$retirement_shift_years)
+#'   retirement_shift_years = urps_scenario("retire_2yr_later")$retirement_shift_years
+#' )
 #' @export
 urps_retirement_hazard <- function(age, sex, pathway, retirement_shift_years = 0L) {
-  if (!(is.numeric(age) || is.integer(age)) || length(age) < 1L)
+  if (!(is.numeric(age) || is.integer(age)) || length(age) < 1L) {
     stop("[urps_retirement_hazard] `age` must be a non-empty numeric or integer vector.",
-         call. = FALSE)
+      call. = FALSE
+    )
+  }
   if (!(is.numeric(retirement_shift_years) || is.integer(retirement_shift_years)) ||
-      length(retirement_shift_years) != 1L || !is.finite(retirement_shift_years))
+    length(retirement_shift_years) != 1L || !is.finite(retirement_shift_years)) {
     stop("[urps_retirement_hazard] `retirement_shift_years` must be a single finite scalar.",
-         call. = FALSE)
+      call. = FALSE
+    )
+  }
   s_prev <- urps_p_still_active(as.numeric(age) - 1, sex, pathway, retirement_shift_years)
-  s_curr <- urps_p_still_active(as.numeric(age),     sex, pathway, retirement_shift_years)
+  s_curr <- urps_p_still_active(as.numeric(age), sex, pathway, retirement_shift_years)
   h <- (s_prev - s_curr) / s_prev
   # Clamp to [0, 1]: S is monotone decreasing so h >= 0 almost always, but
   # floating-point arithmetic at extreme ages (s_prev ~ 1 or ~ 0) can produce
@@ -269,18 +288,21 @@ urps_retirement_hazard <- function(age, sex, pathway, retirement_shift_years = 0
 #' # retire-2-years-earlier scenario, focused age range:
 #' urps_survival_curve("male", "ABOG",
 #'   retirement_shift_years = urps_scenario("retire_2yr_earlier")$retirement_shift_years,
-#'   age_range = 55:75)
+#'   age_range = 55:75
+#' )
 #' @export
 urps_survival_curve <- function(sex, pathway,
                                 retirement_shift_years = 0L,
                                 age_range = 35:80) {
-  if (!(is.numeric(age_range) || is.integer(age_range)) || length(age_range) < 1L)
+  if (!(is.numeric(age_range) || is.integer(age_range)) || length(age_range) < 1L) {
     stop("[urps_survival_curve] `age_range` must be a non-empty numeric or integer vector.",
-         call. = FALSE)
+      call. = FALSE
+    )
+  }
   data.frame(
-    age            = as.integer(age_range),
+    age = as.integer(age_range),
     p_still_active = urps_p_still_active(age_range, sex, pathway, retirement_shift_years),
-    annual_hazard  = urps_retirement_hazard(age_range, sex, pathway, retirement_shift_years),
+    annual_hazard = urps_retirement_hazard(age_range, sex, pathway, retirement_shift_years),
     stringsAsFactors = FALSE
   )
 }
