@@ -375,3 +375,109 @@ read_urps_projection <- function(path, validate = TRUE, ...) {
   if (isTRUE(validate)) validate_urps_projection(d, ...)
   d
 }
+
+# ==============================================================================
+# The canonical URPS projection.
+#
+# The rest of this file defines the projection CONTRACT: a schema, a reader and a
+# validator that a cliff-produced table is checked against. What it did not do is
+# SERVE the canonical projection, so every consumer copied cliff's CSVs. Two of
+# those copies were found diverged on 2026-08-16 -- one Shiny app was presenting
+# a 1,339-based supply curve while the repository had long since moved to 1,306.
+#
+# mufflyaccess owns the definition; it does not run the projection. cliff
+# produces the numbers, this serves the reviewed result.
+# ==============================================================================
+
+#' The canonical URPS supply projection
+#'
+#' @description The published URPS projection -- baseline headcount, horizon
+#'   headcount with and without the entry ramp, interval, entrants, exits and the
+#'   replacement ratio -- served from the bundled artifact so consumers stop
+#'   copying the producing repository's CSVs.
+#' @details This is the reviewed RESULT of cliff's projection, not a re-run of it.
+#'   Use [read_urps_projection()] and [validate_urps_projection()] when you have
+#'   your own projection table to check against the contract; use this when you
+#'   want the published numbers.
+#'
+#'   `replacement_ratio` is `annual_entrants / mean_annual_exits`, and
+#'   `baseline_headcount` is checked against [urps_count()] on every call, so the
+#'   projection can never start from a number the SSOT does not serve.
+#'
+#'   `projected_headcount` is the immediate-entry projection. The entry-ramped
+#'   variant (`projected_headcount_ramped`) defers new entrants over the observed
+#'   certification-to-practice curve and is reported as a sensitivity, not the
+#'   headline.
+#' @param scenario Scenario id; only `"baseline"` is currently published.
+#' @param geography `"national"` (default) or `"conus"`.
+#' @param pathway Board pathway; only `"ABOG_PLUS_ABU"` is currently published.
+#' @return A one-row `data.frame`. Key columns: `baseline_year`,
+#'   `baseline_headcount`, `horizon_year`, `projected_headcount`,
+#'   `projected_headcount_ramped`, `lower_95`, `upper_95`, `annual_entrants`,
+#'   `mean_annual_exits`, `replacement_ratio`.
+#' @seealso [urps_active_ages()] for the cohort it projects,
+#'   [urps_count()] for the baseline it must agree with,
+#'   [validate_urps_projection()] for checking your own table.
+#' @family URPS SSOT
+#' @examples
+#' p <- urps_projection()
+#' p$baseline_headcount
+#' p$replacement_ratio
+#' @export
+urps_projection <- function(scenario = "baseline",
+                            geography = "national",
+                            pathway = "ABOG_PLUS_ABU") {
+  if (!is.character(scenario) || length(scenario) != 1L || is.na(scenario)) {
+    stop("[urps_projection] `scenario` must be a single string.", call. = FALSE)
+  }
+  scenario <- tolower(trimws(scenario))
+  geography <- .urps_norm_choice(geography, "geography", .urps_geographies)
+  # Reuse .urps_norm_choice() rather than a second normalizer: it lowercases,
+  # so compare against the lowercased vocabulary and restore the contract's
+  # uppercase form. One validator, and nothing new for lintr to resolve
+  # across files.
+  pathway <- toupper(.urps_norm_choice(pathway, "pathway", tolower(.urps_pathways)))
+
+  d <- utils::read.csv(.urps_path("urps_projection_canonical.csv"),
+    stringsAsFactors = FALSE
+  )
+  for (col in c("baseline_year", "horizon_year", "baseline_headcount")) {
+    d[[col]] <- as.integer(d[[col]])
+  }
+  num <- c(
+    "projected_headcount", "projected_headcount_ramped", "sd",
+    "lower_95", "upper_95", "annual_entrants", "mean_annual_exits",
+    "replacement_ratio"
+  )
+  for (col in intersect(num, names(d))) d[[col]] <- as.numeric(d[[col]])
+
+  sel <- d$scenario_id == scenario &
+    d$geography_type == geography &
+    d$certification_pathway == pathway
+  out <- d[sel, , drop = FALSE]
+  if (!nrow(out)) {
+    stop(sprintf(paste0(
+      "[urps_projection] no published projection for scenario '%s' / %s / %s. ",
+      "Published: %s."),
+      scenario, geography, pathway,
+      paste(unique(sprintf(
+        "%s/%s/%s", d$scenario_id, d$geography_type, d$certification_pathway
+      )), collapse = ", ")
+    ), call. = FALSE)
+  }
+  rownames(out) <- NULL
+
+  # The projection must start from the count the package publishes.
+  expected <- urps_count(
+    year = 2023L, measure = "board_certified_active", geography = geography,
+    include_urology = identical(pathway, "ABOG_PLUS_ABU"), incomplete = "na"
+  )
+  if (!is.na(expected) && out$baseline_headcount[1] != expected) {
+    stop(sprintf(paste0(
+      "[urps_projection] the projection starts from %d but urps_count() ",
+      "publishes %d for %s / %s. The bundled artifacts disagree."),
+      out$baseline_headcount[1], expected, pathway, geography), call. = FALSE)
+  }
+
+  out
+}
