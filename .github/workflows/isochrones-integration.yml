@@ -171,7 +171,7 @@ jobs:
           MUFFLYACCESS_ISOCHRONES_DIR: ${{ github.workspace }}/isochrones-main
         run: >
           Rscript -e 'library(testthat);
-          testthat::set_max_fails(Inf)
+          testthat::set_max_fails(Inf);
           res <- as.data.frame(testthat::test_dir("tests/testthat",
           filter = "promoted-origin-parity", stop_on_failure = TRUE));
           if (sum(res$passed) == 0) stop("parity guard ran no assertions -- it must not pass vacuously", call. = FALSE);
@@ -197,7 +197,6 @@ jobs:
             # retired cells never present as current
             stopifnot(!(urps_count(2023,"board_certified_active","national",TRUE) %in% c(1332L,1329L)))
             stopifnot(setequal(urps_retired_values(), c(1332L,1329L)))
-            testthat::set_max_fails(Inf)
             testthat::set_max_fails(Inf)
             testthat::test_dir("tests/testthat", filter = "isochrones|contract-lineage", stop_on_failure = TRUE)
             cat("mufflyaccess integration: OK\n")
