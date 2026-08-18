@@ -1,0 +1,787 @@
+# mufflyaccess
+
+**Single source of truth (SSOT) for the constants and pure statistics
+shared across the OB/GYN subspecialty geographic-access projects —
+`isochrones`, `twostep`, and `cliff`.**
+
+Access research breaks quietly when three repositories each keep their
+own copy of “the 60-minute band,” “the total-female denominator,” or
+“the ACS margin-of- error multiplier,” and the copies drift apart.
+`mufflyaccess` gives every project **one** definition of each shared
+value, each carrying its provenance and **fail-loud validation that runs
+at package load** — so the repositories cannot silently disagree about
+the numbers behind a published statistic.
+
+``` r
+
+renv::install("mufflyt/mufflyaccess")
+library(mufflyaccess)
+
+# select the headline access rows in a Step-4 access table
+filter(x, category == DENOMINATOR_CATEGORY, range == PRIMARY_ACCESS_BAND_SEC)
+```
+
+## Contents
+
+- [Why this package exists](#why-this-package-exists)
+- [Installation](#installation)
+- [Quick start](#quick-start)
+- [Reference](#reference)
+  - [Access bands & thresholds](#access-bands--thresholds)
+  - [Census denominators](#census-denominators)
+  - [Geography](#geography)
+  - [Margins of error](#margins-of-error)
+  - [Rurality (RUCA)](#rurality-ruca)
+  - [Pelvic-floor-disorder
+    prevalence](#pelvic-floor-disorder-prevalence)
+  - [Accessibility-disparity
+    statistics](#accessibility-disparity-statistics)
+  - [Safe-division family](#safe-division-family)
+  - [URPS workforce — the published
+    SSOT](#urps-workforce--the-published-ssot)
+  - [URPS scenario dictionary](#urps-scenario-dictionary)
+  - [URPS projection contract](#urps-projection-contract)
+  - [URPS clinical FTE (supply side)](#urps-clinical-fte-supply-side)
+  - [URPS demand + gap](#urps-demand--gap)
+  - [URPS workforce flows](#urps-workforce-flows)
+  - [URPS geographic distribution + parameter
+    CI](#urps-geographic-distribution--parameter-ci)
+  - [Workforce & obstetric statistics](#workforce--obstetric-statistics)
+- [Design principles](#design-principles)
+- [What is intentionally *not* here](#what-is-intentionally-not-here)
+- [Development](#development)
+- [License](#license)
+
+## Why this package exists
+
+Three repositories analyze geographic access to OB/GYN subspecialists,
+and they share a spine of numbers: which drive-time band is the headline
+result, what population is the denominator, how a census tract counts as
+“covered,” which states are the contiguous US, how ACS margins of error
+convert to confidence intervals, and so on. Each of those values is a
+decision with a citation behind it. When a decision lives in three
+places it becomes three decisions.
+
+`mufflyaccess` holds each such value **once**:
+
+- **Provenance.** Every constant documents its source repo, table,
+  vintage, or publication (e.g. Wu 2014, PMID 24463674).
+- **Fail-loud validation.** Each `R/` file ends in a `stopifnot(...)`
+  block that runs when the namespace loads. A value that is edited into
+  an impossible state (a headline band outside the canonical set, a
+  female population outside 150–175 M, a RUCA cut outside 1–10) makes
+  [`library(mufflyaccess)`](https://github.com/mufflyt/mufflyaccess)
+  **error immediately** rather than shipping a wrong number downstream.
+- **Derived, never duplicated.** Values that must agree are computed
+  from one another — `PRIMARY_ACCESS_BAND_SEC` is
+  `PRIMARY_ACCESS_BAND_MIN * 60`, `CONUS_STATE_ABBR` is derived from
+  `CONUS_STATE_FIPS` through the canonical crosswalk — so the two forms
+  can never drift.
+
+## Installation
+
+The package is `renv`-pinned and light (base R + `stats` + `datasets`,
+plus `jsonlite` for reading the workforce manifest):
+
+``` r
+
+# latest from the default branch:
+renv::install("mufflyt/mufflyaccess")
+
+# or with remotes / pak:
+remotes::install_github("mufflyt/mufflyaccess")
+pak::pak("mufflyt/mufflyaccess")
+
+# for an analysis you need to reproduce, pin an exact commit SHA:
+renv::install("mufflyt/mufflyaccess@<commit-sha>")
+```
+
+Pin a specific commit for an analysis you need to reproduce: a shared
+SSOT should change only on a deliberate, reviewed bump, and a commit SHA
+(recorded in `renv.lock`) is what makes that pin reproducible.
+
+### Access — this is a private repository
+
+Installing (and `renv::restore()` from a consumer’s lockfile) needs a
+GitHub token with read access to `mufflyt/mufflyaccess`. `renv`,
+`remotes`, and `pak` all read `GITHUB_PAT` automatically:
+
+``` r
+
+# one-time, on each dev machine:
+usethis::create_github_token()   # opens GitHub with the right scopes (repo read)
+gitcreds::gitcreds_set()         # stores it (writes GITHUB_PAT to ~/.Renviron, chmod 600)
+Sys.getenv("GITHUB_PAT") != ""   # verify it is set
+```
+
+A fine-grained token scoped to just this repo (Contents: read) is
+enough; a classic PAT needs the `repo` scope. Keep the token in
+`~/.Renviron` (never the project), ensure `.Renviron` is git-ignored,
+and in CI inject `GITHUB_PAT` as a secret env var rather than a file.
+See
+[`.Renviron.example`](https://mufflyt.github.io/mufflyaccess/.Renviron.example).
+
+No token, no network, no GitHub: install from a **local checkout**
+instead — `renv::install("../mufflyaccess")` or
+`devtools::install_local("../mufflyaccess")` — handy when the consumer
+repos are cloned side by side.
+
+## Quick start
+
+``` r
+
+library(mufflyaccess)
+
+# 1. Select the headline access band in a Step-4 access table (range in seconds).
+headline <- subset(access_tbl,
+                   category == DENOMINATOR_CATEGORY &      # "total_female"
+                   range    == PRIMARY_ACCESS_BAND_SEC)    # 3600
+
+# 2. Restrict to the contiguous US.
+conus <- subset(tracts, state_fips %in% CONUS_STATE_FIPS)  # 48 states + DC
+
+# 3. Classify rurality from a USDA RUCA primary code.
+tracts$rurality <- rurality_from_ruca(tracts$ruca)         # "Metropolitan"/"Rural"
+
+# 4. Population-weighted mean access, with a Monte-Carlo 95% CI from ACS MOEs.
+mc_weighted_ci(access = tracts$access,
+               est    = tracts$female_pop,
+               se     = tracts$female_moe / ACS_MOE_Z90,   # ACS MOE -> SE
+               stat   = "mean")
+
+# 5. Never divide by a zero denominator again.
+safe_rate(events = subspecialists, exposure = female_pop, multiplier = 1e5)
+```
+
+## Reference
+
+All 110 exported objects, grouped by domain.
+
+> Every value in the tables below is asserted against the installed
+> package by `data-raw/check_readme_constants.R`. If this README and the
+> package ever disagree, that script exits non-zero and names the
+> constant. Documentation that cannot be checked is documentation that
+> drifts — this count said 106 until the check was written.
+
+### Access bands & thresholds
+
+| Object | Type | Meaning |
+|----|----|----|
+| `PRIMARY_ACCESS_BAND_MIN` | int | Headline drive-time band, **60 min** (“within 60 minutes of a subspecialist”). |
+| `PRIMARY_ACCESS_BAND_SEC` | int | Same band in **seconds** (3600); the `range` value selecting it in access tables. *Derived* as `_MIN * 60`. |
+| `CANONICAL_BANDS` | int\[\] | Full isochrone generation set `{30, 60, 120, 180}` min. The headline band must be a member. |
+| `DENOMINATOR_CATEGORY` | chr | `"total_female"` — the access-table `category` row that is the denominator of every access percentage. |
+| `TRACT_REACHED_COVERAGE_PCT` | int | **50%** — a tract is “reached” when ≥ this share of its women fall inside the isochrone. |
+| `get_primary_access_band(units)` | fn | Returns the primary band in `"min"` (default) or `"sec"`. |
+| [`get_canonical_bands()`](https://mufflyt.github.io/mufflyaccess/reference/get_canonical_bands.md) | fn | Returns `CANONICAL_BANDS`. |
+
+### Census denominators
+
+| Object | Type | Meaning |
+|----|----|----|
+| `ACS2020_CONUS_FEMALE_POP` | int | **164,690,617** — national contiguous-US female population (ACS 2016–2020 5-yr, `B01001_026`). Carries `vintage`/`table`/`scope`/`units` provenance attributes. |
+| `TOTAL_FEMALE_VAR` | chr | ACS total-female variable code `"B01001_026"`. |
+| `RACE_FEMALE_VARS` | chr\[\] | Named race/ethnicity female variable codes (`white_nh`, `hispanic`, `black`, `aian`, `asian`, `nhpi`). Footgun-guarded: race tables use `_017`, not `_026`. |
+
+### Geography
+
+| Object | Type | Meaning |
+|----|----|----|
+| `CONUS_STATE_FIPS` | chr\[\] | 49 two-digit FIPS codes — 48 states + DC. |
+| `CONUS_STATE_ABBR` | chr\[\] | The USPS-abbreviation form of the same set, **derived** from `CONUS_STATE_FIPS` so the two can never drift. |
+| `NON_CONTIGUOUS_FIPS` | chr\[\] | The 7 excluded FIPS codes (AK, HI, PR, GU, VI, AS, MP). |
+| `NON_CONTIGUOUS_CODES` | chr\[\] | The same 7 as USPS codes. |
+
+> **Note:** `c(state.abb, "DC")` (all 50 + DC) is a *state-validation*
+> vocabulary, **not** CONUS — it still contains AK/HI. Use
+> `CONUS_STATE_ABBR` for contiguous-US analyses.
+
+### Margins of error
+
+ACS publishes margins of error at the **90%** confidence level.
+
+| Object | Value | Meaning |
+|----|----|----|
+| `ACS_MOE_Z90` | 1.645 | Census-documented 90% multiplier (`MOE_90 = ACS_MOE_Z90 * SE`). Do **not** substitute `qnorm(0.95)`; the rounded value is the published convention. |
+| `CI_Z95` | 1.96 | 95% multiplier. |
+| `MOE90_TO_CI95_FACTOR` | ≈ 1.1915 | Convert a 90% MOE to a 95% CI half-width. *Derived* as `CI_Z95 / ACS_MOE_Z90`. |
+
+### Rurality (RUCA)
+
+| Object | Value | Meaning |
+|----|----|----|
+| `RUCA_NONMETRO_MIN` | 4L | First **non-metropolitan** USDA RUCA primary code. Metro = 1–3, Rural = 4–10. |
+| `rurality_from_ruca(code)` | fn | Maps RUCA primary code(s) to `"Metropolitan"`/`"Rural"` (`NA` for invalid). |
+
+### Pelvic-floor-disorder prevalence
+
+The **65+ access demand denominator** (Wu 2014, Table 1, PMID 24463674).
+
+| Object | Type | Meaning |
+|----|----|----|
+| `WU2014_PFD_PREVALENCE` | data.frame | Age-specific symptomatic PFD prevalence by condition (`any_PFD`, `UI`, `FI`, `POP`) × bracket (`p_65_79`, `p_80plus`). |
+| `pfd_prevalence(condition)` | fn | Two-bracket prevalence for one condition (default `"any_PFD"`). |
+| `pfd_prevalence_acs_bands(condition)` | fn | The same, expanded across the six ACS 65+ age-band columns. |
+
+### Accessibility-disparity statistics
+
+Pure, dependency-light statistics (base R + `stats`) shared by the
+`isochrones` and `twostep` pipelines.
+
+| Object | Meaning |
+|----|----|
+| `weighted_mean_all(a, w)` | Population-weighted mean; `NA` if weights sum to 0 (sparse-group safe). |
+| `zero_access_share(access, w)` | Percent of weighted population with access **exactly** 0. |
+| `mc_weighted_ci(access, est, se, stat, ...)` | Monte-Carlo CI for a weighted `"mean"`/`"zero"` statistic; redraws weights ~ Normal(est, se). |
+| `annual_trend(year, value)` | OLS temporal trend of an annual series (slope + 95% t-interval + p). |
+| `tract_vintage_of(year)` | Census-tract boundary vintage for a study year (2010 ≤ 2019, 2020 ≥ 2020). |
+| `acs_year_of(year)` | ACS 5-year data year, clamped to the 2013–2022 window. |
+
+### Safe-division family
+
+Six functions with one guarantee: a zero or `NA` denominator never
+produces `Inf`, `NaN`, or an uncaught error — it returns a
+caller-specified default.
+
+| Object | Returns on zero denominator | Use for |
+|----|----|----|
+| `safe_divide(num, den, ...)` | `NA_real_` | The core primitive inside pipeline computations. |
+| `safe_divide_manu(num, den, fallback)` | `fallback` | Manuscript-script alias with `num`/`den`/`fallback` names. |
+| `safe_percent(part, total, ...)` | `0` (default) | Standard pipeline/figure percentages. |
+| `safe_pct_manu(num, den, digits)` | `NA_real_` | Manuscript percentages where a missing denominator must **not** read as 0%. |
+| `safe_rate(events, exposure, multiplier, ...)` | `NA_real_` | Epidemiological rates (e.g. subspecialists per 100K women). |
+| `safe_ratio(num, den, ...)` | `NA_real_` | Unitless ratios (MOE-to-estimate, physician-to-population). |
+
+### URPS workforce — the published SSOT
+
+The national active URPS (urogynecology and reconstructive pelvic
+surgery) count. **Consumers (`cliff` / `twostep` / manuscripts / apps)
+obtain it only through these functions — never hardcode or independently
+derive a national URPS count** (see
+[`ARCHITECTURE.md`](https://mufflyt.github.io/mufflyaccess/ARCHITECTURE.md)).
+
+The workforce artifact follows the isochrones **contract v3.0.0**
+`measure × geography` schema. The canonical 2023 estimand is
+**board_certified_active / national = 1306** (CONUS 1303; ABOG
+**1027** + ABU net-new **279**), keyed on the URPS subspecialty cert
+year. **1339 is the 2025 `roster_snapshot`, not the 2023 active count**,
+and **1332 / 1329 are RETIRED v2.1.0 cells** (primary-cert basis)
+exposed only via
+[`urps_lineage()`](https://mufflyt.github.io/mufflyaccess/reference/urps_lineage.md)
+/
+[`urps_retired_values()`](https://mufflyt.github.io/mufflyaccess/reference/urps_retired_values.md)
+— never as current.
+
+| Function | Returns |
+|----|----|
+| `urps_count(year, measure = "board_certified_active", geography = "national", include_urology = FALSE, incomplete = "error", details = FALSE)` | A **bare integer** `n_active`. `measure` ∈ `board_certified_active` (2013–2023) / `roster_snapshot` (2025); `geography` ∈ `national` / `conus` (case-insensitive). 2023 national: 1027 / **1306** (± urology); conus: 1026 / 1303. `incomplete = "na"` yields `NA` (never a silent 0); `details = TRUE` returns a labelled record. |
+| [`urps_lineage()`](https://mufflyt.github.io/mufflyaccess/reference/urps_lineage.md) / [`urps_retired_values()`](https://mufflyt.github.io/mufflyaccess/reference/urps_retired_values.md) | The contract lineage (current 3.0.0 = 1306/1303 vs retired 2.1.0 = 1332/1329) / the retired values, so consumers never present a retired count as current. |
+| `urps_counts(measure, geography)` / [`urps_counts_long()`](https://mufflyt.github.io/mufflyaccess/reference/urps_counts_long.md) | A **wide** slice (default `board_certified_active` / `national`, years 2013–2023, with `*_status` columns) / the complete **long** table across all cells. |
+| [`urps_provenance()`](https://mufflyt.github.io/mufflyaccess/reference/urps_provenance.md) | Manifest as a list: `artifact_source`, `canonical_release`, `suitable_for_release`, `contract_version`, `canonical_2023_estimand`, `measures`, `geographies`, `snapshot_date` (Date), `source_sha256` / `source_git_commit`, `git_commit_semantics`, `package_version`, … |
+| `validate_urps_artifact(path)` | Fail-loud **semantic** validation of an artifact directory: contract version, schema, year windows, both-geography completeness, reconciliation, hashes, canonical-cell agreement, and (with a parquet reader) provider reconstruction. |
+| `validate_urps_ssot(counts = NULL, require_external, require_canonical, require_contract_version, require_source_git_commit)` | The active-artifact / wide-table check plus release gates. |
+| `use_urps_artifact(dir)` | Point the readers at a released isochrones `artifacts/workforce/` directory. **Fails closed** via [`validate_urps_artifact()`](https://mufflyt.github.io/mufflyaccess/reference/validate_urps_artifact.md). `NULL` = bundled bootstrap. |
+| `compare_urps_artifacts(old, candidate)` | Release-to-release drift report. |
+
+``` r
+
+urps_count(2023, "board_certified_active", "national", FALSE)  # 1027L
+urps_count(2023, "board_certified_active", "national", TRUE)   # 1306L  (not 1339, not the retired 1332)
+urps_count(2023, "board_certified_active", "conus",    TRUE)   # 1303L
+urps_count(2025, "roster_snapshot",        "national", TRUE)   # 1339L  (2025 snapshot)
+urps_provenance()$canonical_2023_estimand    # "board_certified_active / national = 1306"
+urps_lineage()                               # 3.0.0 current (1306/1303) + 2.1.0 retired (1332/1329)
+
+# serve the released isochrones artifact instead of the bundled bootstrap:
+use_urps_artifact("path/to/isochrones/artifacts/workforce")    # validated; fails closed
+validate_urps_ssot(require_external = TRUE, require_contract_version = "3.0.0")
+```
+
+The shipped artifact carries the **v3.0.0 numbers** but is labeled a
+**bootstrap, not the canonical release** —
+`urps_provenance()$canonical_release` is `FALSE` until you point at the
+external immutable release. Selecting an external source via the
+`mufflyaccess.urps_artifact_dir` option /
+`MUFFLYACCESS_URPS_ARTIFACT_DIR` env var warns and falls back to the
+bootstrap if unusable (revealed by
+`urps_provenance()$external_artifact_error`);
+`options(mufflyaccess.urps_artifact_strict = TRUE)` makes that an error.
+The `isochrones-integration` workflow re-runs the `test-isochrones-*`
+suite against a fresh isochrones checkout pinned by SHA.
+
+The old `URPS_COUNT_ABOG_ONLY_2025` / `URPS_COUNT_ABOG_PLUS_ABU_2025`
+constants are **deprecated** — they now **warn on access** (still
+returning 1031 / 1339, the 2025 roster snapshot values); call
+[`urps_count()`](https://mufflyt.github.io/mufflyaccess/reference/urps_count.md)
+instead. Per the architecture, `isochrones` owns provider cleaning and
+the hashed snapshot; `mufflyaccess` validates it and serves the number;
+the by-year derivation reference lives in
+[`analysis/urps_counts/`](https://mufflyt.github.io/mufflyaccess/analysis/urps_counts/).
+
+### URPS scenario dictionary
+
+The single versioned vocabulary of named forward-projection scenarios
+(14 today). `mufflyaccess` owns the **definitions** — each scenario’s
+lever settings and the enum a projection table keys on; the projection
+**model** stays in `cliff`.
+
+| Function | Returns |
+|----|----|
+| [`urps_scenarios()`](https://mufflyt.github.io/mufflyaccess/reference/urps_scenarios.md) | The registry `data.frame`: one row per scenario with its `family`, label, the supply levers (`entrant_multiplier`, `retirement_shift_years`, `late_career_fte_factor` / `_onset_age`), the demand levers, and `requires_fte_model` / `requires_demand_model`. |
+| `urps_scenario(scenario_id)` | One scenario’s labelled definition (plus `components` for composites, `registry_version`); fail-loud on an unknown id. |
+| [`urps_scenario_ids()`](https://mufflyt.github.io/mufflyaccess/reference/urps_scenario_ids.md) / `is_urps_scenario(x)` | The enum / a vectorised, non-erroring membership predicate. |
+| `validate_urps_scenarios(x)` | Fail-loud guard that every id in a character vector or a `data.frame`’s `scenario_id` column is registered. |
+| `URPS_SCENARIO_REGISTRY_VERSION` | Semantic version of the registry. |
+
+### URPS projection contract
+
+The second producer→SSOT contract, mirroring the count artifact: `cliff`
+runs the workforce projection and emits a long table; `mufflyaccess`
+validates (and can serve) it, never running the model.
+
+| Function | Returns |
+|----|----|
+| [`urps_projection_schema()`](https://mufflyt.github.io/mufflyaccess/reference/urps_projection_schema.md) | The canonical long-table column spec (`column`, `type`, `optional`, `description`). |
+| `validate_urps_projection(x, baseline_tie = NULL, tol = 1e-6)` | Fail-loud contract check: every `scenario_id` registered + `baseline` present, count-contract `certification_pathway` / `geography_type` vocab, unique series keys, non-negative counts, 95% bounds bracket the point estimate, `0 ≤ supply_clinical_fte ≤ supply_headcount`, and `net_change == entrants − exits`. `baseline_tie` ties the baseline-year stock back to [`urps_count()`](https://mufflyt.github.io/mufflyaccess/reference/urps_count.md). |
+| `read_urps_projection(path, validate = TRUE, ...)` | Typed read (integer year, double measures) then validate. |
+| `URPS_PROJECTION_CONTRACT_VERSION` | Semantic version of the contract. |
+
+### URPS clinical FTE (supply side)
+
+Convert a certified headcount into clinical-FTE capacity by age,
+pathway, and sex. Each weight is ≤ 1, so effective FTE never exceeds
+headcount.
+
+| Function | Returns |
+|----|----|
+| `urps_fte_weight(age, pathway, late_from_age, late_factor)` / `urps_fte_weight_sex(...)` | Per-provider FTE weight = age-productivity × pathway clinical-time × late-career factor (with a sex-stratified hours variant). |
+| `urps_effective_fte(counts, scale = 1, ...)` / `urps_effective_fte_sex(...)` | Aggregate clinical FTE of an `(age, pathway[, sex], n)` cohort. |
+| `urps_fte_scale(reference_counts, target_headcount)` / `urps_fte_scale_sex(...)` | Normalization scale anchoring a reference cohort’s FTE to a target headcount. |
+| `urps_supply_fte_sex(cohort, ...)` | Full supply pipeline: certified headcount → `supply_clinical_fte` (sex-stratified). |
+| [`urps_fte_age_curve()`](https://mufflyt.github.io/mufflyaccess/reference/urps_fte_age_curve.md) / [`urps_fte_predicted_hours()`](https://mufflyt.github.io/mufflyaccess/reference/urps_fte_predicted_hours.md) / [`urps_fte_sex_hours_params()`](https://mufflyt.github.io/mufflyaccess/reference/urps_fte_sex_hours_params.md) | The age-productivity curve / predicted weekly patient-care hours / the OLS hours-model parameters. |
+| `URPS_FTE_PATHWAY_CLINICAL_TIME` | Pathway clinical-time weights (ABOG 1.00, ABU 0.70). |
+
+### URPS demand + gap
+
+The demand-side counterpart to the FTE supply. **Pre-calibration
+skeleton:** the `urps_demand_*` functions return `NA` until
+[`urps_demand_params()`](https://mufflyt.github.io/mufflyaccess/reference/urps_demand_params.md)
+carries fitted coefficients, so consumers wire them now and they light
+up on calibration.
+
+| Function | Returns |
+|----|----|
+| `urps_demand_fte(population, visits_per_fte, scenario_id)` / `urps_demand_clinical_fte(...)` | Projected demand in clinical-FTE units for a patient population + scenario (`NA` until calibrated). |
+| `urps_gap_fte(supply_clinical_fte, demand_clinical_fte)` | `gap_fte = demand − supply` (positive = shortage). |
+| [`urps_demand_params()`](https://mufflyt.github.io/mufflyaccess/reference/urps_demand_params.md) / [`urps_demand_scalars()`](https://mufflyt.github.io/mufflyaccess/reference/urps_demand_scalars.md) | The regression-parameter skeleton (with `calibration_status`) / the specialty × setting scalar table. |
+| `urps_demand_levers(scenario_id)` / `urps_demand_scalar(setting)` | A scenario’s four demand levers / one setting-of-care calibration scalar. |
+| `URPS_DEMAND_VERSION` / `URPS_DEMAND_SCALARS_VERSION` | Semantic versions (pre-calibration `0.1.0`). |
+
+### URPS workforce flows
+
+Stock-and-flow primitives: retirement, labour-force participation, and
+entry.
+
+| Function | Returns |
+|----|----|
+| `urps_retirement_hazard(...)` / [`urps_survival_curve()`](https://mufflyt.github.io/mufflyaccess/reference/urps_survival_curve.md) / [`urps_retirement_params()`](https://mufflyt.github.io/mufflyaccess/reference/urps_retirement_params.md) | Annual retirement hazard `P(retire | active)` / the full survival curve / literature-calibrated parameters. |
+| `urps_p_active(age, sex)` / `urps_p_still_active(age, sex, pathway)` | Probability actively practicing given age (and sex / pathway). |
+| [`urps_lfp_curve()`](https://mufflyt.github.io/mufflyaccess/reference/urps_lfp_curve.md) / [`urps_lfp_params()`](https://mufflyt.github.io/mufflyaccess/reference/urps_lfp_params.md) / `urps_apply_lfp(cohort)` | Labour-force-participation curve / parameters / application to a certified cohort. |
+| `urps_entrants(year)` / [`urps_entry_counts()`](https://mufflyt.github.io/mufflyaccess/reference/urps_entry_counts.md) | Board-certified URPS entrants for a year / entry into the certified stock by year and pathway. |
+| [`urps_retirement_status()`](https://mufflyt.github.io/mufflyaccess/reference/urps_retirement_status.md) / [`urps_require_retirement_ascertained()`](https://mufflyt.github.io/mufflyaccess/reference/urps_require_retirement_ascertained.md) | Departure-ascertainment status of the served artifact / a fail-loud guard so “unknown retirement” is never read as “zero departures”. |
+
+### URPS geographic distribution + parameter CI
+
+| Function | Returns |
+|----|----|
+| `urps_allocate_national(n, ...)` / [`urps_state_alloc_weights()`](https://mufflyt.github.io/mufflyaccess/reference/urps_state_alloc_weights.md) / [`urps_state_entrant_shares()`](https://mufflyt.github.io/mufflyaccess/reference/urps_state_entrant_shares.md) | Allocate a national provider count to CONUS states / the allocation weights / HWMM-style entrant shares. |
+| [`urps_state_female_pop()`](https://mufflyt.github.io/mufflyaccess/reference/urps_state_female_pop.md) | ACS 2016–2020 CONUS female population by state. |
+| `urps_projection_ci(...)` / `urps_ci_param_draw(...)` | Parametric-bootstrap projection confidence intervals / one parameter draw. |
+
+### Workforce & obstetric statistics
+
+Dependency-light statistics shared with the workforce-cliff manuscript.
+
+| Function | Returns |
+|----|----|
+| `calculate_proportion_ci(x, n)` / `calculate_two_prop_test(...)` | Wilson-score CI for a proportion / two-proportion z-test with an `n ≥ 30` guard. |
+| `calculate_replacement_gap(...)` / `calculate_rural_metro_comparison(...)` / `calculate_state_vulnerability(...)` | Retirees-vs-graduates replacement gap / rural-vs-metro at-risk comparison / state vulnerability ranking. |
+| `cesarean_rate_for_year(years)` / `completed_parity_for_cohort(cohorts)` / `cohort_vaginal_exposure(cohorts)` | Interpolated obstetric-exposure series: total-cesarean rate, mean completed parity, cohort vaginal-delivery exposure. |
+
+## Design principles
+
+1.  **One definition, everywhere.** If a value is shared, it lives here
+    and only here. Consumers reference it; they never re-declare it.
+2.  **Provenance travels with the value.** Every constant documents
+    where it comes from, so a reviewer can trace any published number to
+    its source.
+3.  **Fail loud, fail at load.** Validation runs in
+    [`stopifnot()`](https://rdrr.io/r/base/stopifnot.html) when the
+    namespace loads — an impossible edit breaks
+    [`library()`](https://rdrr.io/r/base/library.html) immediately
+    instead of corrupting a downstream result.
+4.  **Derive, don’t duplicate.** Related representations are computed
+    from a single base, so they cannot drift (`_SEC` from `_MIN`;
+    `_ABBR` from `_FIPS`).
+5.  **Hermetic and pinned.** Base R + `stats` + `datasets` only,
+    installed at a tagged version — reproducibility over convenience.
+
+## What is intentionally *not* here
+
+Genuinely repo-specific values stay per-repository **by design**. The
+clearest example: the `cliff` workforce-cliff supply/demand line uses a
+full-age **Nygaard-2008** population-projection curve — a *different
+cohort and source* from the 65+ **Wu-2014** access denominator that this
+package provides. The two are not interchangeable, so the Nygaard curve
+is deliberately kept in `cliff` and is **not** promoted here. When in
+doubt, a value belongs in `mufflyaccess` only if the projects must
+**agree** on it.
+
+## Development
+
+``` r
+
+# run the full test suite (testthat 3e)
+devtools::test()
+
+# check the package
+devtools::check()
+```
+
+The exported surface is guarded by ~36 test files under
+`tests/testthat/`, grouped by domain:
+
+| Domain | Representative test files |
+|----|----|
+| Constants & derived invariants | `test-constants.R`, `test-promoted-ssots.R`, `test-deprecated-urps-constants.R` |
+| Accessibility & safe-math | `test-accessibility-stats.R`, `test-safe-divide.R`, `test-workforce-statistics.R` |
+| URPS count contract | `test-urps-count.R`, `test-urps-counts-table.R`, `test-validate-urps-ssot.R`, `test-producer-release-contract.R`, `test-contract-lineage.R` |
+| Scenario dictionary & projection contract | `test-urps-scenarios.R`, `test-urps-scenarios-adversarial.R`, `test-urps-projection.R`, `test-urps-projection-adversarial.R`, `test-urps-projection-ci.R` |
+| Supply / demand / flows | `test-urps-fte.R`, `test-urps-fte-sex.R`, `test-urps-demand.R`, `test-urps-demand-scalars.R`, `test-urps-flows.R`, `test-urps-lfp.R`, `test-urps-retirement.R`, `test-urps-state-alloc.R` |
+| Obstetric exposure | `test-obstetric-exposure.R` |
+| Isochrones cross-repo contract | `test-isochrones-*.R`, `test-use-urps-artifact.R` |
+| Boundary-value & type guards | `test-urps-bva.R`, `test-urps-checkmate.R`, `test-urps-readiness.R` |
+
+`NAMESPACE` is generated by roxygen — run `devtools::document()` rather
+than editing it by hand. When you promote a new constant, add its
+primary-source provenance and a fail-loud
+[`stopifnot()`](https://rdrr.io/r/base/stopifnot.html) block in the same
+commit, and record the change in
+[`NEWS.md`](https://mufflyt.github.io/mufflyaccess/NEWS.md). See
+[`CONTRIBUTING.md`](https://mufflyt.github.io/mufflyaccess/CONTRIBUTING.md)
+for the full promotion checklist and the consumer shim pattern.
+
+Which repo consumes which export — the SSOT contract map — is documented
+in
+[`docs/CROSS_REPO_USAGE.md`](https://mufflyt.github.io/mufflyaccess/docs/CROSS_REPO_USAGE.md)
+and can be regenerated with
+[`tools/usage_matrix.sh`](https://mufflyt.github.io/mufflyaccess/tools/usage_matrix.sh).
+
+## License
+
+MIT © 2026 Tyler Muffly. See
+[LICENSE](https://mufflyt.github.io/mufflyaccess/LICENSE).
+
+------------------------------------------------------------------------
+
+## How to cite
+
+``` r
+
+citation("mufflyaccess")
+```
+
+`CITATION.cff` and `CITATION.bib` carry the same entry for GitHub and
+reference managers. ORCID
+[0000-0002-2044-1693](https://orcid.org/0000-0002-2044-1693).
+
+## Checking the docs
+
+``` sh
+Rscript data-raw/check_readme_constants.R   # README vs installed package
+```
+
+## Related
+
+| Package | Owns |
+|----|----|
+| [`mufflyaccess`](https://github.com/mufflyt/mufflyaccess) | this package — constants and safe arithmetic |
+| [`twostep`](https://github.com/mufflyt/twostep) | E2SFCA accessibility, population-weighted coverage |
+| [`mysterymaps`](https://github.com/mufflyt/mysterymaps) | map construction |
+| [`isochrones`](https://github.com/mufflyt/isochrones) | routing, water masks, the isochrone pipeline |
+| [`cliff`](https://github.com/mufflyt/cliff) | workforce retirement modelling |
+
+# Package index
+
+## All functions
+
+- [`ACS2020_CONUS_FEMALE_POP`](https://mufflyt.github.io/mufflyaccess/reference/ACS2020_CONUS_FEMALE_POP.md)
+  : National contiguous-US 2020 ACS female population
+- [`ACS_MOE_Z90`](https://mufflyt.github.io/mufflyaccess/reference/ACS_MOE_Z90.md)
+  [`CI_Z95`](https://mufflyt.github.io/mufflyaccess/reference/ACS_MOE_Z90.md)
+  [`MOE90_TO_CI95_FACTOR`](https://mufflyt.github.io/mufflyaccess/reference/ACS_MOE_Z90.md)
+  : ACS margin-of-error z multipliers and the 90-\>95 conversion factor
+- [`CANONICAL_BANDS`](https://mufflyt.github.io/mufflyaccess/reference/CANONICAL_BANDS.md)
+  : Canonical drive-time contour bands (minutes)
+- [`CONUS_STATE_ABBR`](https://mufflyt.github.io/mufflyaccess/reference/CONUS_STATE_ABBR.md)
+  : Contiguous-US state USPS abbreviations (48 states + DC), DERIVED
+  from FIPS
+- [`CONUS_STATE_FIPS`](https://mufflyt.github.io/mufflyaccess/reference/CONUS_STATE_FIPS.md)
+  : Contiguous-US state FIPS codes (48 states + DC)
+- [`DENOMINATOR_CATEGORY`](https://mufflyt.github.io/mufflyaccess/reference/DENOMINATOR_CATEGORY.md)
+  : Total-female access-table denominator category label
+- [`NON_CONTIGUOUS_CODES`](https://mufflyt.github.io/mufflyaccess/reference/NON_CONTIGUOUS_CODES.md)
+  : Non-contiguous state/territory USPS codes (excluded from CONUS
+  analyses)
+- [`NON_CONTIGUOUS_FIPS`](https://mufflyt.github.io/mufflyaccess/reference/NON_CONTIGUOUS_FIPS.md)
+  : Non-contiguous state/territory FIPS codes (excluded from CONUS
+  analyses)
+- [`PRIMARY_ACCESS_BAND_MIN`](https://mufflyt.github.io/mufflyaccess/reference/PRIMARY_ACCESS_BAND_MIN.md)
+  : Primary (headline) access drive-time band, in MINUTES
+- [`PRIMARY_ACCESS_BAND_SEC`](https://mufflyt.github.io/mufflyaccess/reference/PRIMARY_ACCESS_BAND_SEC.md)
+  : Primary access band, in SECONDS (derived)
+- [`RUCA_NONMETRO_MIN`](https://mufflyt.github.io/mufflyaccess/reference/RUCA_NONMETRO_MIN.md)
+  : Canonical 2-level RUCA breakpoint: first NON-metropolitan primary
+  code
+- [`TOTAL_FEMALE_VAR`](https://mufflyt.github.io/mufflyaccess/reference/TOTAL_FEMALE_VAR.md)
+  [`RACE_FEMALE_VARS`](https://mufflyt.github.io/mufflyaccess/reference/TOTAL_FEMALE_VAR.md)
+  : Canonical ACS female-population variable codes
+- [`TRACT_REACHED_COVERAGE_PCT`](https://mufflyt.github.io/mufflyaccess/reference/TRACT_REACHED_COVERAGE_PCT.md)
+  : Tract "reached"/"covered" population-coverage threshold (percent)
+- [`URPS_DEMAND_SCALARS_VERSION`](https://mufflyt.github.io/mufflyaccess/reference/URPS_DEMAND_SCALARS_VERSION.md)
+  : Version of the URPS demand calibration scalar skeleton
+- [`URPS_DEMAND_VERSION`](https://mufflyt.github.io/mufflyaccess/reference/URPS_DEMAND_VERSION.md)
+  : Version of the URPS demand prediction equation skeleton
+- [`URPS_FTE_PATHWAY_CLINICAL_TIME`](https://mufflyt.github.io/mufflyaccess/reference/URPS_FTE_PATHWAY_CLINICAL_TIME.md)
+  : Pathway clinical-time fractions for the URPS clinical-FTE weighting
+- [`URPS_FTE_REFERENCE_HOURS_PER_WEEK`](https://mufflyt.github.io/mufflyaccess/reference/URPS_FTE_REFERENCE_HOURS_PER_WEEK.md)
+  : Standard medical FTE reference (hours per week)
+- [`URPS_FTE_SEX_HOURS_VERSION`](https://mufflyt.github.io/mufflyaccess/reference/URPS_FTE_SEX_HOURS_VERSION.md)
+  : Version of the URPS sex-stratified FTE hours model
+- [`URPS_LFP_VERSION`](https://mufflyt.github.io/mufflyaccess/reference/URPS_LFP_VERSION.md)
+  : Version of the URPS labor force participation model
+- [`URPS_PROJECTION_CONTRACT_VERSION`](https://mufflyt.github.io/mufflyaccess/reference/URPS_PROJECTION_CONTRACT_VERSION.md)
+  : Version of the URPS projection contract
+- [`URPS_RETIREMENT_CURVE_VERSION`](https://mufflyt.github.io/mufflyaccess/reference/URPS_RETIREMENT_CURVE_VERSION.md)
+  : Version of the URPS retirement survival curve model
+- [`URPS_SCENARIO_REGISTRY_VERSION`](https://mufflyt.github.io/mufflyaccess/reference/URPS_SCENARIO_REGISTRY_VERSION.md)
+  : Version of the URPS scenario registry
+- [`WU2014_PFD_PREVALENCE`](https://mufflyt.github.io/mufflyaccess/reference/WU2014_PFD_PREVALENCE.md)
+  : Wu 2014 age-specific symptomatic pelvic-floor-disorder (PFD)
+  prevalence, women 65+
+- [`accessibility_stats`](https://mufflyt.github.io/mufflyaccess/reference/accessibility_stats.md)
+  : Accessibility-disparity pure statistics (SSOT)
+- [`acs_year_of()`](https://mufflyt.github.io/mufflyaccess/reference/acs_year_of.md)
+  : ACS 5-year data year for a study year (clamped to the 2013-2022
+  window).
+- [`annual_trend()`](https://mufflyt.github.io/mufflyaccess/reference/annual_trend.md)
+  : OLS temporal trend of an annual series (95% t-interval on the
+  slope).
+- [`assert_travel_time_eligible()`](https://mufflyt.github.io/mufflyaccess/reference/assert_travel_time_eligible.md)
+  : Refuse coordinates that are not fit for routing
+- [`calculate_proportion_ci()`](https://mufflyt.github.io/mufflyaccess/reference/calculate_proportion_ci.md)
+  : Wilson-score confidence interval for a single proportion
+- [`calculate_replacement_gap()`](https://mufflyt.github.io/mufflyaccess/reference/calculate_replacement_gap.md)
+  : Subspecialty replacement-gap analysis (retirees vs fellowship
+  graduates)
+- [`calculate_rural_metro_comparison()`](https://mufflyt.github.io/mufflyaccess/reference/calculate_rural_metro_comparison.md)
+  : Rural-vs-metro at-risk comparison (rates, Wilson CIs, two-proportion
+  test)
+- [`calculate_state_vulnerability()`](https://mufflyt.github.io/mufflyaccess/reference/calculate_state_vulnerability.md)
+  : Rank states by workforce vulnerability
+- [`calculate_two_prop_test()`](https://mufflyt.github.io/mufflyaccess/reference/calculate_two_prop_test.md)
+  : Two-proportion z-test with an n \>= 30 guard
+- [`canon_npi()`](https://mufflyt.github.io/mufflyaccess/reference/canon_npi.md)
+  : Canonicalize NPI identifiers to 10-digit strings (SSOT)
+- [`cesarean_rate_for_year()`](https://mufflyt.github.io/mufflyaccess/reference/cesarean_rate_for_year.md)
+  : US total-cesarean rate, interpolated across cited anchor years
+- [`cohort_vaginal_exposure()`](https://mufflyt.github.io/mufflyaccess/reference/cohort_vaginal_exposure.md)
+  : Cohort vaginal-delivery exposure
+- [`compare_urps_artifacts()`](https://mufflyt.github.io/mufflyaccess/reference/compare_urps_artifacts.md)
+  : Compare two URPS workforce artifacts (release-to-release drift)
+- [`completed_parity_for_cohort()`](https://mufflyt.github.io/mufflyaccess/reference/completed_parity_for_cohort.md)
+  : Mean completed parity by birth cohort, interpolated across cited
+  anchors
+- [`coordinate_fitness`](https://mufflyt.github.io/mufflyaccess/reference/coordinate_fitness.md)
+  : Coordinate fitness for travel-time analysis
+- [`fingerprint_files()`](https://mufflyt.github.io/mufflyaccess/reference/fingerprint_files.md)
+  : SHA-256 fingerprint of the producing source file(s)
+- [`fingerprint_object()`](https://mufflyt.github.io/mufflyaccess/reference/fingerprint_object.md)
+  : SHA-256 fingerprint of an in-memory R object
+- [`get_canonical_bands()`](https://mufflyt.github.io/mufflyaccess/reference/get_canonical_bands.md)
+  : Return the canonical generation bands (minutes).
+- [`get_primary_access_band()`](https://mufflyt.github.io/mufflyaccess/reference/get_primary_access_band.md)
+  : Return the primary access band in the requested units.
+- [`is_urps_scenario()`](https://mufflyt.github.io/mufflyaccess/reference/is_urps_scenario.md)
+  : Is a value a registered scenario id? (vectorised predicate)
+- [`mc_weighted_ci()`](https://mufflyt.github.io/mufflyaccess/reference/mc_weighted_ci.md)
+  : Monte-Carlo CI for a population-weighted accessibility statistic.
+  Redraws weights ~ Normal(est, se) B times (unbiased: point estimate
+  lies inside its interval).
+- [`pfd_prevalence()`](https://mufflyt.github.io/mufflyaccess/reference/pfd_prevalence.md)
+  : Two-bracket Wu-2014 PFD prevalence for one condition
+- [`pfd_prevalence_acs_bands()`](https://mufflyt.github.io/mufflyaccess/reference/pfd_prevalence_acs_bands.md)
+  : Wu-2014 PFD prevalence as a named vector over the ACS 65+ age-band
+  columns
+- [`read_urps_demand_params()`](https://mufflyt.github.io/mufflyaccess/reference/read_urps_demand_params.md)
+  : Read a fitted URPS demand-model parameter artifact
+- [`read_urps_projection()`](https://mufflyt.github.io/mufflyaccess/reference/read_urps_projection.md)
+  : Read a URPS projection table (typed), optionally validating it
+- [`rurality_from_ruca()`](https://mufflyt.github.io/mufflyaccess/reference/rurality_from_ruca.md)
+  : Map a USDA RUCA primary code to a binary rurality class.
+  Metropolitan = primary RUCA 1..(RUCA_NONMETRO_MIN-1); Rural =
+  RUCA_NONMETRO_MIN..10.
+- [`safe_divide()`](https://mufflyt.github.io/mufflyaccess/reference/safe_divide.md)
+  : Safe Division with Zero-Denominator Handling
+- [`safe_divide_manu()`](https://mufflyt.github.io/mufflyaccess/reference/safe_divide_manu.md)
+  : Manuscript Alias: Safe Division
+- [`safe_pct_manu()`](https://mufflyt.github.io/mufflyaccess/reference/safe_pct_manu.md)
+  : Manuscript Alias: Safe Percentage
+- [`safe_percent()`](https://mufflyt.github.io/mufflyaccess/reference/safe_percent.md)
+  : Safe Percentage Calculation
+- [`safe_rate()`](https://mufflyt.github.io/mufflyaccess/reference/safe_rate.md)
+  : Safe Rate Calculation (per N)
+- [`safe_ratio()`](https://mufflyt.github.io/mufflyaccess/reference/safe_ratio.md)
+  : Safe Ratio Calculation
+- [`standardize_state_name()`](https://mufflyt.github.io/mufflyaccess/reference/standardize_state_name.md)
+  : Standardize US state values to canonical names or 2-letter codes
+  (SSOT)
+- [`tract_vintage_of()`](https://mufflyt.github.io/mufflyaccess/reference/tract_vintage_of.md)
+  : Census tract boundary vintage for a study year (2010 tracts \<=2019,
+  2020 \>=2020).
+- [`urps_active_ages()`](https://mufflyt.github.io/mufflyaccess/reference/urps_active_ages.md)
+  : The URPS active-age distribution
+- [`urps_allocate_national()`](https://mufflyt.github.io/mufflyaccess/reference/urps_allocate_national.md)
+  : Allocate a national provider count to CONUS states
+- [`urps_apply_lfp()`](https://mufflyt.github.io/mufflyaccess/reference/urps_apply_lfp.md)
+  : Apply LFP to a certified cohort to obtain the practicing headcount
+- [`urps_ci_param_draw()`](https://mufflyt.github.io/mufflyaccess/reference/urps_ci_param_draw.md)
+  : Draw one perturbed parameter set for a bootstrap replicate
+- [`urps_count()`](https://mufflyt.github.io/mufflyaccess/reference/urps_count.md)
+  : National URPS workforce count – the published SSOT accessor
+- [`urps_counts()`](https://mufflyt.github.io/mufflyaccess/reference/urps_counts.md)
+  : A wide URPS workforce slice for one measure x geography
+- [`urps_counts_long()`](https://mufflyt.github.io/mufflyaccess/reference/urps_counts_long.md)
+  : The complete long URPS workforce table (all measures x geographies)
+- [`urps_demand_clinical_fte()`](https://mufflyt.github.io/mufflyaccess/reference/urps_demand_clinical_fte.md)
+  : Compute demand_clinical_fte from a patient population and the fitted
+  equations
+- [`urps_demand_fte()`](https://mufflyt.github.io/mufflyaccess/reference/urps_demand_fte.md)
+  : Scenario-aware demand FTE: registry lookup + clinical FTE in one
+  call
+- [`urps_demand_levers()`](https://mufflyt.github.io/mufflyaccess/reference/urps_demand_levers.md)
+  : Retrieve demand lever settings for a scenario (cliff integration
+  helper)
+- [`urps_demand_params()`](https://mufflyt.github.io/mufflyaccess/reference/urps_demand_params.md)
+  : URPS healthcare use prediction equation parameters (skeleton)
+- [`urps_demand_params_schema()`](https://mufflyt.github.io/mufflyaccess/reference/urps_demand_params_schema.md)
+  : Schema of a URPS demand-model parameter artifact
+- [`urps_demand_scalar()`](https://mufflyt.github.io/mufflyaccess/reference/urps_demand_scalar.md)
+  : Look up the calibration scalar for a service setting
+- [`urps_demand_scalars()`](https://mufflyt.github.io/mufflyaccess/reference/urps_demand_scalars.md)
+  : URPS specialty x setting calibration scalar table (skeleton)
+- [`urps_departures()`](https://mufflyt.github.io/mufflyaccess/reference/urps_departures.md)
+  : Observed URPS workforce departures
+- [`urps_deprecated_constants`](https://mufflyt.github.io/mufflyaccess/reference/urps_deprecated_constants.md)
+  : Deprecated frozen URPS workforce constants
+- [`urps_effective_fte()`](https://mufflyt.github.io/mufflyaccess/reference/urps_effective_fte.md)
+  : Effective clinical-FTE of a headcount cohort
+- [`urps_effective_fte_sex()`](https://mufflyt.github.io/mufflyaccess/reference/urps_effective_fte_sex.md)
+  : Effective clinical FTE of a sex-stratified headcount cohort
+- [`urps_entrants()`](https://mufflyt.github.io/mufflyaccess/reference/urps_entrants.md)
+  : Board-certified URPS entrants for a single year
+- [`urps_entry_counts()`](https://mufflyt.github.io/mufflyaccess/reference/urps_entry_counts.md)
+  : Entry into the board-certified URPS stock, by year and pathway
+- [`urps_exit_counts()`](https://mufflyt.github.io/mufflyaccess/reference/urps_exit_counts.md)
+  : Observed URPS workforce departures by year
+- [`urps_exit_hazard_by_age_year()`](https://mufflyt.github.io/mufflyaccess/reference/urps_exit_hazard_by_age_year.md)
+  : Observed URPS exit hazard by age and year
+- [`urps_fte_age_curve()`](https://mufflyt.github.io/mufflyaccess/reference/urps_fte_age_curve.md)
+  : The canonical URPS age-productivity curve
+- [`urps_fte_predicted_hours()`](https://mufflyt.github.io/mufflyaccess/reference/urps_fte_predicted_hours.md)
+  : Predicted weekly patient care hours by age and sex
+- [`urps_fte_scale()`](https://mufflyt.github.io/mufflyaccess/reference/urps_fte_scale.md)
+  : Normalization scale anchoring a reference cohort's effective FTE to
+  a target
+- [`urps_fte_scale_sex()`](https://mufflyt.github.io/mufflyaccess/reference/urps_fte_scale_sex.md)
+  : Normalization scale anchoring a sex-stratified reference cohort's
+  FTE to a target
+- [`urps_fte_sex_hours_params()`](https://mufflyt.github.io/mufflyaccess/reference/urps_fte_sex_hours_params.md)
+  : OLS parameters for the URPS sex-stratified weekly patient care hours
+  model
+- [`urps_fte_weight()`](https://mufflyt.github.io/mufflyaccess/reference/urps_fte_weight.md)
+  : Per-provider URPS clinical-FTE weight
+- [`urps_fte_weight_sex()`](https://mufflyt.github.io/mufflyaccess/reference/urps_fte_weight_sex.md)
+  : Per-provider URPS FTE weight (sex-stratified hours model)
+- [`urps_gap_fte()`](https://mufflyt.github.io/mufflyaccess/reference/urps_gap_fte.md)
+  : Compute gap_fte from supply and demand clinical FTE
+- [`urps_lfp_curve()`](https://mufflyt.github.io/mufflyaccess/reference/urps_lfp_curve.md)
+  : Full URPS labor force participation curve as a data.frame
+- [`urps_lfp_params()`](https://mufflyt.github.io/mufflyaccess/reference/urps_lfp_params.md)
+  : Literature-calibrated URPS labor force participation parameters
+- [`urps_lineage()`](https://mufflyt.github.io/mufflyaccess/reference/urps_lineage.md)
+  : URPS contract lineage (which cells are current vs retired)
+- [`urps_p_active()`](https://mufflyt.github.io/mufflyaccess/reference/urps_p_active.md)
+  : P(actively practicing) given age and sex
+- [`urps_p_still_active()`](https://mufflyt.github.io/mufflyaccess/reference/urps_p_still_active.md)
+  : P(still active) at a given age under the URPS logistic retirement
+  model
+- [`urps_projection()`](https://mufflyt.github.io/mufflyaccess/reference/urps_projection.md)
+  : The canonical URPS supply projection
+- [`urps_projection_ci()`](https://mufflyt.github.io/mufflyaccess/reference/urps_projection_ci.md)
+  : Parametric-bootstrap confidence intervals for the URPS supply
+  projection
+- [`urps_projection_schema()`](https://mufflyt.github.io/mufflyaccess/reference/urps_projection_schema.md)
+  : The URPS projection-table contract schema
+- [`urps_provenance()`](https://mufflyt.github.io/mufflyaccess/reference/urps_provenance.md)
+  : Provenance / manifest for the URPS workforce SSOT
+- [`urps_require_retirement_ascertained()`](https://mufflyt.github.io/mufflyaccess/reference/urps_require_retirement_ascertained.md)
+  : Require observed retirement before using a retirement/departure
+  count
+- [`urps_retired_values()`](https://mufflyt.github.io/mufflyaccess/reference/urps_retired_values.md)
+  : Values retired from an earlier URPS contract (never present as
+  current)
+- [`urps_retirement_hazard()`](https://mufflyt.github.io/mufflyaccess/reference/urps_retirement_hazard.md)
+  : Annual retirement hazard: P(retire at age \| active at age - 1)
+- [`urps_retirement_params()`](https://mufflyt.github.io/mufflyaccess/reference/urps_retirement_params.md)
+  : Literature-calibrated URPS retirement survival curve parameters
+- [`urps_retirement_status()`](https://mufflyt.github.io/mufflyaccess/reference/urps_retirement_status.md)
+  : Retirement/departure ascertainment status of the active URPS
+  artifact
+- [`urps_scenario()`](https://mufflyt.github.io/mufflyaccess/reference/urps_scenario.md)
+  : One scenario's definition
+- [`urps_scenario_ids()`](https://mufflyt.github.io/mufflyaccess/reference/urps_scenario_ids.md)
+  : The registered scenario ids (the enum)
+- [`urps_scenarios()`](https://mufflyt.github.io/mufflyaccess/reference/urps_scenarios.md)
+  : The URPS workforce scenario dictionary
+- [`urps_state_alloc_weights()`](https://mufflyt.github.io/mufflyaccess/reference/urps_state_alloc_weights.md)
+  : URPS state allocation weights
+- [`urps_state_entrant_shares()`](https://mufflyt.github.io/mufflyaccess/reference/urps_state_entrant_shares.md)
+  : URPS state entrant allocation shares (HWMM-style)
+- [`urps_state_female_pop()`](https://mufflyt.github.io/mufflyaccess/reference/urps_state_female_pop.md)
+  : ACS 2016-2020 CONUS female population by state
+- [`urps_supply_fte_sex()`](https://mufflyt.github.io/mufflyaccess/reference/urps_supply_fte_sex.md)
+  : Full supply pipeline: certified headcount -\> supply_clinical_fte
+  (sex-stratified)
+- [`urps_survival_curve()`](https://mufflyt.github.io/mufflyaccess/reference/urps_survival_curve.md)
+  : Full URPS retirement survival curve as a data.frame
+- [`use_urps_artifact()`](https://mufflyt.github.io/mufflyaccess/reference/use_urps_artifact.md)
+  : Select the URPS workforce artifact mufflyaccess serves
+- [`validate_urps_artifact()`](https://mufflyt.github.io/mufflyaccess/reference/validate_urps_artifact.md)
+  : Validate a URPS workforce artifact directory (fail loud, semantic)
+- [`validate_urps_demand_params()`](https://mufflyt.github.io/mufflyaccess/reference/validate_urps_demand_params.md)
+  : Validate a URPS demand-model parameter artifact
+- [`validate_urps_exit_evidence()`](https://mufflyt.github.io/mufflyaccess/reference/validate_urps_exit_evidence.md)
+  : Validate a normalized URPS provider-month evidence table
+- [`validate_urps_projection()`](https://mufflyt.github.io/mufflyaccess/reference/validate_urps_projection.md)
+  : Validate a URPS projection table against the contract (fail loud)
+- [`validate_urps_scenarios()`](https://mufflyt.github.io/mufflyaccess/reference/validate_urps_scenarios.md)
+  : Validate that scenarios are registered (fail loud)
+- [`validate_urps_ssot()`](https://mufflyt.github.io/mufflyaccess/reference/validate_urps_ssot.md)
+  : Validate the URPS workforce SSOT (fail loud)
+- [`weighted_mean_all()`](https://mufflyt.github.io/mufflyaccess/reference/weighted_mean_all.md)
+  : Population-weighted mean over all elements (sparse-group safe).
+- [`zero_access_share()`](https://mufflyt.github.io/mufflyaccess/reference/zero_access_share.md)
+  : Zero-access share (percent of weighted population with access
+  EXACTLY 0).
+

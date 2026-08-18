@@ -1,0 +1,747 @@
+# Changelog
+
+## mufflyaccess 0.12.0
+
+- **New:
+  [`urps_active_ages()`](https://mufflyt.github.io/mufflyaccess/reference/urps_active_ages.md)
+  and
+  [`urps_projection()`](https://mufflyt.github.io/mufflyaccess/reference/urps_projection.md)
+  – two facts consumers were copying now have one home.** The package
+  served URPS counts, lineage, hazards, scenarios and the FTE curve, but
+  not the active-age distribution or the published projection. So every
+  consumer kept its own copy, and copies drift.
+
+  cliff’s Shiny scenarios app carried the age distribution as a
+  **1,306-element literal vector**, replicated into a second app and
+  kept in step by a bespoke sync script plus a drift guard – machinery
+  whose only purpose was to compensate for the absence of an upstream
+  source. On 2026-08-16 two bundled artifact copies were found diverged:
+  one app was presenting a 1,339-based supply curve, across every year
+  of the trajectory and every derived per-100k column, months after the
+  repository had moved to 1,306.
+
+  `urps_active_ages(pathway, geography, as = c("counts", "vector"))`
+  serves the distribution; the `"vector"` form expands it to one element
+  per provider, which is what a microsimulation consumes.
+  [`urps_projection()`](https://mufflyt.github.io/mufflyaccess/reference/urps_projection.md)
+  serves the published result: baseline and horizon headcount (immediate
+  and entry-ramped), interval, entrants, exits and replacement ratio.
+
+  Both **reconcile on every call**. The ages must total the
+  [`urps_count()`](https://mufflyt.github.io/mufflyaccess/reference/urps_count.md)
+  for the same pathway and geography, and the projection must start from
+  that same count; a disagreement fails loud rather than returning a
+  plausible number. `ABOG_PLUS_ABU` is summed on read rather than
+  stored, so a combined total cannot contradict its parts.
+
+  The package owns the definitions; it does not run the projection.
+  cliff produces the numbers, mufflyaccess serves the reviewed result.
+  Regenerate with `data-raw/build_urps_active_ages_and_projection.R`.
+
+## mufflyaccess 0.11.1
+
+- **BREAKING (guard): unknown geocode fitness is no longer eligible.**
+  [`assert_travel_time_eligible()`](https://mufflyt.github.io/mufflyaccess/reference/assert_travel_time_eligible.md)
+  treated `usable_for_travel_time = NA` as passing, because `which(!x)`
+  drops `NA` – so the effective contract was “eligible unless proven
+  otherwise”, which is the wrong default for a guard protecting
+  travel-time inference. An unverified coordinate that silently passes
+  is the failure the function exists to prevent. The column is now an
+  explicit three-state contract: `TRUE` eligible, `FALSE` refused as
+  known unfit, `NA` refused as *never established*.
+
+  `NA` is refused with its **own** message rather than folded into the
+  `FALSE` one: “we never checked this row” and “this row is known bad”
+  are different facts, and a caller reporting an exclusion has to be
+  able to say which. For the same reason, do **not** coerce `NA` to
+  `FALSE` upstream to satisfy this – that discards the provenance of
+  never having checked. Unknown rows are reported before known-bad ones,
+  since their status is recoverable by verifying rather than only by
+  exclusion.
+
+  `NA` in `coord_source` still passes, and that asymmetry is deliberate
+  and pinned by a test: `coord_source` is a provenance label, not a
+  fitness verdict, and an absent label is not a claim that a coordinate
+  is unfit.
+
+- **Coverage for the promoted code, taken from where it came from.**
+  Rather than writing new tests for functions promoted from isochrones,
+  the suites that already guarded them upstream were brought across.
+  `test-accessibility-stats-adversarial.R` is ported from isochrones’
+  `test-accessibility-stratification.R` – the file
+  `R/accessibility_stats.R` already names as its guard. The functions
+  were promoted here verbatim, but their tests stayed behind, leaving a
+  30-line smoke test in place of the property, regression and edge-case
+  coverage in the origin repo. It carries the upstream regression guard
+  for the Monte-Carlo clamp/filter bug, where the estimator dropped
+  negative draws and pushed the point estimate outside its own
+  confidence interval for sparse groups.
+
+- **The promoted functions are now checked against their originals.**
+  [`canon_npi()`](https://mufflyt.github.io/mufflyaccess/reference/canon_npi.md)
+  and
+  [`standardize_state_name()`](https://mufflyt.github.io/mufflyaccess/reference/standardize_state_name.md)
+  were promoted so the three repos would share one definition, but
+  isochrones still carries its own copies in `R/join_standards.R` and
+  `R/utils_standardized.R`. Two live implementations of a single source
+  of truth is the drift this package exists to prevent, and nothing
+  compared them. `test-promoted-origin-parity.R` compares the parsed
+  source of both copies, normalising away `pkg::` qualification, layout,
+  comments, and the
+  [`cat()`](https://rdrr.io/r/base/cat.html)/`maybe_beep()`
+  instrumentation deliberately dropped on promotion – so what is
+  compared is the logic. Executing the origin copies was tried first and
+  rejected: they are scripts rather than a package, so the verdict
+  depended on what happened to be installed. Parsing runs nothing and is
+  identical everywhere. They agree today. Runs in the
+  isochrones-integration workflow against isochrones `main`; the only
+  thing that makes it skip is the absence of a checkout, every other
+  problem being a failure, because a guard that quietly disables itself
+  reports green while checking nothing.
+
+- **[`assert_travel_time_eligible()`](https://mufflyt.github.io/mufflyaccess/reference/assert_travel_time_eligible.md)
+  is tested.** It was the only export no test named. The guard exists
+  because “whoever happened to be geocoded” silently redefined a
+  denominator once before, so an untested guard against silent exclusion
+  was the same failure one level up. Note one pinned behaviour: an `NA`
+  in `usable_for_travel_time` currently PASSES, since `which(!NA)` is
+  empty – unknown fitness is treated as fit. That is the one path where
+  a row goes unchecked in silence, and is flagged for a decision rather
+  than endorsed.
+
+## mufflyaccess 0.11.0
+
+- **Drift guards for the cross-repo contract.** Three things this
+  package promises were not actually checked anywhere. (1) The exported
+  API surface is now recorded in `tests/testthat/api-surface.txt` and
+  enforced by `test-api-surface.R`: a removed or renamed export fails
+  here rather than surfacing as `could not find function` inside
+  isochrones, cliff or twostep after they next move their pin, and a new
+  export has to be recorded so widening a shared contract is visible in
+  review. (2) The in-repo fixture is compared byte-for-byte against the
+  artifact isochrones actually released at the pinned commit –
+  `build_share_package.R` generates the collaborator-facing package from
+  the *fixture*, so undetected fixture drift would publish figures
+  derived from data that was never released, with every other check
+  still passing. (3) `share/acs_sheps` regeneration and `man/`
+  re-documentation are now gated in CI, the two drifts corrected in this
+  release.
+
+- **ACS/Sheps share package: retirement schema + semantics corrected.**
+  Two distinct collaborator-facing changes to `share/acs_sheps/out/`,
+  both in `urps_national_series_v3.0.0.csv`:
+
+  1.  **Schema change.** A new `retirement_status` column is added,
+      carrying `observed` / `partially_observed` / `not_ascertained` per
+      row. Consumers that read the file positionally, assume a fixed
+      column count, or pin a column order must be updated; consumers
+      reading by name are unaffected except for the value change below.
+  2.  **Data-semantic correction.** `n_retired` is now `NA` (empty in
+      the CSV) wherever retirement was never ascertained. It was
+      previously published as `0`, which wrongly asserted a *known
+      absence* of retirement rather than an unknown quantity.
+
+  **`NA` here does not mean zero, and must not be substituted with
+  zero.** Every currently published row is `not_ascertained`: the
+  pre-2023 series is a survivorship-biased certification build-up, so
+  treating the old `0` as a real departure count understates attrition
+  and inflates any retention or net-growth figure derived from it.
+  Downstream results computed from the previous file will change, and
+  that change is a correction.
+
+  The package itself has served these semantics since the 0.7.1
+  corrective release (see *“Retirement is not a numeric zero”* below);
+  the generated share outputs were left behind, having been produced by
+  an older build, so the published artifact and the package disagreed
+  until now. The regenerated files are unchanged in every other respect
+  – no canonical count moved, and the contract remains v3.0.0 from
+  source commit `74085a9e6`.
+
+- **URPS clinical-FTE model (Phase 3).** Fills the `supply_clinical_fte`
+  column the projection contract (0.10.0) reserves. New API:
+  `URPS_FTE_PATHWAY_CLINICAL_TIME` (ABOG 1.0 / ABU 0.70),
+  [`urps_fte_age_curve()`](https://mufflyt.github.io/mufflyaccess/reference/urps_fte_age_curve.md),
+  [`urps_fte_weight()`](https://mufflyt.github.io/mufflyaccess/reference/urps_fte_weight.md)
+  (age productivity x pathway clinical time x optional late-career
+  factor),
+  [`urps_effective_fte()`](https://mufflyt.github.io/mufflyaccess/reference/urps_effective_fte.md),
+  and
+  [`urps_fte_scale()`](https://mufflyt.github.io/mufflyaccess/reference/urps_fte_scale.md)
+  (anchor a reference cohort’s effective FTE to its headcount so FTE is
+  additive across pathway/geography slices). The late-career FTE lever
+  is read from the scenario registry
+  (`urps_scenario()$late_career_fte_factor` / `_onset_age`), not
+  redefined here. `supply_clinical_fte` is a normalized capacity index,
+  not hours. Corrective release: separate *observed historical facts*
+  from *unavailable* ones, and expose certification-year entrants. No
+  canonical count changed.
+
+- **Retirement is not a numeric zero.** The artifact ships
+  `n_retired = 0` as a PLACEHOLDER (the pre-2023 series is a
+  survivorship-biased certification build-up; a true entries-and-exits
+  panel is delegated to cliff).
+  [`urps_counts_long()`](https://mufflyt.github.io/mufflyaccess/reference/urps_counts_long.md)
+  now serves `n_retired` as `NA_integer_` when retirement is not
+  observed, and adds a `retirement_status` column. New
+  [`urps_retirement_status()`](https://mufflyt.github.io/mufflyaccess/reference/urps_retirement_status.md)
+  returns `observed` / `partially_observed` / `not_ascertained` (never
+  `modeled` – modeled retirement belongs in cliff). New
+  [`urps_require_retirement_ascertained()`](https://mufflyt.github.io/mufflyaccess/reference/urps_require_retirement_ascertained.md)
+  is a fail-loud guard so a consumer can never read “unknown retirement”
+  as “zero departures.”
+  [`validate_urps_artifact()`](https://mufflyt.github.io/mufflyaccess/reference/validate_urps_artifact.md)
+  gained a matching ascertainment guard.
+
+- **Entrants from certification year.** New
+  [`urps_entry_counts()`](https://mufflyt.github.io/mufflyaccess/reference/urps_entry_counts.md)
+  and
+  [`urps_entrants()`](https://mufflyt.github.io/mufflyaccess/reference/urps_entrants.md)
+  derive entry into the board-certified URPS stock from
+  `urps_subspecialty_cert_year`. These are entry into the certified
+  stock, NOT fellowship graduation year, first year of clinical
+  practice, or net workforce growth. mufflyaccess still never
+  manufactures future entrants (that is cliff).
+
+- **Semantic + adversarial tests** for the scenario dictionary and the
+  projection contract (+84 assertions). Semantic: the retirement family
+  is ordered earlier \< baseline \< later, the entry family brackets the
+  baseline entrant rate with symmetric +/-10% moves, composites point
+  the right way on every supply axis, each single-lever family perturbs
+  only its own lever, `baseline` is the unique fully-neutral origin (all
+  supply and demand levers neutral), and `requires_fte_model` marks
+  exactly the FTE-touching scenarios. Adversarial: membership is exact
+  (case, whitespace, partials, and near-miss ids rejected; one bad id
+  among many caught; factor/NA columns handled), and a one-cell mutation
+  matrix over the projection validator rejects each subtly-wrong cell –
+  plus baseline-tie pathway mapping, retired-stock smuggling, the
+  flow-identity tolerance boundary, required-vs-optional column
+  semantics, and reader path guards.
+
+- **Stricter projection validation.**
+  [`validate_urps_projection()`](https://mufflyt.github.io/mufflyaccess/reference/validate_urps_projection.md)
+  enforces `0 <= supply_clinical_fte <= supply_headcount` where present
+  (a head is at most 1.0 clinical FTE) – an invariant the adversarial
+  pass surfaced.
+
+## mufflyaccess 0.10.0
+
+- **URPS projection contract (new).** The second producer -\> SSOT
+  contract, mirroring the isochrones count artifact: cliff runs the
+  workforce projection engine and emits a long projection table;
+  mufflyaccess validates and can serve it, but never runs the model. New
+  API:
+  [`urps_projection_schema()`](https://mufflyt.github.io/mufflyaccess/reference/urps_projection_schema.md)
+  (the canonical long-table column spec),
+  [`validate_urps_projection()`](https://mufflyt.github.io/mufflyaccess/reference/validate_urps_projection.md)
+  (fail-loud: required columns, every `scenario_id` registered in
+  [`urps_scenarios()`](https://mufflyt.github.io/mufflyaccess/reference/urps_scenarios.md),
+  the `baseline` scenario present, `certification_pathway` /
+  `geography_type` in the count-contract vocabularies, no duplicate
+  series keys, non-negative counts, 95% bounds bracket the point
+  estimate, and the `net_change == entrants - exits` flow identity),
+  [`read_urps_projection()`](https://mufflyt.github.io/mufflyaccess/reference/read_urps_projection.md)
+  (typed read + validate), and `URPS_PROJECTION_CONTRACT_VERSION`.
+  `validate_urps_projection(..., baseline_tie=)` ties the baseline-year
+  starting stock back to
+  [`urps_count()`](https://mufflyt.github.io/mufflyaccess/reference/urps_count.md),
+  so a projection can never silently start from a number the SSOT does
+  not serve. The table is long (one row per year x scenario_id x
+  specialty x pathway x geography), so a new
+  scenario/year/pathway/geography is a row, not a schema change;
+  `supply_clinical_fte` is a contract column but stays `NA` until the
+  FTE model (Phase 3). A conforming example ships at
+  `inst/extdata/urps_projection_example.csv`.
+
+## mufflyaccess 0.9.0
+
+- **URPS scenario dictionary (new).** A single, versioned vocabulary of
+  named forward-projection scenarios for the URPS workforce, so the
+  consumer repos stop defining scenarios three different ways and a
+  projection table can key on one agreed `scenario_id` enum. New API:
+  [`urps_scenarios()`](https://mufflyt.github.io/mufflyaccess/reference/urps_scenarios.md)
+  (the registry as a `data.frame`),
+  [`urps_scenario()`](https://mufflyt.github.io/mufflyaccess/reference/urps_scenario.md)
+  (one definition, fail-loud),
+  [`urps_scenario_ids()`](https://mufflyt.github.io/mufflyaccess/reference/urps_scenario_ids.md),
+  [`is_urps_scenario()`](https://mufflyt.github.io/mufflyaccess/reference/is_urps_scenario.md)
+  (vectorised predicate),
+  [`validate_urps_scenarios()`](https://mufflyt.github.io/mufflyaccess/reference/validate_urps_scenarios.md)
+  (fail-loud guard for a projection table’s `scenario_id` column), and
+  `URPS_SCENARIO_REGISTRY_VERSION`. Each scenario is a point in a
+  four-axis lever space (entrant multiplier, retirement-hazard shift,
+  late-career FTE factor + onset age) with `baseline` as the neutral
+  origin; composite scenarios (`combined_pessimistic`,
+  `combined_investment`) are cross-checked against their single-lever
+  components at load so the table cannot drift. mufflyaccess owns the
+  scenario *definitions* (the lever values every repo agrees on),
+  **not** the projection model, which stays in cliff. FTE scenarios
+  carry `requires_fte_model = TRUE` (a later phase). See
+  `docs/CHARTER_URPS_SSOT.md`.
+- **Docs.** New producer-provenance charter `docs/CHARTER_URPS_SSOT.md`;
+  corrected stale v2.1.0 / retired-cell (1332/1329) framing in the
+  `handoff/` material and a package comment.
+
+## mufflyaccess 0.8.1
+
+- **Machine-readable provenance in the share package.** The ACS/Sheps
+  generator (`share/acs_sheps/build_share_package.R`) now emits
+  `out/urps_provenance.json` alongside the human-readable
+  `out/urps_provenance.txt`, so downstream pipelines can consume the
+  provenance without parsing prose. The JSON is the full
+  `urps_provenance(detailed = TRUE)` chain (source-roster hashes,
+  `combined_source_sha256`, producing commit, output-artifact hashes,
+  cohort/ cert-basis definition, and the live SHA-256 integrity check).
+  The one machine-specific field (`artifact_dir`, an absolute path) is
+  dropped so the output is byte-for-byte deterministic and the CI drift
+  guard still holds.
+
+## mufflyaccess 0.8.0
+
+- **Detailed provenance.** `urps_provenance(detailed = TRUE)` adds a
+  nested `detail` element carrying the full source-to-artifact chain:
+  the enriched source rosters as a `data.frame(name, path, sha256)`, the
+  `combined_source_sha256`, the producing git commit, the
+  output-artifact hashes, the cohort/cert-basis definition (real
+  subspecialty cert dates + the fellowship-proxy fallbacks and their
+  counts), the geography-resolution rule and state-source counts, the
+  provider-snapshot reconstruction stats (`rows_national`,
+  `rows_active_2023`, future certifications), and the producer’s known
+  limitations. It also runs a **live integrity check** – the served CSV
+  / provider-parquet SHA-256 recomputed and compared to the manifest
+  (`integrity$*_verified`). The default (`detailed = FALSE`) output is
+  unchanged, so existing callers are unaffected.
+
+## mufflyaccess 0.7.2
+
+- **Documentation.** Grouped the constants into `@family` clusters so
+  the help index and pkgdown reference navigate cleanly:
+  `census denominators` (`ACS2020_CONUS_FEMALE_POP`,
+  `TOTAL_FEMALE_VAR`/`RACE_FEMALE_VARS`, `DENOMINATOR_CATEGORY`),
+  `margin-of-error`, `rurality` (`RUCA_NONMETRO_MIN` +
+  [`rurality_from_ruca()`](https://mufflyt.github.io/mufflyaccess/reference/rurality_from_ruca.md)),
+  and `TRACT_REACHED_COVERAGE_PCT` under `access-band constants`.
+  Fleshed out the ACS female-variable-code docs
+  (`@description`/`@format`/`@seealso`/`@examples`, incl. the `_017` vs
+  `_026` footgun) and added the missing `NON_CONTIGUOUS_FIPS` example.
+  Docs-only.
+
+## mufflyaccess 0.7.1
+
+- **Documentation.** Expanded the URPS SSOT roxygen: an `@details`
+  estimand model and a v3.0.0 estimand `@section` on
+  [`urps_count()`](https://mufflyt.github.io/mufflyaccess/reference/urps_count.md);
+  `\describe{}` return blocks for `urps_count(details=)`,
+  [`urps_provenance()`](https://mufflyt.github.io/mufflyaccess/reference/urps_provenance.md),
+  [`urps_counts()`](https://mufflyt.github.io/mufflyaccess/reference/urps_counts.md),
+  [`urps_lineage()`](https://mufflyt.github.io/mufflyaccess/reference/urps_lineage.md),
+  and
+  [`compare_urps_artifacts()`](https://mufflyt.github.io/mufflyaccess/reference/compare_urps_artifacts.md);
+  a per-check list for
+  [`validate_urps_artifact()`](https://mufflyt.github.io/mufflyaccess/reference/validate_urps_artifact.md);
+  and worked examples on every exported URPS function. Corrected a stale
+  example (2023 ABOG-only is 1027) and the deprecated `*_2025`
+  constants’ docs (1031/1339 are the 2025 `roster_snapshot`, not the
+  2023 active count). Package-level doc now lists the full workforce API
+  and states the v3.0.0 estimands. Docs-only.
+
+## mufflyaccess 0.7.0
+
+- **Adopted isochrones contract v3.0.0** (source commit `74085a9e6`,
+  artifact `cf7222df`). Regenerated entirely from the real artifact — no
+  value was hand-edited.
+- **The canonical 2023 count changed: national 1,306 / CONUS 1,303**
+  (ABOG **1,027** + ABU net-new **279**). v3.0.0 keys
+  `board_certified_active` on the **URPS subspecialty** certification
+  year (training-accurate, post-fellowship) instead of the primary
+  board-cert year; 33 providers whose subspecialty cert postdates 2023
+  are correctly excluded.
+- **1,332 / 1,329 are now RETIRED** (the v2.1.0 primary-cert cells).
+  They are *not* competing estimates and must never be presented as
+  current. New accessors expose the lineage:
+  [`urps_lineage()`](https://mufflyt.github.io/mufflyaccess/reference/urps_lineage.md)
+  (current vs retired, with basis) and
+  [`urps_retired_values()`](https://mufflyt.github.io/mufflyaccess/reference/urps_retired_values.md);
+  [`urps_provenance()`](https://mufflyt.github.io/mufflyaccess/reference/urps_provenance.md)
+  gains `retired_cells`, `source_description`, and `source_systems`.
+- **1,339 (2025 roster snapshot) is unchanged** and independently
+  re-validated (equals the 1,339-row provider snapshot).
+- The contract validator now requires **major version 3** (v2.x is
+  retired and fails closed) and reconstructs the active count on the
+  subspecialty-cert basis.
+- **`share/acs_sheps/` regenerated as v3.0.0** with a
+  **self-invalidating guard**: generation aborts unless the artifact is
+  contract 3.0.0 @ `74085a9e6` with national 1,306 / CONUS 1,303, and
+  fails if any output presents 1,332/1,329 as current. Outputs renamed
+  `v2.1.0` → `v3.0.0`; a join spec replaces the empty population/access
+  columns; source wording matches isochrones verbatim.
+- Cross-repository integration workflow pins the isochrones artifact by
+  SHA, runs the canonical invariants, checks the ACS/Sheps package for
+  drift, and runs the cliff + twostep consumer tests against the same
+  mufflyaccess build.
+
+## mufflyaccess 0.6.0
+
+- **Adopted the isochrones contract v2.1.0 release.** The bundled
+  artifact and the API now use the `measure x geography` schema.
+  [`urps_count()`](https://mufflyt.github.io/mufflyaccess/reference/urps_count.md)
+  gains `measure` (`board_certified_active` / `roster_snapshot`) and
+  `geography` (`national` / `conus`, case-insensitive) arguments:
+  `urps_count(year, measure, geography, include_urology, incomplete, details)`.
+- **Central scientific correction.** The canonical 2023 national active
+  count is **1332** (ABOG 1031 + ABU net-new **301**), and **conus** is
+  **1329**. The old **1339 / +308** is the **2025 `roster_snapshot`**,
+  *not* the 2023 active count – the two are no longer conflatable, and
+  requesting `roster_snapshot` for 2023 (or `board_certified_active`
+  for 2025) is a hard error.
+- **`validate_urps_artifact(path)`** – a path-based, *semantic*
+  validator (not just a checksum): supported contract major, v2.1.0
+  schema, per-measure year windows, both-geography completeness,
+  `ABOG_PLUS_ABU == ABOG + ABU_NET_NEW` reconciliation, duplicate-key /
+  missing-pathway / snapshot-date checks, release-contract canonical
+  cell agreement, CSV SHA-256 vs manifest, and – when a parquet reader
+  is present – provider-snapshot reconstruction of the served counts.
+  [`use_urps_artifact()`](https://mufflyt.github.io/mufflyaccess/reference/use_urps_artifact.md)
+  runs it and fails closed.
+- **Release gates.**
+  [`validate_urps_ssot()`](https://mufflyt.github.io/mufflyaccess/reference/validate_urps_ssot.md)
+  adds `require_canonical`, `require_contract_version`, and
+  `require_source_git_commit`.
+- **Richer provenance / details.**
+  [`urps_provenance()`](https://mufflyt.github.io/mufflyaccess/reference/urps_provenance.md)
+  exposes `measures`, `geographies`, `contract_version`,
+  `canonical_2023_estimand`, `git_commit_semantics`, and
+  `roster_reflects_certifications_through`;
+  `urps_count(..., details = TRUE)` returns a labelled record so no
+  downstream caller receives a context-free integer.
+  [`urps_counts_long()`](https://mufflyt.github.io/mufflyaccess/reference/urps_counts_long.md)
+  returns the full long table; `urps_counts(measure, geography)` slices
+  it wide.
+- **`compare_urps_artifacts(old, candidate)`** reports
+  release-to-release drift (provider add/remove, cert-year / geography /
+  pathway / count changes).
+- **Producer/consumer boundary test suite** (`test-isochrones-*`) runs
+  against the **real** immutable release bytes (checked in under
+  `tests/testthat/fixtures/isochrones-v2.1.0/`, SHA-verified); the
+  `isochrones-integration` GitHub workflow re-runs them against a fresh
+  isochrones checkout pinned by SHA to catch upstream drift.
+- Deprecated `URPS_COUNT_*_2025` constants keep their 2025 roster values
+  (1031 / 1339) but now point migrations at the matching
+  `roster_snapshot` cell.
+
+## mufflyaccess 0.5.0
+
+- **Release-readiness gates + honest bootstrap labeling.** The bundled
+  artifact is now explicitly marked a non-canonical bootstrap:
+  [`urps_provenance()`](https://mufflyt.github.io/mufflyaccess/reference/urps_provenance.md)
+  exposes `artifact_source` (`"bundled_bootstrap"` / `"external"`),
+  `canonical_release`, `suitable_for_release` (both `FALSE` for the
+  bootstrap), `contract_version`, and `external_artifact_error`.
+- **Fail-closed vs. revealed-fallback split.**
+  `use_urps_artifact("<dir>")` (the explicit call) now fails closed – an
+  invalid artifact errors and the previously active source is left
+  unchanged, never silently continuing. Selecting a source through the
+  `mufflyaccess.urps_artifact_dir` option /
+  `MUFFLYACCESS_URPS_ARTIFACT_DIR` env var instead warns and falls back
+  to the bundled bootstrap, revealing the fallback via
+  `urps_provenance()$artifact_source` / `$external_artifact_error`.
+- **Strict mode.** `options(mufflyaccess.urps_artifact_strict = TRUE)`
+  turns that silent fallback into an error;
+  `validate_urps_ssot(require_external = TRUE)` fails unless a real
+  external release is active (for release/integration gates).
+- **Explicit missingness.**
+  `urps_count(year, include_urology, incomplete = c("error", "na"))`
+  never returns a silent `0` for an unavailable year/cohort;
+  [`urps_counts()`](https://mufflyt.github.io/mufflyaccess/reference/urps_counts.md)
+  adds `abog_active_status` / `abu_net_new_status` /
+  `combined_active_status` columns (`snapshot` / `derived` /
+  `unavailable`).
+- **Geography assertion.** `urps_count(..., geography = "CONUS")` errors
+  on a mismatch with the served artifact’s declared scope; mufflyaccess
+  never re-projects counts onto a geography the artifact was not built
+  for.
+- **Hand-off tracker.** `handoff/STATUS.json` records the temporary
+  status of the isochrones/cliff patches; the producer now stamps
+  `contract_version`, `canonical_release`, and `suitable_for_release`
+  into the manifest.
+
+## mufflyaccess 0.4.0
+
+- **Wired in released isochrones artifacts.** `use_urps_artifact(dir)`
+  points the SSOT readers at an isochrones `artifacts/workforce/`
+  directory – validating it first and reverting on failure; `NULL`
+  resets to the bundled bootstrap. Also honored via the
+  `mufflyaccess.urps_artifact_dir` option /
+  `MUFFLYACCESS_URPS_ARTIFACT_DIR` env var. Verified end-to-end: a real
+  artifact generated from the isochrones snapshot is read through
+  [`urps_count()`](https://mufflyt.github.io/mufflyaccess/reference/urps_count.md)
+  /
+  [`urps_provenance()`](https://mufflyt.github.io/mufflyaccess/reference/urps_provenance.md)
+  /
+  [`validate_urps_ssot()`](https://mufflyt.github.io/mufflyaccess/reference/validate_urps_ssot.md),
+  with provenance reporting the isochrones git commit.
+- Unified the manifest schema across the isochrones producer and
+  mufflyaccess reader (`artifact_version`, `created_at`,
+  `measure_years`, `snapshot_date`, `boards`, `geographic_scope`,
+  `active_in_year_definition`, `deduplication_rule`, `source_files`
+  \[path+sha256\], `git_commit`, `method_version`, `artifact_sha256`,
+  `output_files`).
+- Hardened the reader to reject a malformed artifact (wrong
+  `board_pathway` casing) with a clear error instead of a cryptic
+  failure.
+
+## mufflyaccess 0.3.0
+
+- Reshaped the URPS SSOT interface to the cross-repo contract (the
+  red-first contract tests are now green, verified against the installed
+  package):
+  - `urps_count(year, include_urology)` returns a **bare integer** with
+    strict validation (rejects vector / NA / non-numeric `year`,
+    non-logical / NA `include_urology`, and unavailable years).
+  - [`urps_counts()`](https://mufflyt.github.io/mufflyaccess/reference/urps_counts.md)
+    returns the **wide** table:
+    `year, abog_active, abu_net_new, combined_active, measure_year, snapshot_date`
+    (Date), `method_version, source_sha256`.
+  - [`urps_provenance()`](https://mufflyt.github.io/mufflyaccess/reference/urps_provenance.md)
+    returns `measure_years`, `snapshot_date` (Date), `boards`,
+    `geographic_scope`, definitions, `source_sha256` /
+    `source_git_commit`, `method_version`, `package_version` – measure
+    year, snapshot date, and model baseline year kept separate.
+  - `validate_urps_ssot(counts = NULL)` validates a supplied wide table
+    (schema, unique + complete 2013:2023 years, 64-hex hashes, the
+    reconciliation identity `combined = abog + abu`) or the bundled
+    table.
+- Canonical artifact is now LONG with UPPERCASE pathways (`ABOG` /
+  `ABU_NET_NEW` / `ABOG_PLUS_ABU`) matching the isochrones producer
+  contract. Added `inst/extdata/urps_release_contract.json` (identical
+  copy shipped in isochrones).
+- `URPS_COUNT_ABOG_ONLY_2025` / `URPS_COUNT_ABOG_PLUS_ABU_2025` are now
+  **deprecated active bindings that warn on access** (still return 1031
+  / 1339).
+- Added the mufflyaccess contract tests; `handoff/` gains the isochrones
+  producer tests + release contract and the cliff consumer / guard /
+  version tests.
+
+## mufflyaccess 0.2.0
+
+- **Published URPS workforce SSOT interface** (implements the isochrones
+  -\> mufflyaccess -\> consumers charter in `ARCHITECTURE.md`). Ships a
+  compact canonical table (`inst/extdata/urps_counts_by_year.csv`) +
+  manifest (`inst/extdata/urps_manifest.json`) and a stable R API:
+  - `urps_count(year = 2023L, include_urology = FALSE)` – the accessor
+    consumers call (2023 without urology = 1031, with urology = 1339);
+  - [`urps_counts()`](https://mufflyt.github.io/mufflyaccess/reference/urps_counts.md)
+    – the full year x pathway table;
+  - [`urps_provenance()`](https://mufflyt.github.io/mufflyaccess/reference/urps_provenance.md)
+    – source files, hashes, definitions, scope, limits;
+  - [`validate_urps_ssot()`](https://mufflyt.github.io/mufflyaccess/reference/validate_urps_ssot.md)
+    – fail-loud check of table vs manifest + contract. Every count
+    carries `measure_year` (2023), `snapshot_date` (2026-07-22), and
+    `model_baseline_year` (2025) as SEPARATE attributes – never one
+    ambiguous year.
+- **Deprecated** `URPS_COUNT_ABOG_ONLY_2025` /
+  `URPS_COUNT_ABOG_PLUS_ABU_2025` (ambiguous `_2025` suffix); retained
+  only as the cross-check
+  [`validate_urps_ssot()`](https://mufflyt.github.io/mufflyaccess/reference/validate_urps_ssot.md)
+  asserts. Call
+  [`urps_count()`](https://mufflyt.github.io/mufflyaccess/reference/urps_count.md)
+  instead.
+- `jsonlite` added to Imports (reads the workforce manifest).
+- NOTE: the canonical table is a BOOTSTRAP of what isochrones will
+  publish as
+  `artifacts/workforce/{urps_provider_snapshot.parquet, urps_counts_by_year.csv, urps_manifest.json}`;
+  the readers swap to that versioned release when it lands. ABU is a
+  2023 snapshot only (no by-year series yet).
+
+## mufflyaccess 0.1.10
+
+- Added
+  [`urps_count()`](https://mufflyt.github.io/mufflyaccess/reference/urps_count.md)
+  – the stable SSOT interface consumers call for the national URPS
+  workforce count (`"abog_plus_abu"` = 1339 with urology, `"abog"` =
+  1031 without). Returns the count with metadata + provenance and
+  optionally validates a supplied isochrones snapshot by SHA-256
+  (`digest`, Suggests). Formalizes the `ARCHITECTURE.md` contract: cliff
+  / twostep / manuscripts / apps call
+  [`urps_count()`](https://mufflyt.github.io/mufflyaccess/reference/urps_count.md)
+  instead of reading the raw constant or hardcoding a number. Contains
+  no provider cleaning – it returns the reconciled value and the
+  fingerprint of the snapshot it came from.
+
+## mufflyaccess 0.1.9
+
+- **Corrected the frozen with-urology URPS baseline** to the reconciled
+  value: `URPS_COUNT_ABOG_PLUS_ABU_2025` is now **1339** (= 1031 ABOG +
+  308 ABU net-new), superseding the stale 1295 (= 1031 + 264,
+  pre-reinstatement), per cliff’s `SSOT_URPS_BASELINE_RECONCILIATION.md`
+  (2026-07-24). Fail-loud validation (264-\>308), provenance attributes,
+  roxygen examples, README, and the analysis-doc pointer all updated to
+  match. NOTE: this fixes the constant in THIS package only; the
+  manuscript’s own baseline SSOT (cliff
+  `workforce_projections_consolidated.csv` + its frozen sensitivity
+  suite) still needs the scoped re-run described in that doc.
+
+## mufflyaccess 0.1.8
+
+- Maintenance release: formally tags the consolidated 0.1.7
+  documentation, primary-source citations, cross-repo usage map, roxygen
+  (package help page
+  - examples/family/seealso), and the `analysis/urps_counts/` pipeline.
+    No functional change to exported constants or functions since 0.1.7.
+- Documented private-repo installation: consumers need a `GITHUB_PAT`
+  (read access to `mufflyt/mufflyaccess`) for `renv::install()` /
+  `renv::restore()`; added an install/auth section to the README, a
+  `.Renviron.example` template, and a `.gitignore` that keeps a real
+  `.Renviron` out of the repo. Generated `man/*.Rd` via roxygen2.
+
+## mufflyaccess 0.1.7
+
+- Extended the roxygen pass (docs-only; no code changed): fixed the
+  malformed multi-`@param`-on-one-line blocks in `accessibility_stats.R`
+  that 0.1.6 left in place (`w`/`est`/`se`/`stat`/`probs`/`seed`/`value`
+  were undocumented), and added `@examples`/`@family`/`@seealso` to the
+  remaining constant and accessor files 0.1.6 did not cover (access
+  bands, geography, MOE, RUCA, census denominators, thresholds,
+  categories) so the whole reference index is navigable. Run
+  `devtools::document()` to regenerate `man/`.
+
+- Documented the frozen URPS workforce constants
+  (`URPS_COUNT_ABOG_ONLY_2025`, `URPS_COUNT_ABOG_PLUS_ABU_2025`, added
+  in 0.1.5) in the README, alongside the by-year `analysis/urps_counts/`
+  pipeline they reconcile with (both land on the 1,031 ABOG active
+  figure).
+
+- Added a **package-level help page**
+  ([`?mufflyaccess`](https://mufflyt.github.io/mufflyaccess/reference/mufflyaccess-package.md))
+  via a `"_PACKAGE"` doc with a domain-grouped index of every export.
+
+- Added `@examples`/`@family`/`@seealso` to the frozen URPS workforce
+  constants (`R/urps_workforce.R`), and folded `WU2014_PFD_PREVALENCE`
+  into the `pfd-prevalence` `@family` so the table and its accessors
+  share one index page.
+
+- Expanded `README.md` to a full reference of all 34 exported objects,
+  grouped by domain, with design principles and a scope-boundary note.
+
+- Added `URL` and `BugReports` to `DESCRIPTION`.
+
+- Added this `NEWS.md` changelog.
+
+- Strengthened `@source` provenance with **primary sources**
+  (authoritative original references with URLs / DOIs) alongside the
+  internal promotion paths: ACS Table B01001 for the female-population
+  denominator and variable codes; U.S. Census Bureau ANSI/FIPS code
+  lists for the state geography; USDA ERS Rural-Urban Commuting Area
+  codes for the RUCA breakpoint; the Wu 2014 DOI and NHANES 2005-2010
+  data source for the PFD prevalence table; and the Census ACS data
+  handbook for the margin-of-error multipliers.
+
+- Added a **cross-repo usage map** (`docs/CROSS_REPO_USAGE.md`) — the
+  SSOT contract map of which repo consumes which export — plus a
+  regenerator, `tools/usage_matrix.sh`. Documents the origin
+  (`isochrones`) vs consumer (`twostep`, `cliff`) shim architecture and
+  flags exports no consumer references yet (the MOE multipliers,
+  `CONUS_STATE_ABBR`, and the Wu-2014 PFD family).
+
+- Switched `NAMESPACE` to **roxygen-generated** (removing the
+  hand-maintenance drift risk) and declared the base-package
+  dependencies in `DESCRIPTION` (`Imports: datasets, stats`;
+  `Depends: R (>= 3.6)`).
+
+- Added `CONTRIBUTING.md` codifying the promotion checklist (primary
+  source + fail-loud
+  [`stopifnot()`](https://rdrr.io/r/base/stopifnot.html) +
+  derive-don’t-duplicate + test + `NEWS.md` + usage map) and the
+  consumer shim pattern.
+
+- Added `analysis/urps_counts/` (build-ignored, not part of the R
+  package): a standard, reproducible count of URPS and all ABOG OB/GYN
+  subspecialties by year (2013–2023), derived from the committed
+  `isochrones` cohort (`table1_physician_characteristics.csv`) via the
+  repo’s board-certification active-in-year rule — never NPPES taxonomy
+  alone. Includes the dependency-free generator (`count_urps.py`), the
+  derived CSVs (by subspecialty; by ± urology pathway), provenance with
+  source SHA-256, and heavy documentation. Anchors exactly to the known
+  figures (URPS active 2023 = 1,031 ABOG; total = 5,336). The ABU
+  (with-urology) layer is supported via `--abu`.
+
+- Added `analysis/urps_counts/subspecialist_counts.R` — a base-R,
+  fail-loud accessor over the committed CSV returning **active vs
+  ever-certified** counts per subspecialty × year (plus `n_retired`,
+  `pct_active`), with scalar helpers `n_active()` / `n_ever_certified()`
+  and a CLI. Never hardcodes an integer; a returned number always traces
+  to the committed source.
+
+- Added `analysis/urps_counts/freshness_check.py` — SHA-256 freshness
+  gate: compares the current isochrones `table1` hash against the one
+  recorded in `provenance.json` (FRESH / STALE), with `--regenerate` to
+  rebuild the CSVs when the source moved. Checks the derived counts, not
+  the upstream pipeline.
+
+## mufflyaccess 0.1.6
+
+- Added `@examples`/`@family`/`@seealso` roxygen across the
+  pure-function files (`accessibility_stats.R`, `pfd_prevalence.R`,
+  `safe_divide.R`).
+
+## mufflyaccess 0.1.5
+
+- Froze the 2025 active URPS (urogynecology and reconstructive pelvic
+  surgery) workforce headcounts as exported constants so downstream code
+  gets the same number every time: `URPS_COUNT_ABOG_ONLY_2025` (1031 —
+  ABOG/OB-GYN pathway, without urology) and
+  `URPS_COUNT_ABOG_PLUS_ABU_2025` (1295 = 1031 + 264 ABU net-new, with
+  urology), each with provenance attributes and fail-loud validation
+  (`R/urps_workforce.R`).
+
+## mufflyaccess 0.1.4
+
+- Promoted the accessibility-disparity **pure statistics** shared by
+  `isochrones` and `twostep` into `R/accessibility_stats.R`:
+  [`weighted_mean_all()`](https://mufflyt.github.io/mufflyaccess/reference/weighted_mean_all.md),
+  [`zero_access_share()`](https://mufflyt.github.io/mufflyaccess/reference/zero_access_share.md),
+  [`mc_weighted_ci()`](https://mufflyt.github.io/mufflyaccess/reference/mc_weighted_ci.md),
+  [`annual_trend()`](https://mufflyt.github.io/mufflyaccess/reference/annual_trend.md),
+  [`rurality_from_ruca()`](https://mufflyt.github.io/mufflyaccess/reference/rurality_from_ruca.md),
+  [`tract_vintage_of()`](https://mufflyt.github.io/mufflyaccess/reference/tract_vintage_of.md),
+  [`acs_year_of()`](https://mufflyt.github.io/mufflyaccess/reference/acs_year_of.md),
+  plus the ACS variable codes `TOTAL_FEMALE_VAR` and `RACE_FEMALE_VARS`.
+  Base R + `stats` only.
+- Promoted the **safe-division family** into `R/safe_divide.R`:
+  [`safe_divide()`](https://mufflyt.github.io/mufflyaccess/reference/safe_divide.md),
+  [`safe_divide_manu()`](https://mufflyt.github.io/mufflyaccess/reference/safe_divide_manu.md),
+  [`safe_percent()`](https://mufflyt.github.io/mufflyaccess/reference/safe_percent.md),
+  [`safe_pct_manu()`](https://mufflyt.github.io/mufflyaccess/reference/safe_pct_manu.md),
+  [`safe_rate()`](https://mufflyt.github.io/mufflyaccess/reference/safe_rate.md),
+  and
+  [`safe_ratio()`](https://mufflyt.github.io/mufflyaccess/reference/safe_ratio.md)
+  — one zero-denominator guarantee across all pipelines.
+
+## mufflyaccess 0.1.3
+
+- Promoted from `isochrones`: `RUCA_NONMETRO_MIN` (2-level metro/rural
+  breakpoint), the ACS margin-of-error z multipliers (`ACS_MOE_Z90`,
+  `CI_Z95`, `MOE90_TO_CI95_FACTOR`), and the Wu-2014 age-specific PFD
+  prevalence table (`WU2014_PFD_PREVALENCE`,
+  [`pfd_prevalence()`](https://mufflyt.github.io/mufflyaccess/reference/pfd_prevalence.md),
+  [`pfd_prevalence_acs_bands()`](https://mufflyt.github.io/mufflyaccess/reference/pfd_prevalence_acs_bands.md)).
+
+## mufflyaccess 0.1.2
+
+- Fixed the package test to strip provenance attributes before
+  comparison (`expect_equal` attribute mismatch on
+  `ACS2020_CONUS_FEMALE_POP`).
+
+## mufflyaccess 0.1.1
+
+- Attached `vintage`/`table`/`scope`/`units` provenance attributes to
+  `ACS2020_CONUS_FEMALE_POP` to match consumer contracts.
+
+## mufflyaccess 0.1.0
+
+- Initial release: single-source-of-truth constants shared across the
+  OB/GYN subspecialty geographic-access repositories (`isochrones`,
+  `twostep`, `cliff`) — primary access band, canonical bands,
+  total-female denominator category, tract “reached” coverage cut,
+  national CONUS ACS female population, and the contiguous /
+  non-contiguous state code lists. Every value carries provenance and
+  fail-loud load-time validation.
