@@ -86,17 +86,29 @@ jobs:
         shell: Rscript {0}
 
       - name: Build site
-        run: pkgdown::build_site_github_pages(new_process = FALSE, install = FALSE)
+        run: pkgdown::build_site_github_pages(dest_dir = "pkgdown-site", new_process = FALSE, install = FALSE)
         shell: Rscript {0}
 
       # Assert the build actually produced a site. build_site can exit 0 having
       # written far less than expected if the reference index is empty.
+      # docs/ holds tracked hand-written documentation. pkgdown defaults to docs/ and
+      # refuses to clean a directory it did not build -- which is exactly how the first
+      # run of this workflow failed. If the site ever lands there, fail rather than deploy.
+      - name: Assert hand-written docs/ was not touched
+        run: |
+          if ! git diff --quiet -- docs/; then
+            echo "::error::pkgdown modified tracked files under docs/ -- destination is wrong"
+            git --no-pager diff --stat -- docs/
+            exit 1
+          fi
+          echo "docs/ untouched: $(git ls-files docs | wc -l) tracked files intact"
+
       - name: Assert the site is non-empty
         run: |
-          pages=$(find docs -name '*.html' | wc -l)
-          refs=$(find docs/reference -name '*.html' 2>/dev/null | wc -l)
+          pages=$(find pkgdown-site -name '*.html' | wc -l)
+          refs=$(find pkgdown-site/reference -name '*.html' 2>/dev/null | wc -l)
           echo "html pages: $pages, reference pages: $refs"
-          test -f docs/index.html   || { echo "::error::docs/index.html missing"; exit 1; }
+          test -f pkgdown-site/index.html   || { echo "::error::pkgdown-site/index.html missing"; exit 1; }
           test "$pages" -ge 20      || { echo "::error::only $pages pages built"; exit 1; }
           test "$refs"  -ge 10      || { echo "::error::only $refs reference pages built"; exit 1; }
 
@@ -106,7 +118,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: pkgdown-site
-          path: docs
+          path: pkgdown-site
           retention-days: 7
 
       - name: Deploy to gh-pages
@@ -115,4 +127,4 @@ jobs:
         with:
           clean: false
           branch: gh-pages
-          folder: docs
+          folder: pkgdown-site
