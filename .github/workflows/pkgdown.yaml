@@ -1,0 +1,118 @@
+# Build the pkgdown site on every change that can alter it; publish only from main.
+#
+# Two things this is designed to prevent:
+#
+#   1. A site that silently stops building. pkgdown fails on things R CMD check does
+#      not: a topic missing from the reference index, a broken @seealso link, a
+#      vignette that no longer knits, a URL in DESCRIPTION that disagrees with
+#      _pkgdown.yml. The build must therefore run on pull requests, where it can still
+#      be fixed, not only at publish time.
+#   2. A published site that silently goes stale. Deploy runs on push to main so the
+#      site cannot drift behind the package it documents.
+#
+# check_pkgdown() runs first because it is seconds rather than minutes, and it catches
+# the most common breakage (undocumented topics) before paying for a full build. It
+# caught a real defect when this workflow was written: DESCRIPTION advertised only the
+# GitHub repo, not the pkgdown URL.
+
+name: pkgdown
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'R/**'
+      - 'man/**'
+      - 'vignettes/**'
+      - '_pkgdown.yml'
+      - 'DESCRIPTION'
+      - 'NAMESPACE'
+      - 'README.md'
+      - '.github/workflows/pkgdown.yaml'
+  pull_request:
+    paths:
+      - 'R/**'
+      - 'man/**'
+      - 'vignettes/**'
+      - '_pkgdown.yml'
+      - 'DESCRIPTION'
+      - 'NAMESPACE'
+      - 'README.md'
+      - '.github/workflows/pkgdown.yaml'
+  workflow_dispatch:
+
+# A second push to main must not race the first into gh-pages. PR builds are
+# cancellable; a deploy in flight is not.
+concurrency:
+  group: pkgdown-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+jobs:
+  pkgdown:
+    name: build${{ github.event_name == 'push' && ' + deploy' || '' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    # Deploying to gh-pages needs write. GitHub Actions does NOT allow expressions in
+    # `permissions:`, so this cannot be made conditional on the event -- the deploy
+    # STEP is gated by `if:` instead. Pull requests from forks receive a read-only
+    # token regardless of what is requested here.
+    permissions:
+      contents: write
+    env:
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+      R_KEEP_PKG_SOURCE: yes
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: r-lib/actions/setup-pandoc@v2
+
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          use-public-rspm: true
+
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          extra-packages: any::pkgdown, local::.
+          needs: website
+
+      # Fast pre-flight. Seconds, and it catches the most common breakage --
+      # exported topics absent from the reference index -- before the slow build.
+      - name: Check pkgdown configuration
+        run: pkgdown::check_pkgdown()
+        shell: Rscript {0}
+
+      - name: Build site
+        run: pkgdown::build_site_github_pages(new_process = FALSE, install = FALSE)
+        shell: Rscript {0}
+
+      # Assert the build actually produced a site. build_site can exit 0 having
+      # written far less than expected if the reference index is empty.
+      - name: Assert the site is non-empty
+        run: |
+          pages=$(find docs -name '*.html' | wc -l)
+          refs=$(find docs/reference -name '*.html' 2>/dev/null | wc -l)
+          echo "html pages: $pages, reference pages: $refs"
+          test -f docs/index.html   || { echo "::error::docs/index.html missing"; exit 1; }
+          test "$pages" -ge 20      || { echo "::error::only $pages pages built"; exit 1; }
+          test "$refs"  -ge 10      || { echo "::error::only $refs reference pages built"; exit 1; }
+
+      # Reviewers can open the rendered site from a PR without deploying it.
+      - name: Upload site artifact
+        if: github.event_name == 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: pkgdown-site
+          path: docs
+          retention-days: 7
+
+      - name: Deploy to gh-pages
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          clean: false
+          branch: gh-pages
+          folder: docs
