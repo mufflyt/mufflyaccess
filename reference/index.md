@@ -136,6 +136,9 @@
 - [`tract_vintage_of()`](https://mufflyt.github.io/mufflyaccess/reference/tract_vintage_of.md)
   : Census tract boundary vintage for a study year (2010 tracts \<=2019,
   2020 \>=2020).
+- [`urps_abog_cert_status()`](https://mufflyt.github.io/mufflyaccess/reference/urps_abog_cert_status.md)
+  : Validated ABOG certification status for the URPS board-certified
+  cohort
 - [`urps_active_ages()`](https://mufflyt.github.io/mufflyaccess/reference/urps_active_ages.md)
   : The URPS active-age distribution
 - [`urps_allocate_national()`](https://mufflyt.github.io/mufflyaccess/reference/urps_allocate_national.md)

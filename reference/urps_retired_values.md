@@ -23,6 +23,7 @@ v2.1.0's 1332 / 1329), or `integer(0)` if the artifact records none.
 
 Other URPS workforce:
 [`compare_urps_artifacts()`](https://mufflyt.github.io/mufflyaccess/reference/compare_urps_artifacts.md),
+[`urps_abog_cert_status()`](https://mufflyt.github.io/mufflyaccess/reference/urps_abog_cert_status.md),
 [`urps_count()`](https://mufflyt.github.io/mufflyaccess/reference/urps_count.md),
 [`urps_counts()`](https://mufflyt.github.io/mufflyaccess/reference/urps_counts.md),
 [`urps_counts_long()`](https://mufflyt.github.io/mufflyaccess/reference/urps_counts_long.md),

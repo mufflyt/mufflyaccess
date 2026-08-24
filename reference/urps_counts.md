@@ -64,6 +64,7 @@ A `data.frame` with one row per measure year and columns:
 
 Other URPS workforce:
 [`compare_urps_artifacts()`](https://mufflyt.github.io/mufflyaccess/reference/compare_urps_artifacts.md),
+[`urps_abog_cert_status()`](https://mufflyt.github.io/mufflyaccess/reference/urps_abog_cert_status.md),
 [`urps_count()`](https://mufflyt.github.io/mufflyaccess/reference/urps_count.md),
 [`urps_counts_long()`](https://mufflyt.github.io/mufflyaccess/reference/urps_counts_long.md),
 [`urps_entrants()`](https://mufflyt.github.io/mufflyaccess/reference/urps_entrants.md),

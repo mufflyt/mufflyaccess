@@ -42,6 +42,7 @@ parquet is readable (arrow / nanoparquet):
 [`use_urps_artifact()`](https://mufflyt.github.io/mufflyaccess/reference/use_urps_artifact.md)
 
 Other URPS workforce:
+[`urps_abog_cert_status()`](https://mufflyt.github.io/mufflyaccess/reference/urps_abog_cert_status.md),
 [`urps_count()`](https://mufflyt.github.io/mufflyaccess/reference/urps_count.md),
 [`urps_counts()`](https://mufflyt.github.io/mufflyaccess/reference/urps_counts.md),
 [`urps_counts_long()`](https://mufflyt.github.io/mufflyaccess/reference/urps_counts_long.md),
