@@ -58,6 +58,7 @@ standardize_state_name
 TOTAL_FEMALE_VAR
 TRACT_REACHED_COVERAGE_PCT
 tract_vintage_of
+urps_abog_cert_status
 urps_active_ages
 urps_allocate_national
 urps_apply_lfp
