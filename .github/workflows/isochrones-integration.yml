@@ -77,10 +77,10 @@ jobs:
           exit 1
       - name: Check out mufflyaccess
         if: steps.detect.outputs.has_token == 'true'
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
       - name: Check out the pinned isochrones artifact commit
         if: steps.detect.outputs.has_token == 'true'
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: mufflyt/isochrones
           ref: ${{ env.ISO_ARTIFACT_COMMIT }}
@@ -151,7 +151,7 @@ jobs:
       # comparing against a months-old commit would let live drift through.
       - name: Check out isochrones at main (for promoted-source parity)
         if: steps.detect.outputs.has_token == 'true'
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: mufflyt/isochrones
           ref: main
@@ -229,10 +229,10 @@ jobs:
             renv_exclude: ""
     steps:
       - name: Check out mufflyaccess
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with: { path: mufflyaccess }
       - name: Check out ${{ matrix.repo }}
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: mufflyt/${{ matrix.repo }}
           path: ${{ matrix.repo }}
