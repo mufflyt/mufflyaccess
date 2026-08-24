@@ -38,6 +38,7 @@ if (length(drift$changed_counts)) stop("counts changed; review before adopting")
 \code{\link[=validate_urps_artifact]{validate_urps_artifact()}}, \code{\link[=use_urps_artifact]{use_urps_artifact()}}
 
 Other URPS workforce:
+\code{\link[=urps_abog_cert_status]{urps_abog_cert_status()}},
 \code{\link[=urps_count]{urps_count()}},
 \code{\link[=urps_counts]{urps_counts()}},
 \code{\link[=urps_counts_long]{urps_counts_long()}},

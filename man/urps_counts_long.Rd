@@ -24,6 +24,7 @@ d[d$year == 2023 & d$geography == "national", c("measure", "board_pathway", "n_a
 
 Other URPS workforce:
 \code{\link[=compare_urps_artifacts]{compare_urps_artifacts()}},
+\code{\link[=urps_abog_cert_status]{urps_abog_cert_status()}},
 \code{\link[=urps_count]{urps_count()}},
 \code{\link[=urps_counts]{urps_counts()}},
 \code{\link[=urps_entrants]{urps_entrants()}},

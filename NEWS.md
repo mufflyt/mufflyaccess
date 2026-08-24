@@ -134,6 +134,18 @@
   are unchanged in every other respect -- no canonical count moved, and the
   contract remains v3.0.0 from source commit `74085a9e6`.
 
+* **Validated ABOG certification status (URPS cohort).** New
+  `urps_abog_cert_status()` serves per-physician (`abog_id`-keyed) ABOG
+  certification status for the URPS/FPMRS board-certified cohort, frozen from
+  isochrones' `validate_abog_refresh_integrity()` audit of the 2026 ABOG
+  re-scrape. Distinguishes physicians actually re-scraped in 2026
+  (`refresh_is_current`) from those whose old "Active"-looking status was
+  simply carried forward (`cert_category_current ==
+  "Unknown (stale active status)"`, 46 of 1,282 URPS-boarded physicians in the
+  2026-08-22 snapshot) -- a raw coalesced `certStatus` cannot distinguish the
+  two. Not a retirement model: `cert_category_current` is ABOG's own
+  certification-status vocabulary, observed directly, never modeled.
+
 * **URPS clinical-FTE model (Phase 3).** Fills the `supply_clinical_fte` column the
   projection contract (0.10.0) reserves. New API: `URPS_FTE_PATHWAY_CLINICAL_TIME`
   (ABOG 1.0 / ABU 0.70), `urps_fte_age_curve()`, `urps_fte_weight()` (age productivity

@@ -39,6 +39,7 @@ urps_lineage()
 
 Other URPS workforce:
 \code{\link[=compare_urps_artifacts]{compare_urps_artifacts()}},
+\code{\link[=urps_abog_cert_status]{urps_abog_cert_status()}},
 \code{\link[=urps_count]{urps_count()}},
 \code{\link[=urps_counts]{urps_counts()}},
 \code{\link[=urps_counts_long]{urps_counts_long()}},
