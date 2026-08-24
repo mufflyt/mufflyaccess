@@ -13,3 +13,8 @@
 *.Rcheck/
 ..Rcheck/
 pkgdown-site/
+
+# Compiled per-physician ABOG certification roster -- not for public
+# distribution (2026-08-24). mufflyaccess is a public repo; this data is
+# resolved locally instead (see ?urps_abog_cert_status).
+inst/extdata/urps_abog_cert_status.csv

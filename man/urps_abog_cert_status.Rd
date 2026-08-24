@@ -34,6 +34,14 @@ status for the Female Pelvic Medicine & Reconstructive Surgery
 \code{validate_abog_refresh_integrity()} audit of the 2026 ABOG re-scrape.
 }
 \details{
+\strong{Not distributed with this package.} This is a compiled
+per-physician roster and mufflyaccess is a public repository, so the data
+is NOT shipped in \code{inst/extdata} -- it is resolved from a local, non-repo
+path (\verb{~/private-data/mufflyaccess/urps_abog_cert_status.csv} by default;
+override with \code{options(mufflyaccess.urps_abog_cert_status_path=)} or
+\code{MUFFLYACCESS_URPS_ABOG_CERT_STATUS_PATH}). Callers without a local copy
+get a clear error, never a silent empty result.
+
 A raw, coalesced certStatus after a refresh merge does not
 distinguish a physician who was actually re-scraped in 2026 from one whose
 old "Active"-looking status was simply carried forward because the
@@ -57,10 +65,13 @@ not a modeled workforce-exit estimate. Modeled retirement is cliff's
 responsibility (\code{\link[=urps_retirement_hazard]{urps_retirement_hazard()}}).
 }
 \examples{
+\dontrun{
+# Requires a local copy -- not distributed with the package (see Details).
 cs <- urps_abog_cert_status()
 table(cs$cert_category_current)
 # physicians whose "Active"-looking status is NOT confirmed by the 2026 refresh
 subset(cs, cert_category_current == "Unknown (stale active status)")
+}
 }
 \seealso{
 \code{\link[=urps_retirement_hazard]{urps_retirement_hazard()}}, \code{\link[=urps_retirement_status]{urps_retirement_status()}}

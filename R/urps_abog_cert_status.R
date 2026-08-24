@@ -26,13 +26,26 @@
 
 .URPS_ABOG_CERT_STATUS_FILE <- "urps_abog_cert_status.csv"
 
+# NOT shipped in inst/extdata: this is a compiled per-physician roster and
+# mufflyaccess is a public repo. Resolved from a local, non-repo location
+# instead -- override with options(mufflyaccess.urps_abog_cert_status_path=)
+# or the MUFFLYACCESS_URPS_ABOG_CERT_STATUS_PATH env var. Fails loudly rather
+# than silently falling back to a stale or absent artifact.
 .urps_abog_cert_status_path <- function() {
-  p <- system.file("extdata", .URPS_ABOG_CERT_STATUS_FILE, package = "mufflyaccess")
+  opt <- getOption("mufflyaccess.urps_abog_cert_status_path", NULL)
+  env <- Sys.getenv("MUFFLYACCESS_URPS_ABOG_CERT_STATUS_PATH", unset = NA)
+  default <- path.expand(file.path(
+    "~", "private-data", "mufflyaccess", .URPS_ABOG_CERT_STATUS_FILE
+  ))
+  p <- if (!is.null(opt)) opt else if (!is.na(env)) env else default
   if (!nzchar(p) || !file.exists(p))
-    stop(sprintf(
-      "[urps_abog_cert_status] frozen artifact not found: %s. Reinstall mufflyaccess.",
-      .URPS_ABOG_CERT_STATUS_FILE
-    ), call. = FALSE)
+    stop(sprintf(paste0(
+      "[urps_abog_cert_status] artifact not found: %s.\n",
+      "This is a compiled per-physician ABOG roster and is not distributed ",
+      "with the public mufflyaccess package. Set ",
+      "options(mufflyaccess.urps_abog_cert_status_path=) or the ",
+      "MUFFLYACCESS_URPS_ABOG_CERT_STATUS_PATH env var to a local copy."
+    ), p), call. = FALSE)
   p
 }
 
@@ -43,7 +56,15 @@
 #'   (URPS/FPMRS) board-certified cohort, frozen from isochrones'
 #'   `validate_abog_refresh_integrity()` audit of the 2026 ABOG re-scrape.
 #'
-#' @details A raw, coalesced certStatus after a refresh merge does not
+#' @details **Not distributed with this package.** This is a compiled
+#'   per-physician roster and mufflyaccess is a public repository, so the data
+#'   is NOT shipped in `inst/extdata` -- it is resolved from a local, non-repo
+#'   path (`~/private-data/mufflyaccess/urps_abog_cert_status.csv` by default;
+#'   override with `options(mufflyaccess.urps_abog_cert_status_path=)` or
+#'   `MUFFLYACCESS_URPS_ABOG_CERT_STATUS_PATH`). Callers without a local copy
+#'   get a clear error, never a silent empty result.
+#'
+#'   A raw, coalesced certStatus after a refresh merge does not
 #'   distinguish a physician who was actually re-scraped in 2026 from one whose
 #'   old "Active"-looking status was simply carried forward because the
 #'   re-scrape never reached them. `cert_category_current` corrects for this:
@@ -88,10 +109,13 @@
 #' @seealso [urps_retirement_hazard()], [urps_retirement_status()]
 #' @family URPS workforce
 #' @examples
+#' \dontrun{
+#' # Requires a local copy -- not distributed with the package (see Details).
 #' cs <- urps_abog_cert_status()
 #' table(cs$cert_category_current)
 #' # physicians whose "Active"-looking status is NOT confirmed by the 2026 refresh
 #' subset(cs, cert_category_current == "Unknown (stale active status)")
+#' }
 #' @export
 urps_abog_cert_status <- function() {
   d <- utils::read.csv(

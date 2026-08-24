@@ -1,9 +1,20 @@
 library(testthat)
 
 # urps_abog_cert_status.R: frozen, validated ABOG certification status for the
-# URPS/FPMRS board-certified cohort.
+# URPS/FPMRS board-certified cohort. Compiled per-physician data, not
+# distributed with this public package -- these tests skip when no local copy
+# is configured (see ?urps_abog_cert_status).
+
+.skip_if_no_local_artifact <- function() {
+  ok <- tryCatch({
+    urps_abog_cert_status()
+    TRUE
+  }, error = function(e) FALSE)
+  skip_if_not(ok, "no local urps_abog_cert_status artifact configured")
+}
 
 test_that("returns a data.frame with the required columns and no duplicate abog_id", {
+  .skip_if_no_local_artifact()
   d <- urps_abog_cert_status()
   expect_s3_class(d, "data.frame")
   expect_true(all(c(
@@ -16,6 +27,7 @@ test_that("returns a data.frame with the required columns and no duplicate abog_
 })
 
 test_that("abog_id is integer and cert_category_current is a known ABOG status value", {
+  .skip_if_no_local_artifact()
   d <- urps_abog_cert_status()
   expect_true(is.integer(d$abog_id))
   expect_true(all(!is.na(d$cert_category_current)))
@@ -24,6 +36,7 @@ test_that("abog_id is integer and cert_category_current is a known ABOG status v
 })
 
 test_that("an Active-looking status is only reported Active when actually refreshed", {
+  .skip_if_no_local_artifact()
   d <- urps_abog_cert_status()
   active_rows <- d[d$cert_category_current == "Active", , drop = FALSE]
   expect_true(all(active_rows$refresh_is_current))
@@ -35,6 +48,7 @@ test_that("an Active-looking status is only reported Active when actually refres
 })
 
 test_that("every row carries non-missing provenance", {
+  .skip_if_no_local_artifact()
   d <- urps_abog_cert_status()
   expect_true(all(!is.na(d$refresh_snapshot_date) & nzchar(d$refresh_snapshot_date)))
   expect_true(all(!is.na(d$refresh_source_sha256) & nzchar(d$refresh_source_sha256)))
