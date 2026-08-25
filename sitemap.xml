@@ -31,6 +31,8 @@
 <url><loc>https://mufflyt.github.io/mufflyaccess/reference/URPS_RETIREMENT_CURVE_VERSION.html</loc></url>
 <url><loc>https://mufflyt.github.io/mufflyaccess/reference/URPS_SCENARIO_REGISTRY_VERSION.html</loc></url>
 <url><loc>https://mufflyt.github.io/mufflyaccess/reference/WU2014_PFD_PREVALENCE.html</loc></url>
+<url><loc>https://mufflyt.github.io/mufflyaccess/reference/abog_refresh_path.html</loc></url>
+<url><loc>https://mufflyt.github.io/mufflyaccess/reference/abog_refresh_provenance.html</loc></url>
 <url><loc>https://mufflyt.github.io/mufflyaccess/reference/accessibility_stats.html</loc></url>
 <url><loc>https://mufflyt.github.io/mufflyaccess/reference/acs_year_of.html</loc></url>
 <url><loc>https://mufflyt.github.io/mufflyaccess/reference/annual_trend.html</loc></url>
@@ -48,6 +50,8 @@
 <url><loc>https://mufflyt.github.io/mufflyaccess/reference/coordinate_fitness.html</loc></url>
 <url><loc>https://mufflyt.github.io/mufflyaccess/reference/fingerprint_files.html</loc></url>
 <url><loc>https://mufflyt.github.io/mufflyaccess/reference/fingerprint_object.html</loc></url>
+<url><loc>https://mufflyt.github.io/mufflyaccess/reference/frozen_isochrones_dir.html</loc></url>
+<url><loc>https://mufflyt.github.io/mufflyaccess/reference/frozen_isochrones_provenance.html</loc></url>
 <url><loc>https://mufflyt.github.io/mufflyaccess/reference/get_canonical_bands.html</loc></url>
 <url><loc>https://mufflyt.github.io/mufflyaccess/reference/get_primary_access_band.html</loc></url>
 <url><loc>https://mufflyt.github.io/mufflyaccess/reference/index.html</loc></url>
@@ -56,6 +60,7 @@
 <url><loc>https://mufflyt.github.io/mufflyaccess/reference/mufflyaccess-package.html</loc></url>
 <url><loc>https://mufflyt.github.io/mufflyaccess/reference/pfd_prevalence.html</loc></url>
 <url><loc>https://mufflyt.github.io/mufflyaccess/reference/pfd_prevalence_acs_bands.html</loc></url>
+<url><loc>https://mufflyt.github.io/mufflyaccess/reference/read_abog_refresh.html</loc></url>
 <url><loc>https://mufflyt.github.io/mufflyaccess/reference/read_urps_demand_params.html</loc></url>
 <url><loc>https://mufflyt.github.io/mufflyaccess/reference/read_urps_projection.html</loc></url>
 <url><loc>https://mufflyt.github.io/mufflyaccess/reference/rurality_from_ruca.html</loc></url>
@@ -121,6 +126,8 @@
 <url><loc>https://mufflyt.github.io/mufflyaccess/reference/urps_state_female_pop.html</loc></url>
 <url><loc>https://mufflyt.github.io/mufflyaccess/reference/urps_supply_fte_sex.html</loc></url>
 <url><loc>https://mufflyt.github.io/mufflyaccess/reference/urps_survival_curve.html</loc></url>
+<url><loc>https://mufflyt.github.io/mufflyaccess/reference/use_abog_refresh.html</loc></url>
+<url><loc>https://mufflyt.github.io/mufflyaccess/reference/use_frozen_isochrones.html</loc></url>
 <url><loc>https://mufflyt.github.io/mufflyaccess/reference/use_urps_artifact.html</loc></url>
 <url><loc>https://mufflyt.github.io/mufflyaccess/reference/validate_urps_artifact.html</loc></url>
 <url><loc>https://mufflyt.github.io/mufflyaccess/reference/validate_urps_demand_params.html</loc></url>
@@ -128,6 +135,8 @@
 <url><loc>https://mufflyt.github.io/mufflyaccess/reference/validate_urps_projection.html</loc></url>
 <url><loc>https://mufflyt.github.io/mufflyaccess/reference/validate_urps_scenarios.html</loc></url>
 <url><loc>https://mufflyt.github.io/mufflyaccess/reference/validate_urps_ssot.html</loc></url>
+<url><loc>https://mufflyt.github.io/mufflyaccess/reference/verify_abog_refresh.html</loc></url>
+<url><loc>https://mufflyt.github.io/mufflyaccess/reference/verify_frozen_isochrones.html</loc></url>
 <url><loc>https://mufflyt.github.io/mufflyaccess/reference/weighted_mean_all.html</loc></url>
 <url><loc>https://mufflyt.github.io/mufflyaccess/reference/zero_access_share.html</loc></url>
 </urlset>

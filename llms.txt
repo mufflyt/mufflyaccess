@@ -569,6 +569,10 @@ Rscript data-raw/check_readme_constants.R   # README vs installed package
 - [`WU2014_PFD_PREVALENCE`](https://mufflyt.github.io/mufflyaccess/reference/WU2014_PFD_PREVALENCE.md)
   : Wu 2014 age-specific symptomatic pelvic-floor-disorder (PFD)
   prevalence, women 65+
+- [`abog_refresh_path()`](https://mufflyt.github.io/mufflyaccess/reference/abog_refresh_path.md)
+  : Path to the verified ABOG registry refresh
+- [`abog_refresh_provenance()`](https://mufflyt.github.io/mufflyaccess/reference/abog_refresh_provenance.md)
+  : Provenance of the ABOG registry SSOT
 - [`accessibility_stats`](https://mufflyt.github.io/mufflyaccess/reference/accessibility_stats.md)
   : Accessibility-disparity pure statistics (SSOT)
 - [`acs_year_of()`](https://mufflyt.github.io/mufflyaccess/reference/acs_year_of.md)
@@ -608,6 +612,10 @@ Rscript data-raw/check_readme_constants.R   # README vs installed package
   : SHA-256 fingerprint of the producing source file(s)
 - [`fingerprint_object()`](https://mufflyt.github.io/mufflyaccess/reference/fingerprint_object.md)
   : SHA-256 fingerprint of an in-memory R object
+- [`frozen_isochrones_dir()`](https://mufflyt.github.io/mufflyaccess/reference/frozen_isochrones_dir.md)
+  : Path to the verified frozen isochrone set
+- [`frozen_isochrones_provenance()`](https://mufflyt.github.io/mufflyaccess/reference/frozen_isochrones_provenance.md)
+  : Provenance of the frozen isochrone SSOT
 - [`get_canonical_bands()`](https://mufflyt.github.io/mufflyaccess/reference/get_canonical_bands.md)
   : Return the canonical generation bands (minutes).
 - [`get_primary_access_band()`](https://mufflyt.github.io/mufflyaccess/reference/get_primary_access_band.md)
@@ -623,6 +631,8 @@ Rscript data-raw/check_readme_constants.R   # README vs installed package
 - [`pfd_prevalence_acs_bands()`](https://mufflyt.github.io/mufflyaccess/reference/pfd_prevalence_acs_bands.md)
   : Wu-2014 PFD prevalence as a named vector over the ACS 65+ age-band
   columns
+- [`read_abog_refresh()`](https://mufflyt.github.io/mufflyaccess/reference/read_abog_refresh.md)
+  : Read the ABOG certification registry refresh
 - [`read_urps_demand_params()`](https://mufflyt.github.io/mufflyaccess/reference/read_urps_demand_params.md)
   : Read a fitted URPS demand-model parameter artifact
 - [`read_urps_projection()`](https://mufflyt.github.io/mufflyaccess/reference/read_urps_projection.md)
@@ -768,6 +778,10 @@ Rscript data-raw/check_readme_constants.R   # README vs installed package
   (sex-stratified)
 - [`urps_survival_curve()`](https://mufflyt.github.io/mufflyaccess/reference/urps_survival_curve.md)
   : Full URPS retirement survival curve as a data.frame
+- [`use_abog_refresh()`](https://mufflyt.github.io/mufflyaccess/reference/use_abog_refresh.md)
+  : Adopt a file as the ABOG registry SSOT
+- [`use_frozen_isochrones()`](https://mufflyt.github.io/mufflyaccess/reference/use_frozen_isochrones.md)
+  : Adopt a directory as the frozen isochrone SSOT
 - [`use_urps_artifact()`](https://mufflyt.github.io/mufflyaccess/reference/use_urps_artifact.md)
   : Select the URPS workforce artifact mufflyaccess serves
 - [`validate_urps_artifact()`](https://mufflyt.github.io/mufflyaccess/reference/validate_urps_artifact.md)
@@ -782,6 +796,10 @@ Rscript data-raw/check_readme_constants.R   # README vs installed package
   : Validate that scenarios are registered (fail loud)
 - [`validate_urps_ssot()`](https://mufflyt.github.io/mufflyaccess/reference/validate_urps_ssot.md)
   : Validate the URPS workforce SSOT (fail loud)
+- [`verify_abog_refresh()`](https://mufflyt.github.io/mufflyaccess/reference/verify_abog_refresh.md)
+  : Verify a file is the canonical ABOG registry refresh
+- [`verify_frozen_isochrones()`](https://mufflyt.github.io/mufflyaccess/reference/verify_frozen_isochrones.md)
+  : Verify a directory holds the frozen isochrone set
 - [`weighted_mean_all()`](https://mufflyt.github.io/mufflyaccess/reference/weighted_mean_all.md)
   : Population-weighted mean over all elements (sparse-group safe).
 - [`zero_access_share()`](https://mufflyt.github.io/mufflyaccess/reference/zero_access_share.md)
