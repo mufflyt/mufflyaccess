@@ -1,0 +1,18 @@
+{
+  "schema": "mufflyaccess/ssot-sources/v1",
+  "frozen_isochrones": {
+    "run_id": "e2sfca_20260712_190734",
+    "n_origins": 4050,
+    "bands_minutes": [30, 60, 120, 180],
+    "s3": "s3://tmuffly-isochrone-library-163531628641/frozen/e2sfca_20260712_190734/",
+    "dropbox": "MufflyAccess_SSOT/frozen_isochrones/e2sfca_20260712_190734/",
+    "note": "The set the primary E2SFCA analysis was computed against. A near-identical set with 3909 origins exists and is missing 44 physician locations; only the hash distinguishes them."
+  },
+  "abog_refresh": {
+    "file": "refresh_merged.csv",
+    "n_rows": 79398,
+    "columns": ["userid","name","startDate","certStatus","mocStatus","city","state","ID","ScrapedAt","refresh_source"],
+    "s3": "s3://tmuffly-isochrone-library-163531628641/abog_refresh_2026/refresh_merged.csv",
+    "dropbox": "MufflyAccess_SSOT/abog_refresh_2026/refresh_merged.csv"
+  }
+}
