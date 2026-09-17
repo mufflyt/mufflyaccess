@@ -201,7 +201,7 @@ jobs:
 
       - name: Upload test accounting
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: test-accounting
           path: test-results/
@@ -248,7 +248,7 @@ jobs:
             quit(status = 1)
           }
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: coverage
@@ -413,7 +413,7 @@ jobs:
         # message recommends -- pkgdown::clean_site() -- would have DELETED
         # CHARTER_URPS_SSOT.md and CROSS_REPO_USAGE.md. See _pkgdown.yml.
         run: pkgdown::build_site(preview = FALSE, install = TRUE)
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: pkgdown-site
