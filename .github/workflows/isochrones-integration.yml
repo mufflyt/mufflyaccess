@@ -276,7 +276,7 @@ jobs:
       # cliff's lockfile keeps that lockfile honest about what its figure script
       # requires. See mufflyt/cliff#27 for the underlying incompatibility.
       - name: Cache the renv library
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ${{ github.workspace }}/.renv-cache
           key: renv-${{ matrix.repo }}-${{ runner.os }}-${{ hashFiles(format('{0}/renv.lock', matrix.repo)) }}
