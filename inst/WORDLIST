@@ -1,4 +1,5 @@
 ABOG
+ABOG's
 ABU
 ACO
 ACOG
@@ -12,13 +13,16 @@ behaviour
 bmi
 BMI
 Canonicalize
+certStatus
 changelog
+Checksums
 chr
 CLI
 coercible
 conflatable
 CONUS
 conus
+csv
 deduplication
 definitional
 DOI
@@ -72,6 +76,7 @@ MEPS
 micropolitan
 microsimulation
 Microsimulation
+MIGS
 modelled
 modelling
 moe
