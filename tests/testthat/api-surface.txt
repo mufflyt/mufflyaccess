@@ -10,6 +10,8 @@
 #   Rscript -e 'writeLines(sort(getNamespaceExports("mufflyaccess")))'
 # and keep the change in the same commit as the NEWS entry describing it.
 
+abog_refresh_path
+abog_refresh_provenance
 ACS_MOE_Z90
 acs_year_of
 ACS2020_CONUS_FEMALE_POP
@@ -32,6 +34,8 @@ CONUS_STATE_FIPS
 DENOMINATOR_CATEGORY
 fingerprint_files
 fingerprint_object
+frozen_isochrones_dir
+frozen_isochrones_provenance
 get_canonical_bands
 get_primary_access_band
 is_urps_scenario
@@ -44,6 +48,7 @@ pfd_prevalence_acs_bands
 PRIMARY_ACCESS_BAND_MIN
 PRIMARY_ACCESS_BAND_SEC
 RACE_FEMALE_VARS
+read_abog_refresh
 read_urps_demand_params
 read_urps_projection
 RUCA_NONMETRO_MIN
@@ -121,6 +126,8 @@ urps_state_entrant_shares
 urps_state_female_pop
 urps_supply_fte_sex
 urps_survival_curve
+use_abog_refresh
+use_frozen_isochrones
 use_urps_artifact
 validate_urps_artifact
 validate_urps_demand_params
@@ -128,6 +135,8 @@ validate_urps_exit_evidence
 validate_urps_projection
 validate_urps_scenarios
 validate_urps_ssot
+verify_abog_refresh
+verify_frozen_isochrones
 weighted_mean_all
 WU2014_PFD_PREVALENCE
 zero_access_share

@@ -82,6 +82,7 @@ consumer shim pattern.
 Useful links:
 \itemize{
   \item \url{https://github.com/mufflyt/mufflyaccess}
+  \item \url{https://mufflyt.github.io/mufflyaccess}
   \item Report bugs at \url{https://github.com/mufflyt/mufflyaccess/issues}
 }
 
