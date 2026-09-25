@@ -93,6 +93,7 @@
 <li><a href="#urps-workforce-flows">URPS workforce flows</a></li>
 <li><a href="#urps-geographic-distribution--parameter-ci">URPS geographic distribution + parameter CI</a></li>
 <li><a href="#workforce--obstetric-statistics">Workforce &amp; obstetric statistics</a></li>
+<li><a href="#frozen-isochrone--abog-registry-ssot-served-by-hash">Frozen isochrone &amp; ABOG registry SSOT (served by hash)</a></li>
 </ul>
 </li>
 <li><a href="#design-principles">Design principles</a></li>
@@ -124,7 +125,7 @@
 <span><span class="fu">renv</span><span class="fu">::</span><span class="fu">install</span><span class="op">(</span><span class="st">"mufflyt/mufflyaccess"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># or with remotes / pak:</span></span>
-<span><span class="fu">remotes</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html" class="external-link">install_github</a></span><span class="op">(</span><span class="st">"mufflyt/mufflyaccess"</span><span class="op">)</span></span>
+<span><span class="fu">remotes</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"mufflyt/mufflyaccess"</span><span class="op">)</span></span>
 <span><span class="fu">pak</span><span class="fu">::</span><span class="fu"><a href="https://pak.r-lib.org/reference/pak.html" class="external-link">pak</a></span><span class="op">(</span><span class="st">"mufflyt/mufflyaccess"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># for an analysis you need to reproduce, pin an exact commit SHA:</span></span>
@@ -841,6 +842,64 @@
 </tbody>
 </table>
 </div>
+<div class="section level3">
+<h3 id="frozen-isochrone--abog-registry-ssot-served-by-hash">Frozen isochrone &amp; ABOG registry SSOT (served by hash)<a class="anchor" aria-label="anchor" href="#frozen-isochrone--abog-registry-ssot-served-by-hash"></a>
+</h3>
+<p>Two analysis inputs are too large to bundle (a <strong>1.4 GB</strong> consolidated isochrone set; a <strong>9 MB</strong> ABOG registry CSV) yet easy to acquire a <em>wrong</em> copy of — a near-identical isochrone set with the same file names and bands exists on the author’s machines with <strong>3,909 origins instead of 4,050</strong>, missing <strong>44 physician locations</strong>; using it silently deflates access by up to <strong>3.7%</strong>. Nothing about a path or file size distinguishes them; only the SHA-256 does. So the package ships <strong>only the checksum manifest</strong>, never the payload, and every accessor <strong>verifies by hash and fails closed</strong> — a directory or file it has not verified is never handed back.</p>
+<table class="table">
+<colgroup>
+<col width="50%">
+<col width="50%">
+</colgroup>
+<thead><tr>
+<th>Function</th>
+<th>Returns</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code>verify_frozen_isochrones(dir, quiet = FALSE)</code></td>
+<td>Hashes every band against the shipped manifest; <code>TRUE</code> invisibly, or an error naming the bands that differ / are absent.</td>
+</tr>
+<tr>
+<td><code>use_frozen_isochrones(dir)</code></td>
+<td>Verify <strong>then</strong> adopt <code>dir</code> as the session’s frozen-isochrone source (fails closed, so an invalid set can never become the source).</td>
+</tr>
+<tr>
+<td><code>frozen_isochrones_dir(verify = TRUE)</code></td>
+<td>The verified directory, resolved from (1) <code><a href="reference/use_frozen_isochrones.html">use_frozen_isochrones()</a></code>, (2) option <code>mufflyaccess.frozen_isochrones_dir</code>, (3) env <code>MUFFLYACCESS_FROZEN_ISOCHRONES_DIR</code>, (4) env <code>E2SFCA_ISO_DIR</code>.</td>
+</tr>
+<tr>
+<td><code><a href="reference/frozen_isochrones_provenance.html">frozen_isochrones_provenance()</a></code></td>
+<td>Checksums, resolved dir, and the canonical S3 / Dropbox copies (run <code>e2sfca_20260712_190734</code>, 4,050 origins, bands 30/60/120/180 min).</td>
+</tr>
+<tr>
+<td>
+<code>verify_abog_refresh(path)</code> / <code>use_abog_refresh(path)</code>
+</td>
+<td>Verify (or verify-then-adopt) <code>refresh_merged.csv</code> against the pinned SHA-256.</td>
+</tr>
+<tr>
+<td><code>abog_refresh_path(verify = TRUE)</code></td>
+<td>The verified path, resolved from <code><a href="reference/use_abog_refresh.html">use_abog_refresh()</a></code> → option <code>mufflyaccess.abog_refresh_path</code> → env <code>MUFFLYACCESS_ABOG_REFRESH</code>.</td>
+</tr>
+<tr>
+<td><code>read_abog_refresh(path = NULL)</code></td>
+<td>Verify the hash, then read the <strong>79,398-row</strong> registry; a hash match with a missing column is reported as a <em>schema change</em>, not a wrong file.</td>
+</tr>
+<tr>
+<td><code><a href="reference/abog_refresh_provenance.html">abog_refresh_provenance()</a></code></td>
+<td>Expected SHA-256, resolved path, and the canonical S3 / Dropbox copies.</td>
+</tr>
+</tbody>
+</table>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># the payload is fetched out of band (S3 / Dropbox — see the provenance fns);</span></span>
+<span><span class="co"># the package only proves you have the right copy:</span></span>
+<span><span class="fu"><a href="reference/use_frozen_isochrones.html">use_frozen_isochrones</a></span><span class="op">(</span><span class="st">"~/data/e2sfca_20260712_190734"</span><span class="op">)</span>   <span class="co"># verifies, then adopts</span></span>
+<span><span class="fu"><a href="reference/frozen_isochrones_dir.html">frozen_isochrones_dir</a></span><span class="op">(</span><span class="op">)</span>                                   <span class="co"># verified path, or a loud error</span></span>
+<span><span class="fu"><a href="reference/read_abog_refresh.html">read_abog_refresh</a></span><span class="op">(</span><span class="op">)</span>                                       <span class="co"># 79,398 rows, hash-checked</span></span>
+<span><span class="fu"><a href="reference/frozen_isochrones_provenance.html">frozen_isochrones_provenance</a></span><span class="op">(</span><span class="op">)</span><span class="op">$</span><span class="va">s3</span>                         <span class="co"># canonical S3 URI</span></span></code></pre></div>
+</div>
 </div>
 <div class="section level2">
 <h2 id="design-principles">Design principles<a class="anchor" aria-label="anchor" href="#design-principles"></a>
@@ -866,7 +925,7 @@
 <div class="section level2">
 <h2 id="development">Development<a class="anchor" aria-label="anchor" href="#development"></a>
 </h2>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># run the full test suite (testthat 3e)</span></span>
 <span><span class="fu">devtools</span><span class="fu">::</span><span class="fu">test</span><span class="op">(</span><span class="op">)</span></span>
 <span></span>
@@ -943,14 +1002,14 @@
 <div class="section level2">
 <h2 id="how-to-cite">How to cite<a class="anchor" aria-label="anchor" href="#how-to-cite"></a>
 </h2>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/citation.html" class="external-link">citation</a></span><span class="op">(</span><span class="st">"mufflyaccess"</span><span class="op">)</span></span></code></pre></div>
 <p><code>CITATION.cff</code> and <code>CITATION.bib</code> carry the same entry for GitHub and reference managers. ORCID <a href="https://orcid.org/0000-0002-2044-1693" class="external-link">0000-0002-2044-1693</a>.</p>
 </div>
 <div class="section level2">
 <h2 id="checking-the-docs">Checking the docs<a class="anchor" aria-label="anchor" href="#checking-the-docs"></a>
 </h2>
-<div class="sourceCode" id="cb8"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a><span class="ex">Rscript</span> data-raw/check_readme_constants.R   <span class="co"># README vs installed package</span></span></code></pre></div>
+<div class="sourceCode" id="cb9"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a><span class="ex">Rscript</span> data-raw/check_readme_constants.R   <span class="co"># README vs installed package</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="related">Related<a class="anchor" aria-label="anchor" href="#related"></a>
@@ -1032,7 +1091,7 @@
 <ul class="list-unstyled">
 <li><a href="https://lifecycle.r-lib.org/articles/stages.html#stable" class="external-link"><img src="https://img.shields.io/badge/lifecycle-stable-brightgreen.svg" alt="Lifecycle: stable"></a></li>
 <li><a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License: MIT"></a></li>
-<li><a href="DESCRIPTION"><img src="https://img.shields.io/badge/version-0.10.0-informational.svg" alt="Version"></a></li>
+<li><a href="DESCRIPTION"><img src="https://img.shields.io/badge/version-0.12.0-informational.svg" alt="Version"></a></li>
 <li><a href="https://github.com/mufflyt/mufflyaccess/actions/workflows/tests.yml" class="external-link"><img src="https://github.com/mufflyt/mufflyaccess/actions/workflows/tests.yml/badge.svg" alt="tests"></a></li>
 </ul>
 </div>

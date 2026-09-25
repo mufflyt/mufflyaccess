@@ -47,6 +47,8 @@ filter(x, category == DENOMINATOR_CATEGORY, range == PRIMARY_ACCESS_BAND_SEC)
   - [URPS geographic distribution + parameter
     CI](#urps-geographic-distribution--parameter-ci)
   - [Workforce & obstetric statistics](#workforce--obstetric-statistics)
+  - [Frozen isochrone & ABOG registry SSOT (served by
+    hash)](#frozen-isochrone--abog-registry-ssot-served-by-hash)
 - [Design principles](#design-principles)
 - [What is intentionally *not* here](#what-is-intentionally-not-here)
 - [Development](#development)
@@ -407,6 +409,40 @@ Dependency-light statistics shared with the workforce-cliff manuscript.
 | `calculate_proportion_ci(x, n)` / `calculate_two_prop_test(...)` | Wilson-score CI for a proportion / two-proportion z-test with an `n ≥ 30` guard. |
 | `calculate_replacement_gap(...)` / `calculate_rural_metro_comparison(...)` / `calculate_state_vulnerability(...)` | Retirees-vs-graduates replacement gap / rural-vs-metro at-risk comparison / state vulnerability ranking. |
 | `cesarean_rate_for_year(years)` / `completed_parity_for_cohort(cohorts)` / `cohort_vaginal_exposure(cohorts)` | Interpolated obstetric-exposure series: total-cesarean rate, mean completed parity, cohort vaginal-delivery exposure. |
+
+### Frozen isochrone & ABOG registry SSOT (served by hash)
+
+Two analysis inputs are too large to bundle (a **1.4 GB** consolidated
+isochrone set; a **9 MB** ABOG registry CSV) yet easy to acquire a
+*wrong* copy of — a near-identical isochrone set with the same file
+names and bands exists on the author’s machines with **3,909 origins
+instead of 4,050**, missing **44 physician locations**; using it
+silently deflates access by up to **3.7%**. Nothing about a path or file
+size distinguishes them; only the SHA-256 does. So the package ships
+**only the checksum manifest**, never the payload, and every accessor
+**verifies by hash and fails closed** — a directory or file it has not
+verified is never handed back.
+
+| Function | Returns |
+|----|----|
+| `verify_frozen_isochrones(dir, quiet = FALSE)` | Hashes every band against the shipped manifest; `TRUE` invisibly, or an error naming the bands that differ / are absent. |
+| `use_frozen_isochrones(dir)` | Verify **then** adopt `dir` as the session’s frozen-isochrone source (fails closed, so an invalid set can never become the source). |
+| `frozen_isochrones_dir(verify = TRUE)` | The verified directory, resolved from (1) [`use_frozen_isochrones()`](https://mufflyt.github.io/mufflyaccess/reference/use_frozen_isochrones.md), (2) option `mufflyaccess.frozen_isochrones_dir`, (3) env `MUFFLYACCESS_FROZEN_ISOCHRONES_DIR`, (4) env `E2SFCA_ISO_DIR`. |
+| [`frozen_isochrones_provenance()`](https://mufflyt.github.io/mufflyaccess/reference/frozen_isochrones_provenance.md) | Checksums, resolved dir, and the canonical S3 / Dropbox copies (run `e2sfca_20260712_190734`, 4,050 origins, bands 30/60/120/180 min). |
+| `verify_abog_refresh(path)` / `use_abog_refresh(path)` | Verify (or verify-then-adopt) `refresh_merged.csv` against the pinned SHA-256. |
+| `abog_refresh_path(verify = TRUE)` | The verified path, resolved from [`use_abog_refresh()`](https://mufflyt.github.io/mufflyaccess/reference/use_abog_refresh.md) → option `mufflyaccess.abog_refresh_path` → env `MUFFLYACCESS_ABOG_REFRESH`. |
+| `read_abog_refresh(path = NULL)` | Verify the hash, then read the **79,398-row** registry; a hash match with a missing column is reported as a *schema change*, not a wrong file. |
+| [`abog_refresh_provenance()`](https://mufflyt.github.io/mufflyaccess/reference/abog_refresh_provenance.md) | Expected SHA-256, resolved path, and the canonical S3 / Dropbox copies. |
+
+``` r
+
+# the payload is fetched out of band (S3 / Dropbox — see the provenance fns);
+# the package only proves you have the right copy:
+use_frozen_isochrones("~/data/e2sfca_20260712_190734")   # verifies, then adopts
+frozen_isochrones_dir()                                   # verified path, or a loud error
+read_abog_refresh()                                       # 79,398 rows, hash-checked
+frozen_isochrones_provenance()$s3                         # canonical S3 URI
+```
 
 ## Design principles
 

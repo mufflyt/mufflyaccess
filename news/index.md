@@ -2,6 +2,43 @@
 
 ## mufflyaccess 0.12.0
 
+- **New: frozen isochrone and ABOG-registry SSOT, served by hash and
+  never by path.** Two analysis inputs are too large to bundle (a 1.4 GB
+  consolidated isochrone set; a 9 MB ABOG registry CSV) and too easy to
+  acquire a wrong copy of. A near-identical isochrone set with the same
+  file names and four bands exists with 3,909 origins instead of 4,050 –
+  it is missing 44 physician locations, and used unknowingly it does not
+  error, it silently deflates access by up to 3.7%. Nothing about a path
+  or file size distinguishes them; only the SHA-256 does.
+
+  So the package ships only the checksum manifest, never the payload,
+  and every accessor verifies by hash and fails closed.
+  [`verify_frozen_isochrones()`](https://mufflyt.github.io/mufflyaccess/reference/verify_frozen_isochrones.md)
+  /
+  [`use_frozen_isochrones()`](https://mufflyt.github.io/mufflyaccess/reference/use_frozen_isochrones.md)
+  /
+  [`frozen_isochrones_dir()`](https://mufflyt.github.io/mufflyaccess/reference/frozen_isochrones_dir.md)
+  /
+  [`frozen_isochrones_provenance()`](https://mufflyt.github.io/mufflyaccess/reference/frozen_isochrones_provenance.md)
+  resolve and hash-check the isochrone set (canonical run
+  `e2sfca_20260712_190734`, 4,050 origins, bands 30/60/120/180);
+  [`verify_abog_refresh()`](https://mufflyt.github.io/mufflyaccess/reference/verify_abog_refresh.md)
+  /
+  [`use_abog_refresh()`](https://mufflyt.github.io/mufflyaccess/reference/use_abog_refresh.md)
+  /
+  [`abog_refresh_path()`](https://mufflyt.github.io/mufflyaccess/reference/abog_refresh_path.md)
+  /
+  [`read_abog_refresh()`](https://mufflyt.github.io/mufflyaccess/reference/read_abog_refresh.md)
+  /
+  [`abog_refresh_provenance()`](https://mufflyt.github.io/mufflyaccess/reference/abog_refresh_provenance.md)
+  do the same for the 79,398-row `refresh_merged.csv`.
+  [`read_abog_refresh()`](https://mufflyt.github.io/mufflyaccess/reference/read_abog_refresh.md)
+  distinguishes a schema change (hash matched, column missing) from a
+  wrong file. Canonical copies (S3 and Dropbox) are recorded in
+  `inst/extdata/ssot/ssot_sources.json`; see
+  `docs/APPENDIX_SSOT_BY_HASH.md`. These nine exports are now recorded
+  in the pinned `tests/testthat/api-surface.txt` contract.
+
 - **New:
   [`urps_active_ages()`](https://mufflyt.github.io/mufflyaccess/reference/urps_active_ages.md)
   and

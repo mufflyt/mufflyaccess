@@ -136,6 +136,8 @@ Useful links:
 
 - <https://github.com/mufflyt/mufflyaccess>
 
+- <https://mufflyt.github.io/mufflyaccess>
+
 - Report bugs at <https://github.com/mufflyt/mufflyaccess/issues>
 
 ## Author
