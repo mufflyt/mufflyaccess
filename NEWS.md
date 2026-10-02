@@ -7,7 +7,8 @@
   meaningless trailing `0`, merging `"1003028762.0"` into an 11-digit
   `"10030287620"` that was then wrongly rejected as "too many digits"
   (`canon_npi("1003028762.0")` returned `NA`). An all-zero fraction is now
-  dropped before separator stripping, so it canonicalises correctly; a genuine
+  dropped before separator stripping, so the value normalizes to a valid
+  10-digit NPI; a genuine
   non-zero fraction (`"100302876.25"`) is still rejected. This is the fix
   isochrones already carried; promoting it closes the SSOT drift the
   `test-promoted-origin-parity` guard flags (two live implementations of one
