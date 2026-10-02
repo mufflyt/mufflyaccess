@@ -45,6 +45,16 @@ canon_npi <- function(x, verbose = TRUE) {
   rejection_reasons[is_sci] <- "scientific notation"
   x[is_sci] <- NA_character_
 
+  # Drop an all-zero float artifact (e.g. "1003028762.0" from a numeric-typed
+  # CSV round-trip) BEFORE separator stripping. Otherwise the "." is removed
+  # without its now-meaningless trailing "0", merging the value into an 11-digit
+  # "10030287620" that is then wrongly rejected as "too many digits". An NPI has
+  # no fractional part, so an all-zero fraction (".0"/".00"/...) is safe to drop
+  # entirely; a genuine non-zero fraction ("100302876.25") is not an NPI and
+  # still falls through to the existing rejection logic unchanged.
+  float_artifact <- grepl("^[0-9]+\\.0+$", x, perl = TRUE) & !is.na(x)
+  x[float_artifact] <- stringr::str_replace(x[float_artifact], "\\.0+$", "")
+
   # Strip separators, then reject if letters remain
   cleaned <- stringr::str_replace_all(x, "[\\s\\-\\.]", "")
   has_letters <- grepl("[a-zA-Z]", cleaned) & !is.na(x)
