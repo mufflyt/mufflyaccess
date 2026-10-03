@@ -102,29 +102,43 @@ if sorted(surf, key=key) != surf:
     add("WARN", "api-surface", "api-surface.txt is not in the expected sort order")
 
 # --------------------------- CHECK 3: @export tags vs NAMESPACE (structural) ---
-export_tagged = set()
+# Resolve the object each `#' @export` block documents. roxygen attaches the
+# block to the next top-level object: an assignment (`name <- ...`), a bare
+# STRING literal (`"name"`, the supported way to document a pre-assigned
+# object), or a bare SYMBOL (`name`) -- but a bare symbol is NOT a form roxygen
+# will export, so an @export block sitting on one silently produces no export.
+# Resolving all three lets this check catch that bug class.
+export_tagged = {}   # name -> "file:line" of the @export tag
 for f in glob.glob("R/**/*.R", recursive=True):
     lines = open(f, errors="replace").read().splitlines()
     for i, ln in enumerate(lines):
         if not re.match(r"^#'\s*@export\b", ln):
             continue
+        where = f"{f}:{i + 1}"
         m2 = re.match(r"^#'\s*@export\s+(\S+)", ln)
         if m2:
-            export_tagged.add(m2.group(1))
+            export_tagged.setdefault(m2.group(1), where)
             continue
         for j in range(i + 1, min(i + 40, len(lines))):
             if lines[j].startswith("#'"):
                 continue
-            a = re.match(r'^\s*(?:"([^"]+)"|`([^`]+)`|([A-Za-z.][A-Za-z0-9._]*))'
-                         r'\s*(?:<-|=)\s*', lines[j])
+            code = lines[j].strip()
+            a = re.match(r'^(?:"([^"]+)"|`([^`]+)`|([A-Za-z.][A-Za-z0-9._]*))\s*(?:<-|=)', code)
             if a:
-                export_tagged.add(a.group(1) or a.group(2) or a.group(3))
+                export_tagged.setdefault(a.group(1) or a.group(2) or a.group(3), where)
+            else:
+                b = re.match(r'^(?:"([^"]+)"|([A-Za-z.][A-Za-z0-9._]*))\s*$', code)  # bare string/symbol
+                if b:
+                    export_tagged.setdefault(b.group(1) or b.group(2), where)
             break
-tag_only = sorted(export_tagged - ns_exports - ns_s3)
+tag_only = sorted(n for n in export_tagged if n not in ns_exports and n not in ns_s3)
 if tag_only:
+    locs = "; ".join(f"{n} ({export_tagged[n]})" for n in tag_only)
     add("WARN", "docs-in-sync",
-        "@export tag with no matching NAMESPACE export "
-        "(parser may miss dynamically-assigned names): " + ", ".join(tag_only))
+        "@export documented but NOT in NAMESPACE -- the object is silently "
+        "unexported (roxygen won't export a bare-symbol block, or @keywords "
+        "internal on the assignment overrode it; use a \"name\" string literal "
+        "and re-run roxygenise()): " + locs)
 else:
     add("ok", "docs-in-sync", "@export tags reconcile with NAMESPACE exports")
 
