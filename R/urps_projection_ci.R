@@ -85,7 +85,9 @@ urps_ci_param_draw <- function(retirement_sigma_sd = 0.51,
         (length(seed) == 1L && !is.na(seed) &&
           (is.integer(seed) || (is.numeric(seed) && seed == as.integer(seed))))
   )
-  if (!is.null(seed)) set.seed(as.integer(seed))
+  # local_seed, not set.seed: see mc_weighted_ci() -- seeding must not
+  # rewind the caller's RNG stream.
+  if (!is.null(seed)) withr::local_seed(as.integer(seed))
   list(
     retirement_sigma_sd  = retirement_sigma_sd,
     retirement_shift     = stats::rnorm(1L, 0, retirement_sigma_sd),
@@ -198,7 +200,9 @@ urps_projection_ci <- function(project_fn,
   )
   B <- as.integer(B)
   seed <- as.integer(seed)
-  set.seed(seed)
+  # local_seed, not set.seed: see mc_weighted_ci() -- B bootstrap replicates
+  # must stay reproducible without hijacking the caller's RNG state.
+  withr::local_seed(seed)
 
   # Pre-allocate collection: for each scenario × year, store B headcount and FTE values.
   # Use a flat list keyed by "<scenario_id>|<year>" for simplicity.
