@@ -149,7 +149,12 @@ mc_weighted_ci <- function(access, est, se, stat = c("mean", "zero"),
   se[is.na(se)] <- 0
   f <- if (stat == "mean") weighted_mean_all else zero_access_share
   point <- f(access, est)
-  set.seed(seed)
+  # local_seed, not set.seed: a bare set.seed() here silently rewound the
+  # caller's RNG stream, so every call with the default seed left .Random.seed
+  # in the same post-draw state and any subsequent sampling the caller did was
+  # a deterministic replay of the previous call's. Reproducibility is the
+  # argument's job; corrupting ambient RNG state is not.
+  withr::local_seed(seed)
   n <- length(est)
   draws <- vapply(seq_len(B), function(b) f(access, stats::rnorm(n, est, se)), numeric(1))
   q <- stats::quantile(draws, probs, na.rm = TRUE)
