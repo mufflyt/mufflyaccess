@@ -52,10 +52,14 @@ verify_frozen_isochrones <- function(dir, quiet = FALSE) {
   want <- .frozen_iso_manifest()
   if (is.null(dir) || !nzchar(dir) || !dir.exists(dir))
     stop("not a directory: ", dir %||% "<NULL>", call. = FALSE)
-  bad <- character(0); missing <- character(0)
+  bad <- character(0)
+  missing <- character(0)
   for (nm in names(want)) {
     f <- file.path(dir, nm)
-    if (!file.exists(f)) { missing <- c(missing, nm); next }
+    if (!file.exists(f)) {
+      missing <- c(missing, nm)
+      next
+    }
     got <- digest::digest(file = f, algo = "sha256")
     if (!identical(got, unname(want[[nm]]))) bad <- c(bad, nm)
     else if (!quiet) message(sprintf("  verified %s", nm))
@@ -100,8 +104,10 @@ frozen_isochrones_dir <- function(verify = TRUE) {
          "  Set one with use_frozen_isochrones(\"<dir>\"), or fetch the canonical\n",
          "  copy listed in mufflyaccess::frozen_isochrones_provenance().", call. = FALSE)
   for (d in cand) {
-    ok <- tryCatch({ if (verify) verify_frozen_isochrones(d, quiet = TRUE); TRUE },
-                   error = function(e) FALSE)
+    ok <- tryCatch({
+      if (verify) verify_frozen_isochrones(d, quiet = TRUE)
+      TRUE
+    }, error = function(e) FALSE)
     if (ok) return(d)
   }
   stop("none of the configured directories holds the frozen isochrone set:\n  ",

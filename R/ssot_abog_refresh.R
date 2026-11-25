@@ -67,7 +67,10 @@ abog_refresh_path <- function(verify = TRUE) {
          "  Set one with use_abog_refresh(\"<path>\"), or fetch the canonical copy\n",
          "  listed in mufflyaccess::abog_refresh_provenance().", call. = FALSE)
   for (p in cand) {
-    ok <- tryCatch({ if (verify) verify_abog_refresh(p); TRUE }, error = function(e) FALSE)
+    ok <- tryCatch({
+      if (verify) verify_abog_refresh(p)
+      TRUE
+    }, error = function(e) FALSE)
     if (ok) return(p)
   }
   stop("none of the configured paths is the canonical ABOG refresh:\n  ",
@@ -82,7 +85,12 @@ abog_refresh_path <- function(verify = TRUE) {
 #' @return A data frame of 79,398 registry rows.
 #' @export
 read_abog_refresh <- function(path = NULL) {
-  p <- if (is.null(path)) abog_refresh_path(verify = TRUE) else { verify_abog_refresh(path); path }
+  p <- if (is.null(path)) {
+    abog_refresh_path(verify = TRUE)
+  } else {
+    verify_abog_refresh(path)
+    path
+  }
   d <- utils::read.csv(p, stringsAsFactors = FALSE)
   need <- c("userid", "name", "startDate", "certStatus", "mocStatus",
             "city", "state", "ID", "ScrapedAt", "refresh_source")
