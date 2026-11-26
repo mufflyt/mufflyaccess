@@ -12,6 +12,13 @@ test_that("standardize_state_name maps names/codes/territories both directions",
   )
   expect_equal(standardize_state_name("District of Columbia", output = "abbr"), "DC")
   expect_equal(standardize_state_name("dc", output = "name"), "District of Columbia")
+  expect_equal(
+    standardize_state_name(c("U.S. Virgin Islands", "US Virgin Islands",
+                             "U S Virgin Islands", "Virgin Islands", "vi"),
+                           output = "abbr"),
+    rep("VI", 5L)
+  )
+  expect_equal(standardize_state_name("vi", output = "name"), "U.S. Virgin Islands")
 })
 
 test_that("standardize_state_name unmapped fallback + case/whitespace/dot cleaning", {

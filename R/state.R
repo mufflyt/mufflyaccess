@@ -53,8 +53,11 @@ standardize_state_name <- function(x, output = c("name", "abbr")) {
   to_name <- stats::setNames(names_all, abbr_all)
   to_abbr <- stats::setNames(
     abbr_all,
-    toupper(names_all)
+    toupper(gsub("[.]", "", names_all))
   )
+  to_abbr <- c(to_abbr,
+               "VIRGIN ISLANDS" = "VI",
+               "U S VIRGIN ISLANDS" = "VI")
 
   clean <- function(s) {
     s <- as.character(s)

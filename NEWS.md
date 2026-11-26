@@ -1,3 +1,14 @@
+# mufflyaccess 0.12.1
+
+* **Fix: `standardize_state_name()` now resolves the U.S. Virgin Islands in
+  name-to-abbreviation direction.** The cleanup intentionally strips periods
+  from inputs, but the lookup table still keyed the canonical territory name as
+  `"U.S. VIRGIN ISLANDS"`. `"U.S. Virgin Islands"`, `"US Virgin Islands"`,
+  `"U S Virgin Islands"`, and `"Virgin Islands"` therefore returned `NA`
+  despite the documented five-territory support. The lookup now normalizes
+  punctuation the same way as its input and carries the common Virgin Islands
+  aliases.
+
 # mufflyaccess 0.12.0
 
 * **Fix: `canon_npi()` now rescues float-artifact NPIs (`"1003028762.0"`),
